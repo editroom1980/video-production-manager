@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="動画制作管理">
+<meta name="theme-color" content="#F2F2F7">
+<title>動画制作管理</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap');
+
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+
+:root{
+  --blue:#007AFF;
+  --red:#FF3B30;
+  --green:#34C759;
+  --orange:#FF9500;
+  --purple:#5856D6;
+  --gray:#8E8E93;
+  --gray2:#C7C7CC;
+  --gray3:#E5E5EA;
+  --gray4:#F2F2F7;
+  --text:#000000;
+  --text2:#3C3C43;
+  --text3:#8E8E93;
+  --separator:rgba(60,60,67,0.18);
+  --bg:#F2F2F7;
+  --card:#FFFFFF;
+  --radius:12px;
+  --radius-lg:16px;
+  --safe-bottom:env(safe-area-inset-bottom, 0px);
+}
+
+html,body{
+  height:100%;
+  font-family:-apple-system,BlinkMacSystemFont,'Noto Sans JP','Helvetica Neue',Arial,sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  font-size:17px;
+  line-height:1.4;
+  overflow-x:hidden;
+}
+
+/* ─── Nav Bar ─── */
+.nav-bar{
+  position:sticky;top:0;z-index:100;
+  background:rgba(242,242,247,0.92);
+  backdrop-filter:saturate(180%) blur(20px);
+  -webkit-backdrop-filter:saturate(180%) blur(20px);
+  padding:env(safe-area-inset-top,0) 16px 0;
+  border-bottom:0.5px solid var(--separator);
+}
+
+.nav-inner{padding:12px 0 8px}
+
+.nav-large-title{
+  font-size:34px;font-weight:700;
+  color:var(--red);margin-bottom:10px;letter-spacing:-0.5px;
+}
+
+.nav-search{
+  display:flex;align-items:center;
+  background:rgba(118,118,128,0.12);
+  border-radius:10px;padding:7px 10px;gap:6px;
+}
+
+.nav-search svg{width:16px;height:16px;stroke:var(--gray);fill:none;stroke-width:2;stroke-linecap:round;flex-shrink:0}
+
+.nav-search input{
+  border:none;background:transparent;font-size:15px;
+  color:var(--text);font-family:inherit;width:100%;outline:none;
+}
+
+.nav-search input::placeholder{color:var(--gray)}
+
+/* ─── Smart Grid ─── */
+.smart-grid{
+  display:grid;grid-template-columns:1fr 1fr;
+  gap:10px;padding:16px 16px 0;
+}
+
+.smart-card{
+  background:var(--card);border-radius:var(--radius-lg);
+  padding:14px 14px 10px;cursor:pointer;
+  transition:transform 0.1s,opacity 0.1s;
+  -webkit-user-select:none;user-select:none;
+}
+
+.smart-card:active{transform:scale(0.97);opacity:0.8}
+
+.smart-icon{
+  width:34px;height:34px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;margin-bottom:8px;
+}
+
+.smart-icon svg{width:18px;height:18px;fill:none;stroke:#fff;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+
+.ic-all{background:var(--blue)}
+.ic-urgent{background:var(--red)}
+.ic-today{background:var(--orange)}
+.ic-done{background:var(--green)}
+
+.smart-count{font-size:28px;font-weight:700;line-height:1}
+.smart-label{font-size:13px;color:var(--gray);margin-top:2px;font-weight:500}
+
+/* ─── Section Header ─── */
+.section-hd{
+  padding:24px 16px 6px;
+  display:flex;justify-content:space-between;align-items:center;
+}
+
+.section-title{font-size:22px;font-weight:700;color:var(--text);letter-spacing:-0.3px}
+
+.btn-add-inline{
+  width:28px;height:28px;border-radius:50%;
+  background:var(--blue);border:none;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:transform 0.1s,opacity 0.1s;
+}
+
+.btn-add-inline svg{width:16px;height:16px;stroke:#fff;fill:none;stroke-width:2.5;stroke-linecap:round}
+.btn-add-inline:active{transform:scale(0.9);opacity:0.8}
+
+/* ─── List Card ─── */
+.list-card{
+  background:var(--card);border-radius:var(--radius-lg);
+  margin:0 16px 10px;overflow:hidden;
+}
+
+.list-row{
+  display:flex;align-items:center;
+  padding:12px 16px;
+  border-bottom:0.5px solid var(--separator);
+  cursor:pointer;gap:12px;
+  transition:background 0.1s;
+  -webkit-user-select:none;user-select:none;
+}
+
+.list-row:last-child{border-bottom:none}
+.list-row:active{background:rgba(0,0,0,0.04)}
+
+.check-ring{
+  width:24px;height:24px;border-radius:50%;
+  border:2px solid var(--gray2);
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;transition:all 0.2s;cursor:pointer;background:transparent;
+}
+
+.check-ring.checked{background:var(--blue);border-color:var(--blue)}
+.check-ring svg{width:13px;height:13px;stroke:#fff;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;opacity:0;transition:opacity 0.15s}
+.check-ring.checked svg{opacity:1}
+
+.row-content{flex:1;min-width:0}
+
+.row-title{font-size:17px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row-title.done-text{color:var(--gray);text-decoration:line-through}
+
+.row-subtitle{font-size:13px;color:var(--text3);margin-top:2px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+
+.deadline-tag{font-size:12px;font-weight:500;padding:2px 7px;border-radius:6px}
+.tag-red{color:var(--red);background:rgba(255,59,48,0.1)}
+.tag-orange{color:var(--orange);background:rgba(255,149,0,0.1)}
+.tag-green{color:var(--green);background:rgba(52,199,89,0.1)}
+
+.row-right{display:flex;align-items:center;gap:6px;flex-shrink:0}
+
+.prog-ring{width:28px;height:28px}
+
+.chevron{width:8px;height:14px;stroke:var(--gray2);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+/* ─── Empty ─── */
+.empty{text-align:center;padding:60px 32px;color:var(--gray)}
+.empty-icon{font-size:52px;margin-bottom:12px;opacity:0.3}
+.empty-title{font-size:17px;font-weight:600;color:var(--text2);margin-bottom:6px}
+.empty-sub{font-size:14px}
+
+/* ─── FAB ─── */
+.fab-bar{
+  position:fixed;bottom:0;left:0;right:0;
+  background:rgba(242,242,247,0.92);
+  backdrop-filter:saturate(180%) blur(20px);
+  -webkit-backdrop-filter:saturate(180%) blur(20px);
+  border-top:0.5px solid var(--separator);
+  padding:12px 20px;
+  padding-bottom:calc(12px + var(--safe-bottom));
+  display:flex;justify-content:flex-end;
+}
+
+.fab{
+  display:flex;align-items:center;gap:6px;
+  background:transparent;border:none;cursor:pointer;
+  color:var(--blue);font-size:17px;font-family:inherit;
+  padding:4px;transition:opacity 0.1s;
+}
+
+.fab:active{opacity:0.6}
+.fab svg{width:22px;height:22px;stroke:var(--blue);fill:none;stroke-width:1.8;stroke-linecap:round}
+
+.bottom-space{height:80px}
+
+/* ─── Sheet ─── */
+.sheet-bg{
+  display:none;position:fixed;inset:0;
+  background:rgba(0,0,0,0.4);z-index:200;
+  align-items:flex-end;justify-content:center;
+}
+
+.sheet-bg.open{display:flex;animation:fi 0.2s}
+@keyframes fi{from{opacity:0}to{opacity:1}}
+
+.sheet{
+  background:var(--card);width:100%;max-width:600px;
+  border-radius:16px 16px 0 0;
+  padding:8px 0;
+  padding-bottom:calc(24px + var(--safe-bottom));
+  animation:su 0.3s cubic-bezier(0.4,0,0.2,1);
+  max-height:92vh;overflow-y:auto;
+}
+
+@keyframes su{from{transform:translateY(100%)}to{transform:translateY(0)}}
+
+.sheet-handle{width:36px;height:4px;border-radius:2px;background:var(--gray3);margin:0 auto 16px}
+.sheet-title{font-size:17px;font-weight:600;text-align:center;padding:0 16px 16px;color:var(--text)}
+
+/* Form */
+.form-section{background:var(--gray4);margin:8px 16px;border-radius:var(--radius);overflow:hidden}
+
+.form-row{
+  display:flex;align-items:center;
+  padding:12px 16px;border-bottom:0.5px solid var(--separator);gap:10px;
+}
+
+.form-row:last-child{border-bottom:none}
+
+.form-icon{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.form-icon svg{width:15px;height:15px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+.fic-title{background:var(--red)}
+.fic-date{background:var(--blue)}
+.fic-note{background:var(--orange)}
+
+.form-row label{font-size:14px;color:var(--gray);width:60px;flex-shrink:0;font-weight:500}
+
+.form-row input,.form-row textarea{
+  flex:1;border:none;background:transparent;
+  font-size:16px;color:var(--text);font-family:inherit;outline:none;
+}
+
+.form-row textarea{resize:none;min-height:60px}
+
+.sheet-actions{display:flex;gap:10px;padding:16px}
+
+.sht-btn{
+  flex:1;padding:14px;border-radius:var(--radius);
+  font-size:17px;font-weight:500;border:none;cursor:pointer;
+  font-family:inherit;transition:opacity 0.1s;
+}
+
+.sht-btn:active{opacity:0.7}
+.sht-cancel{background:var(--gray4);color:var(--blue)}
+.sht-create{background:var(--blue);color:#fff}
+
+/* Detail */
+.detail-title{font-size:20px;font-weight:700;padding:0 20px 4px;color:var(--text);letter-spacing:-0.3px}
+.detail-subtitle{font-size:14px;color:var(--gray);padding:0 20px 16px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+
+.prog-section{
+  padding:16px;margin:8px 16px;
+  background:var(--gray4);border-radius:var(--radius);
+  display:flex;align-items:center;gap:16px;
+}
+
+.prog-pct{font-size:28px;font-weight:700;color:var(--text);letter-spacing:-0.5px}
+.prog-sub{font-size:13px;color:var(--gray);margin-top:2px}
+
+/* Integration */
+.int-section{padding:14px 16px;margin:8px 16px;background:var(--gray4);border-radius:var(--radius)}
+.int-title{font-size:12px;font-weight:600;color:var(--gray);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px}
+
+.int-btn{
+  display:flex;align-items:center;gap:12px;
+  padding:11px 12px;background:var(--card);
+  border-radius:10px;border:none;cursor:pointer;
+  font-family:inherit;font-size:15px;color:var(--blue);
+  font-weight:500;width:100%;text-align:left;
+  transition:opacity 0.1s;margin-bottom:8px;
+}
+
+.int-btn:last-child{margin-bottom:0}
+.int-btn:active{opacity:0.6}
+
+.int-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.int-icon svg{width:17px;height:17px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+.int-google{background:#4285F4}
+.int-shortcut{background:var(--purple)}
+
+/* Process list */
+.proc-card{background:var(--gray4);margin:8px 16px;border-radius:var(--radius);overflow:hidden}
+.proc-hd{padding:10px 16px;font-size:12px;font-weight:600;color:var(--gray);text-transform:uppercase;letter-spacing:0.5px;border-bottom:0.5px solid var(--separator)}
+
+.proc-row{display:flex;align-items:center;gap:12px;padding:11px 16px;border-bottom:0.5px solid var(--separator)}
+.proc-row:last-child{border-bottom:none}
+
+.proc-check{
+  width:22px;height:22px;border-radius:50%;
+  border:2px solid var(--gray2);
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;flex-shrink:0;transition:all 0.2s;background:transparent;
+}
+
+.proc-check.on{background:var(--blue);border-color:var(--blue)}
+.proc-check svg{width:12px;height:12px;stroke:#fff;fill:none;stroke-width:2.8;stroke-linecap:round;stroke-linejoin:round;opacity:0;transition:opacity 0.15s}
+.proc-check.on svg{opacity:1}
+
+.proc-name{font-size:15px;color:var(--text);flex:1}
+.proc-row.pdone .proc-name{color:var(--gray);text-decoration:line-through}
+
+/* Notes */
+.notes-card{background:var(--gray4);margin:8px 16px;border-radius:var(--radius);padding:12px 16px}
+.notes-label{font-size:12px;font-weight:600;color:var(--gray);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px}
+.notes-body{font-size:14px;color:var(--text);line-height:1.5}
+
+/* Delete */
+.del-btn{
+  margin:8px 16px;padding:14px;background:var(--gray4);
+  border-radius:var(--radius);border:none;cursor:pointer;
+  font-family:inherit;font-size:17px;color:var(--red);
+  font-weight:500;width:calc(100% - 32px);transition:opacity 0.1s;
+}
+
+.del-btn:active{opacity:0.6}
+
+/* Toast */
+.toast{
+  position:fixed;bottom:90px;left:50%;transform:translateX(-50%);
+  background:rgba(0,0,0,0.76);color:#fff;
+  padding:10px 20px;border-radius:20px;font-size:14px;
+  opacity:0;transition:opacity 0.3s;pointer-events:none;
+  white-space:nowrap;z-index:999;
+}
+
+.toast.show{opacity:1}
+
+/* Shortcut Guide */
+.guide-section{
+  background:rgba(88,86,214,0.08);
+  margin:8px 16px;border-radius:var(--radius);
+  padding:14px 16px;border:0.5px solid rgba(88,86,214,0.2);
+}
+
+.guide-title{font-size:13px;font-weight:600;color:var(--purple);margin-bottom:8px}
+.guide-step{font-size:13px;color:var(--text2);line-height:1.8;padding-left:4px}
+</style>
+</head>
+<body>
+
+<div class="nav-bar">
+  <div class="nav-inner">
+    <div class="nav-large-title">動画制作管理</div>
+    <div class="nav-search">
+      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" placeholder="検索" id="searchInput" oninput="doFilter()" autocomplete="off" autocorrect="off" spellcheck="false">
+    </div>
+  </div>
+</div>
+
+<div class="smart-grid" id="smartGrid"></div>
+
+<div class="section-hd">
+  <div class="section-title">プロジェクト</div>
+  <button class="btn-add-inline" onclick="openCreate()">
+    <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+  </button>
+</div>
+
+<div id="listArea"></div>
+<div class="bottom-space"></div>
+
+<div class="fab-bar">
+  <button class="fab" onclick="openCreate()">
+    <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    新規
+  </button>
+</div>
+
+<!-- Create Sheet -->
+<div class="sheet-bg" id="createSheet" onclick="bgClose(event,'createSheet')">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">新規プロジェクト</div>
+    <div class="form-section">
+      <div class="form-row">
+        <div class="form-icon fic-title">
+          <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+        </div>
+        <label>タイトル</label>
+        <input type="text" id="pName" placeholder="プロジェクト名" autocomplete="off">
+      </div>
+      <div class="form-row">
+        <div class="form-icon fic-date">
+          <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg>
+        </div>
+        <label>納期</label>
+        <input type="date" id="pDeadline">
+      </div>
+      <div class="form-row">
+        <div class="form-icon fic-note">
+          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/></svg>
+        </div>
+        <label>メモ</label>
+        <textarea id="pNotes" placeholder="備考（任意）" rows="2"></textarea>
+      </div>
+    </div>
+    <div class="sheet-actions">
+      <button class="sht-btn sht-cancel" onclick="closeCreate()">キャンセル</button>
+      <button class="sht-btn sht-create" onclick="createProject()">追加</button>
+    </div>
+  </div>
+</div>
+
+<!-- Detail Sheet -->
+<div class="sheet-bg" id="detailSheet" onclick="bgClose(event,'detailSheet')">
+  <div class="sheet" id="detailContent"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const PROCS = [
+  '企画・構成', '撮影', '粗編集',
+  'ナレーション・音声収録', '本編集',
+  'クライアント確認', '修正対応', '最終納品'
+];
+
+let projects = JSON.parse(localStorage.getItem('vpm_v4') || '[]');
+let activeId = null;
+let currentFilter = 'all';
+let searchQ = '';
+
+function save() {
+  localStorage.setItem('vpm_v4', JSON.stringify(projects));
+}
+
+function dlStatus(d) {
+  const n = new Date(); n.setHours(0,0,0,0);
+  const t = new Date(d);
+  const diff = Math.ceil((t - n) / 86400000);
+  if (diff < 0) return { label:'期限超過', cls:'tag-red', cat:'urgent' };
+  if (diff === 0) return { label:'今日', cls:'tag-red', cat:'urgent' };
+  if (diff <= 3) return { label:`残り${diff}日`, cls:'tag-red', cat:'urgent' };
+  if (diff <= 7) return { label:`残り${diff}日`, cls:'tag-orange', cat:'warning' };
+  return { label:`残り${diff}日`, cls:'tag-green', cat:'safe' };
+}
+
+function getPct(procs) {
+  return Math.round(procs.filter(p => p.done).length / procs.length * 100);
+}
+
+function fmtDate(s) {
+  const d = new Date(s);
+  return `${d.getFullYear()}/${d.getMonth()+1}/${d.getDate()}`;
+}
+
+function fmtGcal(s) { return s.replace(/-/g, ''); }
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+function svgCheck() {
+  return `<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>`;
+}
+
+function mkRing(p, size) {
+  const r = (size/2) - 3.5;
+  const circ = 2 * Math.PI * r;
+  const offset = circ - (p/100) * circ;
+  const c = size/2;
+  const color = p === 100 ? '#34C759' : '#007AFF';
+  return `<svg class="prog-ring" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+    <circle cx="${c}" cy="${c}" r="${r}" fill="none" stroke="#E5E5EA" stroke-width="3"/>
+    <circle cx="${c}" cy="${c}" r="${r}" fill="none" stroke="${color}" stroke-width="3"
+      stroke-dasharray="${circ.toFixed(1)}" stroke-dashoffset="${offset.toFixed(1)}"
+      transform="rotate(-90 ${c} ${c})"/>
+  </svg>`;
+}
+
+function bgClose(e, id) {
+  if (e.target === e.currentTarget) {
+    document.getElementById(id).classList.remove('open');
+    if (id === 'detailSheet') activeId = null;
+  }
+}
+
+/* ── Smart Grid ── */
+function renderSmartGrid() {
+  const total = projects.length;
+  const urgent = projects.filter(p => dlStatus(p.deadline).cat === 'urgent' && getPct(p.procs) < 100).length;
+  const today = new Date(); today.setHours(0,0,0,0);
+  const todayCount = projects.filter(p => {
+    const d = new Date(p.deadline); d.setHours(0,0,0,0);
+    return d.getTime() === today.getTime();
+  }).length;
+  const done = projects.filter(p => getPct(p.procs) === 100).length;
+
+  document.getElementById('smartGrid').innerHTML = `
+    <div class="smart-card" onclick="filterBy('all')">
+      <div class="smart-icon ic-all">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      </div>
+      <div class="smart-count">${total}</div>
+      <div class="smart-label">すべて</div>
+    </div>
+    <div class="smart-card" onclick="filterBy('urgent')">
+      <div class="smart-icon ic-urgent">
+        <svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      </div>
+      <div class="smart-count">${urgent}</div>
+      <div class="smart-label">緊急</div>
+    </div>
+    <div class="smart-card" onclick="filterBy('today')">
+      <div class="smart-icon ic-today">
+        <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg>
+      </div>
+      <div class="smart-count">${todayCount}</div>
+      <div class="smart-label">今日</div>
+    </div>
+    <div class="smart-card" onclick="filterBy('done')">
+      <div class="smart-icon ic-done">
+        <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <div class="smart-count">${done}</div>
+      <div class="smart-label">完了</div>
+    </div>
+  `;
+}
+
+/* ── List ── */
+function filterBy(f) { currentFilter = f; renderList(); }
+function doFilter() { searchQ = document.getElementById('searchInput').value.toLowerCase(); renderList(); }
+
+function getFiltered() {
+  let list = [...projects];
+  if (searchQ) list = list.filter(p => p.name.toLowerCase().includes(searchQ) || (p.notes||'').toLowerCase().includes(searchQ));
+  if (currentFilter === 'urgent') list = list.filter(p => dlStatus(p.deadline).cat === 'urgent' && getPct(p.procs) < 100);
+  else if (currentFilter === 'today') {
+    const t = new Date(); t.setHours(0,0,0,0);
+    list = list.filter(p => { const d = new Date(p.deadline); d.setHours(0,0,0,0); return d.getTime() === t.getTime(); });
+  }
+  else if (currentFilter === 'done') list = list.filter(p => getPct(p.procs) === 100);
+  return list;
+}
+
+function renderList() {
+  const list = getFiltered();
+  const area = document.getElementById('listArea');
+  if (!list.length) {
+    area.innerHTML = `<div class="empty"><div class="empty-icon">📋</div><div class="empty-title">プロジェクトがありません</div><div class="empty-sub">右下のボタンから追加できます</div></div>`;
+    return;
+  }
+  const card = document.createElement('div');
+  card.className = 'list-card';
+  card.innerHTML = list.map(p => {
+    const d = dlStatus(p.deadline);
+    const g = getPct(p.procs);
+    const isDone = g === 100;
+    return `<div class="list-row" onclick="openDetail(${p.id})">
+      <div class="check-ring ${isDone?'checked':''}" onclick="event.stopPropagation();toggleAllDone(${p.id})">
+        ${svgCheck()}
+      </div>
+      <div class="row-content">
+        <div class="row-title ${isDone?'done-text':''}">${p.name}</div>
+        <div class="row-subtitle">
+          <span>${fmtDate(p.deadline)}</span>
+          <span class="deadline-tag ${isDone?'tag-green':d.cls}">${isDone?'完了':d.label}</span>
+        </div>
+      </div>
+      <div class="row-right">
+        ${mkRing(g, 28)}
+        <svg class="chevron" viewBox="0 0 8 14"><polyline points="1 1 7 7 1 13"/></svg>
+      </div>
+    </div>`;
+  }).join('');
+  area.innerHTML = '';
+  area.appendChild(card);
+}
+
+function toggleAllDone(id) {
+  const p = projects.find(x => x.id === id);
+  if (!p) return;
+  const allDone = p.procs.every(x => x.done);
+  p.procs.forEach(x => x.done = !allDone);
+  save(); renderAll();
+}
+
+function renderAll() { renderSmartGrid(); renderList(); }
+
+/* ── Create ── */
+function openCreate() {
+  document.getElementById('pName').value = '';
+  document.getElementById('pDeadline').value = '';
+  document.getElementById('pNotes').value = '';
+  document.getElementById('createSheet').classList.add('open');
+  setTimeout(() => document.getElementById('pName').focus(), 400);
+}
+
+function closeCreate() { document.getElementById('createSheet').classList.remove('open'); }
+
+function createProject() {
+  const name = document.getElementById('pName').value.trim();
+  const deadline = document.getElementById('pDeadline').value;
+  if (!name || !deadline) { showToast('タイトルと納期を入力してください'); return; }
+  const p = {
+    id: Date.now(), name, deadline,
+    notes: document.getElementById('pNotes').value.trim(),
+    procs: PROCS.map(n => ({ name: n, done: false })),
+    created: new Date().toISOString()
+  };
+  projects.unshift(p);
+  save(); closeCreate(); renderAll();
+  showToast('プロジェクトを追加しました');
+}
+
+/* ── Detail ── */
+function openDetail(id) {
+  activeId = id;
+  renderDetail();
+  document.getElementById('detailSheet').classList.add('open');
+}
+
+function closeDetail() {
+  document.getElementById('detailSheet').classList.remove('open');
+  activeId = null;
+}
+
+function buildGcalUrl(p) {
+  const dt = fmtGcal(p.deadline);
+  const d = new Date(p.deadline); d.setDate(d.getDate() + 1);
+  const dtEnd = `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;
+  const title = encodeURIComponent(`【納期】${p.name}`);
+  const details = encodeURIComponent(`動画制作プロジェクト: ${p.name}\n納期: ${fmtDate(p.deadline)}${p.notes ? '\n備考: '+p.notes : ''}`);
+  return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${dt}/${dtEnd}&details=${details}`;
+}
+
+function buildShortcutUrl(p) {
+  const input = encodeURIComponent(`【納期】${p.name}　${fmtDate(p.deadline)}`);
+  return `shortcuts://run-shortcut?name=${encodeURIComponent('動画納期リマインダー')}&input=${input}`;
+}
+
+function renderDetail() {
+  const p = projects.find(x => x.id === activeId);
+  if (!p) return;
+  const d = dlStatus(p.deadline);
+  const g = getPct(p.procs);
+  const doneCount = p.procs.filter(x => x.done).length;
+
+  document.getElementById('detailContent').innerHTML = `
+    <div class="sheet-handle"></div>
+    <div class="detail-title">${p.name}</div>
+    <div class="detail-subtitle">
+      <span>${fmtDate(p.deadline)}</span>
+      <span class="deadline-tag ${g===100?'tag-green':d.cls}">${g===100?'完了':d.label}</span>
+    </div>
+
+    <div class="prog-section">
+      ${mkRing(g, 56)}
+      <div>
+        <div class="prog-pct">${g}%</div>
+        <div class="prog-sub">${doneCount}/${p.procs.length} 工程完了</div>
+      </div>
+    </div>
+
+    <div class="int-section">
+      <div class="int-title">連携</div>
+      <button class="int-btn" onclick="openGcal()">
+        <div class="int-icon int-google">
+          <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg>
+        </div>
+        Googleカレンダーに追加
+      </button>
+      <button class="int-btn" onclick="openShortcut()">
+        <div class="int-icon int-shortcut">
+          <svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+        </div>
+        リマインダーに追加（ショートカット）
+      </button>
+    </div>
+
+    <div class="proc-card">
+      <div class="proc-hd">工程チェックリスト</div>
+      ${p.procs.map((proc, i) => `
+        <div class="proc-row ${proc.done?'pdone':''}">
+          <div class="proc-check ${proc.done?'on':''}" onclick="toggleProc(${p.id},${i})">
+            ${svgCheck()}
+          </div>
+          <span class="proc-name">${proc.name}</span>
+        </div>
+      `).join('')}
+    </div>
+
+    ${p.notes ? `
+    <div class="notes-card">
+      <div class="notes-label">メモ</div>
+      <div class="notes-body">${p.notes}</div>
+    </div>` : ''}
+
+    <div class="guide-section">
+      <div class="guide-title">📌 ショートカット連携の初回設定</div>
+      <div class="guide-step">
+        1. iPhoneの「ショートカット」アプリを開く<br>
+        2. 右上の「＋」で新規作成<br>
+        3. 「アクションを追加」→「リマインダーを追加」を選択<br>
+        4. 名前を「動画納期リマインダー」にして保存<br>
+        5. 次回から上のボタンで自動追加されます
+      </div>
+    </div>
+
+    <button class="del-btn" onclick="deleteProject()">このプロジェクトを削除</button>
+
+    <div style="padding:0 16px 8px">
+      <button class="sht-btn sht-cancel" style="width:100%" onclick="closeDetail()">閉じる</button>
+    </div>
+  `;
+
+  window._gcalUrl = buildGcalUrl(p);
+  window._scUrl = buildShortcutUrl(p);
+}
+
+function openGcal() { window.open(window._gcalUrl, '_blank'); showToast('Googleカレンダーを開きます'); }
+function openShortcut() { window.location.href = window._scUrl; showToast('ショートカットを起動します'); }
+
+function toggleProc(id, i) {
+  const p = projects.find(x => x.id === id);
+  if (!p) return;
+  p.procs[i].done = !p.procs[i].done;
+  save(); renderAll(); renderDetail();
+}
+
+function deleteProject() {
+  if (confirm('このプロジェクトを削除しますか？')) {
+    projects = projects.filter(p => p.id !== activeId);
+    save(); closeDetail(); renderAll();
+    showToast('削除しました');
+  }
+}
+
+renderAll();
+</script>
+</body>
+</html>

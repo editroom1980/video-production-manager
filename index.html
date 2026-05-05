@@ -2,755 +2,2293 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="動画制作管理">
-<meta name="theme-color" content="#F2F2F7">
-<title>動画制作管理</title>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="EditFlow">
+<meta name="theme-color" content="#06060d">
+<title>EditFlow — 動画編集工程管理</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap');
+/* ═══════════════════════════════════════════════════════════
+   EditFlow v1.0 — Design System
+   Metallic dark UI inspired by industrial filmstrip aesthetic
+═══════════════════════════════════════════════════════════ */
 
-*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 
 :root{
-  --blue:#007AFF;
-  --red:#FF3B30;
-  --green:#34C759;
-  --orange:#FF9500;
-  --purple:#5856D6;
-  --gray:#8E8E93;
-  --gray2:#C7C7CC;
-  --gray3:#E5E5EA;
-  --gray4:#F2F2F7;
-  --text:#000000;
-  --text2:#3C3C43;
-  --text3:#8E8E93;
-  --separator:rgba(60,60,67,0.18);
-  --bg:#F2F2F7;
-  --card:#FFFFFF;
-  --radius:12px;
-  --radius-lg:16px;
-  --safe-bottom:env(safe-area-inset-bottom, 0px);
+  /* Background tones */
+  --bg-deepest:#04040a;
+  --bg-deep:#06060d;
+  --bg-base:#0a0a14;
+  --bg-elev1:#101018;
+  --bg-elev2:#161624;
+  /* Text */
+  --tx-hi:#f0f6fc;
+  --tx:#dce8f8;
+  --tx-mid:#8898bc;
+  --tx-low:#4a5878;
+  --tx-faint:#2a3458;
+  /* Accents — urgency colors */
+  --red:#dc2828; --red-hi:#ff4040; --red-glow:rgba(255,55,55,0.55); --red-dim:#761010;
+  --orange:#c46808; --orange-hi:#ff9210; --orange-glow:rgba(255,148,16,0.50); --orange-dim:#5e2a08;
+  --silver:#7a8090; --silver-hi:#9aa2b2; --silver-glow:rgba(160,170,185,0.30); --silver-dim:#3a3e48;
+  /* Tab/UI accents */
+  --accent-blue:#4a78d4;
+  --accent-blue-glow:rgba(120,170,255,0.4);
+  /* Separators */
+  --sep:rgba(135,170,255,0.06);
+  --sep-strong:rgba(135,170,255,0.16);
+  /* Card metallic */
+  --card-bg:linear-gradient(168deg,#2c2b2c 0%,#242324 22%,#1c1b1c 48%,#161516 72%,#111011 100%);
+  --card-bg-brushed:repeating-linear-gradient(102deg,transparent 0,transparent 7px,rgba(255,255,255,0.018) 7px,rgba(255,255,255,0.018) 8px);
+  --card-border:rgba(255,255,255,0.1);
+  --card-shadow:inset 0 2px 0 rgba(255,255,255,0.18),inset 0 -1px 0 rgba(0,0,0,0.55),0 4px 16px rgba(0,0,0,0.58);
+  /* Sheet */
+  --sheet-bg:linear-gradient(165deg,#1a1a26 0%,#121220 30%,#0a0a18 60%,#060614 100%);
+  /* Spacing */
+  --r-sm:6px; --r:10px; --r-lg:14px; --r-xl:20px;
 }
 
 html,body{
   height:100%;
-  font-family:-apple-system,BlinkMacSystemFont,'Noto Sans JP','Helvetica Neue',Arial,sans-serif;
-  background:var(--bg);
-  color:var(--text);
-  font-size:17px;
+  background:var(--bg-deepest);
+  color:var(--tx);
+  font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue','Hiragino Sans','Noto Sans JP',sans-serif;
+  font-size:14px;
   line-height:1.4;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  overscroll-behavior-y:contain;
+}
+
+body{
+  background:radial-gradient(ellipse at 50% 0%,#1a1a28 0%,#08080f 50%,#030307 100%);
+  min-height:100vh;
+  min-height:100dvh;
+}
+
+/* ───── App Shell ───── */
+#app{
+  display:flex;
+  flex-direction:column;
+  width:100%;
+  max-width:480px;
+  height:100vh;
+  height:100dvh;
+  margin:0 auto;
+  position:relative;
+  background:var(--bg-deepest);
+  overflow:hidden;
+  padding-top:env(safe-area-inset-top);
+}
+
+/* ───── Top Bar ───── */
+.topbar{
+  flex-shrink:0;
+  padding:10px 14px 0;
+  background:linear-gradient(180deg,rgba(20,22,40,0.8),rgba(8,8,16,0.95));
+  border-bottom:.5px solid var(--sep);
+  position:relative;
+}
+.topbar::after{
+  content:'';position:absolute;left:0;right:0;bottom:-1px;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(180,210,255,0.32) 50%,transparent);
+}
+.brand{
+  display:flex;align-items:center;justify-content:space-between;
+  height:32px;
+}
+.brand-name{
+  font-size:13px;font-weight:800;letter-spacing:1.5px;
+  color:#dce8f8;
+  text-shadow:0 1px 6px rgba(120,160,255,0.3);
+}
+.brand-name em{
+  font-style:normal;
+  background:linear-gradient(180deg,#a8c8f0,#5870a8);
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+}
+.brand-version{
+  font-size:9px;font-weight:600;letter-spacing:.5px;
+  color:var(--tx-low);
+  font-variant-numeric:tabular-nums;
+}
+
+/* ───── Tabs ───── */
+.tabs{
+  display:flex;
+  background:linear-gradient(180deg,rgba(11,12,22,0.99),rgba(6,7,14,0.99));
+  position:relative;
+  border-top:.5px solid var(--sep);
+}
+.tab{
+  flex:1;
+  background:none;border:none;
+  padding:11px 0;
+  font:700 11px/1 -apple-system,sans-serif;
+  letter-spacing:1.2px;
+  color:rgba(124,152,225,0.32);
+  cursor:pointer;
+  position:relative;
+  transition:color .2s;
+}
+.tab.on{
+  color:var(--tx-hi);
+  background:linear-gradient(180deg,rgba(178,212,255,0.07),rgba(118,162,242,0.02));
+}
+.tab.on::after{
+  content:'';position:absolute;bottom:0;left:15%;right:15%;height:1.5px;
+  background:linear-gradient(90deg,transparent,rgba(178,224,255,0.85) 35%,rgba(212,248,255,0.98) 50%,rgba(178,224,255,0.85) 65%,transparent);
+  box-shadow:0 0 6px rgba(170,220,255,0.4);
+}
+
+/* ───── Main scroll area ───── */
+.main{
+  flex:1;
+  overflow-y:auto;
   overflow-x:hidden;
+  -webkit-overflow-scrolling:touch;
+  padding-bottom:calc(80px + env(safe-area-inset-bottom));
+  position:relative;
 }
 
-/* ─── Nav Bar ─── */
-.nav-bar{
-  position:sticky;top:0;z-index:100;
-  background:rgba(242,242,247,0.92);
-  backdrop-filter:saturate(180%) blur(20px);
-  -webkit-backdrop-filter:saturate(180%) blur(20px);
-  padding:env(safe-area-inset-top,0) 16px 0;
-  border-bottom:0.5px solid var(--separator);
+/* ═══════════════════════════════════════════════
+   PROJECT CARD
+═══════════════════════════════════════════════ */
+.cards-wrap{
+  padding:10px 12px 6px;
+  display:flex;flex-direction:column;gap:9px;
+}
+.empty-state{
+  text-align:center;
+  padding:60px 20px 40px;
+  color:var(--tx-low);
+}
+.empty-state-title{font-size:14px;font-weight:600;color:var(--tx-mid);margin-bottom:6px}
+.empty-state-text{font-size:12px;line-height:1.6}
+
+.pj{
+  position:relative;
+  border-radius:var(--r-lg);
+  overflow:hidden;
+  background:var(--card-bg-brushed),var(--card-bg);
+  border:.5px solid var(--card-border);
+  box-shadow:var(--card-shadow);
+}
+.pj-accent{
+  position:absolute;top:0;left:0;right:0;height:2.5px;z-index:5;
+  pointer-events:none;
+}
+.pj-accent.red{
+  background:linear-gradient(90deg,transparent 2%,#a80c0c 15%,#ff2424 50%,#a80c0c 85%,transparent 98%);
+  box-shadow:0 0 18px rgba(232,28,28,0.8),0 0 6px rgba(255,75,75,0.95);
+}
+.pj-accent.orange{
+  background:linear-gradient(90deg,transparent 2%,#9c4800 15%,#ff8e0e 50%,#9c4800 85%,transparent 98%);
+  box-shadow:0 0 16px rgba(215,130,22,0.74),0 0 5px rgba(255,162,34,0.9);
+}
+.pj-accent.silver{
+  background:linear-gradient(90deg,transparent 2%,#3e4462 15%,#8aa6c2 50%,#3e4462 85%,transparent 98%);
+  box-shadow:0 0 8px rgba(118,150,208,0.4);
 }
 
-.nav-inner{padding:12px 0 8px}
-
-.nav-large-title{
-  font-size:34px;font-weight:700;
-  color:var(--red);margin-bottom:10px;letter-spacing:-0.5px;
+.pj-body{padding:10px 14px 12px;position:relative;z-index:2}
+.pj-title{
+  display:block;width:100%;
+  font-weight:700;color:#f0f6fc;
+  text-shadow:0 1px 5px rgba(0,0,0,0.85);
+  line-height:1.25;
+  margin-bottom:6px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
-
-.nav-search{
-  display:flex;align-items:center;
-  background:rgba(118,118,128,0.12);
-  border-radius:10px;padding:7px 10px;gap:6px;
-}
-
-.nav-search svg{width:16px;height:16px;stroke:var(--gray);fill:none;stroke-width:2;stroke-linecap:round;flex-shrink:0}
-
-.nav-search input{
-  border:none;background:transparent;font-size:15px;
-  color:var(--text);font-family:inherit;width:100%;outline:none;
-}
-
-.nav-search input::placeholder{color:var(--gray)}
-
-/* ─── Smart Grid ─── */
-.smart-grid{
-  display:grid;grid-template-columns:1fr 1fr;
-  gap:10px;padding:16px 16px 0;
-}
-
-.smart-card{
-  background:var(--card);border-radius:var(--radius-lg);
-  padding:14px 14px 10px;cursor:pointer;
-  transition:transform 0.1s,opacity 0.1s;
-  -webkit-user-select:none;user-select:none;
-}
-
-.smart-card:active{transform:scale(0.97);opacity:0.8}
-
-.smart-icon{
-  width:34px;height:34px;border-radius:50%;
-  display:flex;align-items:center;justify-content:center;margin-bottom:8px;
-}
-
-.smart-icon svg{width:18px;height:18px;fill:none;stroke:#fff;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
-
-.ic-all{background:var(--blue)}
-.ic-urgent{background:var(--red)}
-.ic-today{background:var(--orange)}
-.ic-done{background:var(--green)}
-
-.smart-count{font-size:28px;font-weight:700;line-height:1}
-.smart-label{font-size:13px;color:var(--gray);margin-top:2px;font-weight:500}
-
-/* ─── Section Header ─── */
-.section-hd{
-  padding:24px 16px 6px;
-  display:flex;justify-content:space-between;align-items:center;
-}
-
-.section-title{font-size:22px;font-weight:700;color:var(--text);letter-spacing:-0.3px}
-
-.btn-add-inline{
-  width:28px;height:28px;border-radius:50%;
-  background:var(--blue);border:none;cursor:pointer;
-  display:flex;align-items:center;justify-content:center;
-  transition:transform 0.1s,opacity 0.1s;
-}
-
-.btn-add-inline svg{width:16px;height:16px;stroke:#fff;fill:none;stroke-width:2.5;stroke-linecap:round}
-.btn-add-inline:active{transform:scale(0.9);opacity:0.8}
-
-/* ─── List Card ─── */
-.list-card{
-  background:var(--card);border-radius:var(--radius-lg);
-  margin:0 16px 10px;overflow:hidden;
-}
-
-.list-row{
-  display:flex;align-items:center;
-  padding:12px 16px;
-  border-bottom:0.5px solid var(--separator);
-  cursor:pointer;gap:12px;
-  transition:background 0.1s;
-  -webkit-user-select:none;user-select:none;
-}
-
-.list-row:last-child{border-bottom:none}
-.list-row:active{background:rgba(0,0,0,0.04)}
-
-.check-ring{
-  width:24px;height:24px;border-radius:50%;
-  border:2px solid var(--gray2);
-  display:flex;align-items:center;justify-content:center;
-  flex-shrink:0;transition:all 0.2s;cursor:pointer;background:transparent;
-}
-
-.check-ring.checked{background:var(--blue);border-color:var(--blue)}
-.check-ring svg{width:13px;height:13px;stroke:#fff;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;opacity:0;transition:opacity 0.15s}
-.check-ring.checked svg{opacity:1}
-
-.row-content{flex:1;min-width:0}
-
-.row-title{font-size:17px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.row-title.done-text{color:var(--gray);text-decoration:line-through}
-
-.row-subtitle{font-size:13px;color:var(--text3);margin-top:2px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
-
-.deadline-tag{font-size:12px;font-weight:500;padding:2px 7px;border-radius:6px}
-.tag-red{color:var(--red);background:rgba(255,59,48,0.1)}
-.tag-orange{color:var(--orange);background:rgba(255,149,0,0.1)}
-.tag-green{color:var(--green);background:rgba(52,199,89,0.1)}
-
-.row-right{display:flex;align-items:center;gap:6px;flex-shrink:0}
-
-.prog-ring{width:28px;height:28px}
-
-.chevron{width:8px;height:14px;stroke:var(--gray2);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-
-/* ─── Empty ─── */
-.empty{text-align:center;padding:60px 32px;color:var(--gray)}
-.empty-icon{font-size:52px;margin-bottom:12px;opacity:0.3}
-.empty-title{font-size:17px;font-weight:600;color:var(--text2);margin-bottom:6px}
-.empty-sub{font-size:14px}
-
-/* ─── FAB ─── */
-.fab-bar{
-  position:fixed;bottom:0;left:0;right:0;
-  background:rgba(242,242,247,0.92);
-  backdrop-filter:saturate(180%) blur(20px);
-  -webkit-backdrop-filter:saturate(180%) blur(20px);
-  border-top:0.5px solid var(--separator);
-  padding:12px 20px;
-  padding-bottom:calc(12px + var(--safe-bottom));
-  display:flex;justify-content:flex-end;
-}
-
-.fab{
+.pj-row{
   display:flex;align-items:center;gap:6px;
-  background:transparent;border:none;cursor:pointer;
-  color:var(--blue);font-size:17px;font-family:inherit;
-  padding:4px;transition:opacity 0.1s;
+  margin-bottom:9px;
+}
+.pj-dates{
+  flex:1;display:flex;align-items:center;gap:3px;
+  font-size:11px;min-width:0;
+}
+.pj-dates .lbl{color:var(--tx-faint);font-weight:700;flex-shrink:0}
+.pj-dates .val{color:var(--tx-mid);font-weight:700;flex-shrink:0}
+.pj-dates .arrow{color:var(--tx-faint);margin:0 3px;flex-shrink:0;font-size:12px}
+.pj-dates .deadline-r{color:#ff4040;text-shadow:0 0 7px rgba(255,40,40,0.5)}
+.pj-dates .deadline-o{color:#ff8e0e;text-shadow:0 0 7px rgba(255,142,14,0.45)}
+.pj-dates .deadline-s{color:#9aa2b2}
+
+/* Badge & gear: identical 28px height */
+.pj-badge,.pj-gear{
+  height:28px;
+  display:inline-flex;align-items:center;justify-content:center;
+  border:.5px solid;border-radius:7px;
+  white-space:nowrap;flex-shrink:0;
+  font-weight:700;
+  cursor:pointer;
+  -webkit-user-select:none;user-select:none;
+  transition:transform .15s,opacity .15s;
+}
+.pj-badge:active,.pj-gear:active{transform:scale(0.94)}
+.pj-badge{padding:0 10px;font-size:10px}
+.pj-gear{padding:0 10px;font-size:14px;background:none;line-height:1}
+.pj-badge.red{background:rgba(198,26,26,0.18);color:#ff4848;border-color:rgba(255,52,52,0.5);box-shadow:0 0 7px rgba(255,38,38,0.22)}
+.pj-badge.orange{background:rgba(192,90,8,0.18);color:#ff8e0e;border-color:rgba(255,142,18,0.5);box-shadow:0 0 7px rgba(255,134,16,0.18)}
+.pj-badge.silver{background:rgba(70,100,185,0.14);color:#98aece;border-color:rgba(108,144,218,0.4)}
+.pj-badge.done{background:rgba(72,108,82,0.16);color:#88c098;border-color:rgba(108,168,118,0.42)}
+.pj-gear{
+  border-color:rgba(100,128,202,0.32);
+  background:rgba(54,80,144,0.14);
+  color:#7088c0;
 }
 
-.fab:active{opacity:0.6}
-.fab svg{width:22px;height:22px;stroke:var(--blue);fill:none;stroke-width:1.8;stroke-linecap:round}
-
-.bottom-space{height:80px}
-
-/* ─── Sheet ─── */
-.sheet-bg{
-  display:none;position:fixed;inset:0;
-  background:rgba(0,0,0,0.4);z-index:200;
-  align-items:flex-end;justify-content:center;
+/* Step buttons */
+.pj-steps{display:flex;gap:2px}
+.pj-step{
+  min-width:28px;height:24px;border-radius:5px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:9px;font-weight:800;letter-spacing:-.2px;
+  cursor:pointer;border:.5px solid;
+  -webkit-user-select:none;user-select:none;
+  transition:transform .15s;
+  overflow:hidden;
+}
+.pj-step:active{transform:scale(0.92)}
+.pj-step.done{
+  background:linear-gradient(180deg,rgba(28,38,68,0.62),rgba(14,22,50,0.66));
+  border-color:rgba(60,86,165,0.22);
+  color:rgba(68,96,180,0.5);
+}
+.pj-step.todo{
+  background:linear-gradient(180deg,rgba(196,215,252,0.95),rgba(160,184,240,0.9));
+  border-color:rgba(218,236,255,0.88);
+  color:rgba(8,16,56,0.92);
+  box-shadow:0 1px 3px rgba(0,0,0,0.28),inset 0 1.5px 0 rgba(255,255,255,0.55);
 }
 
-.sheet-bg.open{display:flex;animation:fi 0.2s}
-@keyframes fi{from{opacity:0}to{opacity:1}}
+/* ═══════════════════════════════════════════════
+   FAB
+═══════════════════════════════════════════════ */
+.fab{
+  position:fixed;
+  bottom:calc(20px + env(safe-area-inset-bottom));
+  right:max(16px,calc((100vw - 480px)/2 + 16px));
+  width:54px;height:54px;
+  border-radius:50%;
+  background:linear-gradient(155deg,rgba(56,72,116,0.98),rgba(20,30,72,0.99));
+  border:.5px solid rgba(155,195,255,0.32);
+  box-shadow:0 6px 20px rgba(0,0,0,0.7),inset 0 1.5px 0 rgba(255,255,255,0.18),0 0 18px rgba(120,170,255,0.18);
+  cursor:pointer;
+  z-index:50;
+  display:flex;align-items:center;justify-content:center;
+  transition:transform .15s;
+}
+.fab:active{transform:scale(0.92)}
+.fab svg{
+  width:22px;height:22px;
+  stroke:#bcd4ec;
+  fill:none;stroke-width:2.4;stroke-linecap:round;
+}
+
+/* ═══════════════════════════════════════════════
+   CALENDAR
+═══════════════════════════════════════════════ */
+.cal-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:12px 14px;
+  position:relative;
+  border-bottom:.5px solid var(--sep);
+  background:linear-gradient(180deg,rgba(16,18,32,0.98),rgba(8,9,18,0.99));
+}
+.cal-header::after{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(195,232,255,0.42) 35%,rgba(225,252,255,0.6) 50%,rgba(195,232,255,0.42) 65%,transparent);
+}
+.cal-nav{display:flex;align-items:center;gap:14px}
+.cal-arrow{
+  background:none;border:none;
+  font:600 18px/1 -apple-system,sans-serif;
+  color:#7888b4;cursor:pointer;
+  width:28px;height:28px;
+  display:flex;align-items:center;justify-content:center;
+  border-radius:5px;
+  transition:background .15s;
+}
+.cal-arrow:active{background:rgba(120,150,210,0.12)}
+.cal-title{
+  font-size:15px;font-weight:700;letter-spacing:-.2px;
+  color:#dce8f8;
+  font-variant-numeric:tabular-nums;
+  min-width:80px;text-align:center;
+}
+.cal-edit-toggle{
+  display:flex;align-items:center;gap:5px;
+  padding:5px 10px;
+  background:rgba(80,108,188,0.14);
+  border:.5px solid rgba(80,108,188,0.32);
+  border-radius:6px;
+  font:700 10px/1 -apple-system,sans-serif;
+  color:#9eb2d8;
+  cursor:pointer;
+}
+.cal-edit-toggle.on{
+  background:rgba(232,140,32,0.18);
+  border-color:rgba(255,168,52,0.5);
+  color:#ffaa44;
+  box-shadow:0 0 8px rgba(255,148,28,0.25);
+}
+.cal-edit-toggle .ic{font-size:11px}
+
+.cal-edit-banner{
+  padding:7px 14px;
+  background:rgba(232,140,32,0.1);
+  border-bottom:.5px solid rgba(255,168,52,0.2);
+  font-size:10px;color:#ffaa44;
+  display:flex;align-items:center;gap:6px;
+}
+.cal-edit-banner .ic{font-size:11px}
+
+.cal-weekdays{
+  display:grid;grid-template-columns:repeat(7,1fr);
+  background:rgba(2,2,5,0.97);
+  border-bottom:.5px solid var(--sep);
+}
+.cal-weekday{
+  text-align:center;
+  padding:6px 0 5px;
+  font:600 10px/1 -apple-system,sans-serif;
+  color:#384060;
+}
+.cal-weekday.sun{color:#5a3050}
+.cal-weekday.sat{color:#304060}
+
+/* Calendar grid */
+.cal-grid-wrap{
+  position:relative;
+  padding:3px 8px 5px;
+}
+.cal-bars-svg{
+  position:absolute;
+  top:3px;left:8px;
+  width:calc(100% - 16px);
+  height:calc(100% - 8px);
+  pointer-events:none;
+  z-index:2;
+  overflow:visible;
+}
+.cal-grid{
+  display:grid;
+  grid-template-columns:repeat(7,1fr);
+  column-gap:0;
+  row-gap:2px;
+  position:relative;
+  z-index:3;
+}
+.cal-day{
+  aspect-ratio:1;
+  position:relative;
+  display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
+  padding-top:5px;
+  cursor:default;
+  border-radius:6px;
+  background:transparent;
+  transition:background .15s;
+}
+.cal-day.editable{cursor:pointer}
+.cal-day.editable:active{background:rgba(120,160,220,0.12)}
+.cal-day-num{
+  font-size:13px;font-weight:500;
+  color:rgba(140,172,222,0.78);
+  position:relative;z-index:5;
+  line-height:1;
+  font-variant-numeric:tabular-nums;
+}
+.cal-day.oth .cal-day-num{color:rgba(140,172,222,0.22)}
+.cal-day.tod .cal-day-num{
+  color:#fff;font-weight:800;
+  text-shadow:0 0 8px rgba(255,255,255,0.5);
+}
+.cal-day.deadline-r .cal-day-num{color:#ff4040;font-weight:700;text-shadow:0 0 6px rgba(255,40,40,0.45)}
+.cal-day.deadline-o .cal-day-num{color:#ff8e0e;font-weight:700;text-shadow:0 0 6px rgba(255,130,0,0.4)}
+.cal-day.deadline-s .cal-day-num{color:#9eaabb;font-weight:600}
+
+/* non-working day marker */
+.cal-day.nonworking::before{
+  content:'';position:absolute;inset:2px;
+  background:repeating-linear-gradient(45deg,transparent 0,transparent 3px,rgba(180,30,30,0.18) 3px,rgba(180,30,30,0.18) 4px);
+  border-radius:5px;
+  z-index:1;
+  pointer-events:none;
+}
+
+/* Edit mode: add a subtle border */
+.cal-day.editable.nonworking{
+  outline:.5px solid rgba(255,80,80,0.4);
+  outline-offset:-1.5px;
+}
+
+/* ═══════════════════════════════════════════════
+   GANTT (Project Schedule chart)
+═══════════════════════════════════════════════ */
+.gantt-card{
+  margin:10px 8px 8px;
+  border-radius:var(--r);
+  overflow:hidden;
+  background:var(--card-bg-brushed),var(--card-bg);
+  border:.5px solid var(--card-border);
+  box-shadow:inset 0 1.5px 0 rgba(255,255,255,0.13),0 2px 8px rgba(0,0,0,0.5);
+}
+.gantt-body{padding:9px 12px 9px;position:relative;z-index:2}
+.gantt-title{
+  font:700 9px/1.4 -apple-system,sans-serif;
+  color:var(--tx-low);
+  text-transform:uppercase;letter-spacing:.9px;
+  margin-bottom:6px;
+}
+
+/* ═══════════════════════════════════════════════
+   SHEETS / MODALS (bottom sheets)
+═══════════════════════════════════════════════ */
+.sheet-overlay{
+  position:fixed;inset:0;
+  background:rgba(0,0,0,0.6);
+  z-index:100;
+  opacity:0;
+  pointer-events:none;
+  transition:opacity .25s;
+  -webkit-backdrop-filter:blur(4px);
+  backdrop-filter:blur(4px);
+}
+.sheet-overlay.on{opacity:1;pointer-events:auto}
 
 .sheet{
-  background:var(--card);width:100%;max-width:600px;
-  border-radius:16px 16px 0 0;
-  padding:8px 0;
-  padding-bottom:calc(24px + var(--safe-bottom));
-  animation:su 0.3s cubic-bezier(0.4,0,0.2,1);
-  max-height:92vh;overflow-y:auto;
+  position:fixed;
+  left:0;right:0;bottom:0;
+  max-width:480px;
+  margin:0 auto;
+  max-height:90vh;
+  max-height:90dvh;
+  background:var(--sheet-bg);
+  border-radius:24px 24px 0 0;
+  border-top:1px solid rgba(180,205,255,0.12);
+  box-shadow:0 -10px 40px rgba(0,0,0,0.6),inset 0 2px 0 rgba(255,255,255,0.1);
+  z-index:101;
+  transform:translateY(100%);
+  transition:transform .3s cubic-bezier(0.32,0.72,0.4,1);
+  display:flex;flex-direction:column;
+  padding-bottom:env(safe-area-inset-bottom);
+}
+.sheet.on{transform:translateY(0)}
+
+.sheet-handle{
+  width:40px;height:4px;
+  background:rgba(255,255,255,0.18);
+  border-radius:2px;
+  margin:8px auto 0;
+  flex-shrink:0;
+}
+.sheet-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:10px 16px 8px;
+  border-bottom:.5px solid var(--sep);
+  flex-shrink:0;
+}
+.sheet-back{
+  background:none;border:none;color:#5878b0;
+  font:600 13px/1 -apple-system,sans-serif;
+  cursor:pointer;padding:6px 0;
+  display:flex;align-items:center;gap:2px;
+}
+.sheet-title{
+  font:700 14px/1 -apple-system,sans-serif;
+  color:#dce8f8;
+  letter-spacing:.5px;
+}
+.sheet-action{
+  background:none;border:none;
+  color:var(--accent-blue);
+  font:700 13px/1 -apple-system,sans-serif;
+  cursor:pointer;padding:6px 0;
+}
+.sheet-action:disabled{opacity:0.4}
+.sheet-action.danger{color:#e85050}
+.sheet-content{
+  flex:1;
+  overflow-y:auto;
+  padding:14px 14px 24px;
+  -webkit-overflow-scrolling:touch;
 }
 
-@keyframes su{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.sheet-section{
+  margin-bottom:14px;
+}
+.sheet-section-label{
+  font:700 9px/1.2 -apple-system,sans-serif;
+  color:var(--tx-low);
+  text-transform:uppercase;letter-spacing:.9px;
+  padding:0 4px 6px;
+}
+.sheet-card{
+  background:linear-gradient(165deg,rgba(30,32,52,0.98),rgba(18,20,34,0.99));
+  border-radius:var(--r);
+  border:.5px solid rgba(160,190,255,0.12);
+  box-shadow:inset 0 1.5px 0 rgba(255,255,255,0.08),0 2px 6px rgba(0,0,0,0.42);
+  overflow:hidden;
+}
+.sheet-subtitle{
+  font:500 11px/1.4 -apple-system,sans-serif;
+  color:var(--tx-mid);
+  padding:0 4px 6px;
+}
 
-.sheet-handle{width:36px;height:4px;border-radius:2px;background:var(--gray3);margin:0 auto 16px}
-.sheet-title{font-size:17px;font-weight:600;text-align:center;padding:0 16px 16px;color:var(--text)}
-
-/* Form */
-.form-section{background:var(--gray4);margin:8px 16px;border-radius:var(--radius);overflow:hidden}
-
+/* Form fields */
 .form-row{
   display:flex;align-items:center;
-  padding:12px 16px;border-bottom:0.5px solid var(--separator);gap:10px;
+  padding:11px 14px;gap:8px;
+  border-bottom:.5px solid var(--sep);
 }
-
 .form-row:last-child{border-bottom:none}
-
-.form-icon{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.form-icon svg{width:15px;height:15px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-
-.fic-title{background:var(--red)}
-.fic-date{background:var(--blue)}
-.fic-note{background:var(--orange)}
-
-.form-row label{font-size:14px;color:var(--gray);width:60px;flex-shrink:0;font-weight:500}
-
-.form-row input,.form-row textarea{
-  flex:1;border:none;background:transparent;
-  font-size:16px;color:var(--text);font-family:inherit;outline:none;
+.form-label{
+  font:700 10px/1.3 -apple-system,sans-serif;
+  color:var(--tx-low);
+  text-transform:uppercase;letter-spacing:.5px;
+  width:80px;flex-shrink:0;
 }
-
-.form-row textarea{resize:none;min-height:60px}
-
-.sheet-actions{display:flex;gap:10px;padding:16px}
-
-.sht-btn{
-  flex:1;padding:14px;border-radius:var(--radius);
-  font-size:17px;font-weight:500;border:none;cursor:pointer;
-  font-family:inherit;transition:opacity 0.1s;
+.form-input,.form-select{
+  flex:1;
+  background:transparent;
+  border:none;color:var(--tx);
+  font:600 13px/1.4 -apple-system,sans-serif;
+  outline:none;
+  padding:0;
+  font-family:inherit;
+  font-variant-numeric:tabular-nums;
 }
-
-.sht-btn:active{opacity:0.7}
-.sht-cancel{background:var(--gray4);color:var(--blue)}
-.sht-create{background:var(--blue);color:#fff}
-
-/* Detail */
-.detail-title{font-size:20px;font-weight:700;padding:0 20px 4px;color:var(--text);letter-spacing:-0.3px}
-.detail-subtitle{font-size:14px;color:var(--gray);padding:0 20px 16px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-
-.prog-section{
-  padding:16px;margin:8px 16px;
-  background:var(--gray4);border-radius:var(--radius);
-  display:flex;align-items:center;gap:16px;
+.form-input::placeholder{color:rgba(72,95,165,0.42)}
+.form-select{
+  appearance:none;-webkit-appearance:none;
+  cursor:pointer;
 }
+input[type="date"]{color-scheme:dark}
 
-.prog-pct{font-size:28px;font-weight:700;color:var(--text);letter-spacing:-0.5px}
-.prog-sub{font-size:13px;color:var(--gray);margin-top:2px}
-
-/* Integration */
-.int-section{padding:14px 16px;margin:8px 16px;background:var(--gray4);border-radius:var(--radius)}
-.int-title{font-size:12px;font-weight:600;color:var(--gray);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px}
-
-.int-btn{
-  display:flex;align-items:center;gap:12px;
-  padding:11px 12px;background:var(--card);
-  border-radius:10px;border:none;cursor:pointer;
-  font-family:inherit;font-size:15px;color:var(--blue);
-  font-weight:500;width:100%;text-align:left;
-  transition:opacity 0.1s;margin-bottom:8px;
+/* Step row in editor */
+.step-row{
+  display:flex;align-items:center;gap:8px;
+  padding:10px 12px;
+  border-bottom:.5px solid var(--sep);
 }
-
-.int-btn:last-child{margin-bottom:0}
-.int-btn:active{opacity:0.6}
-
-.int-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.int-icon svg{width:17px;height:17px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-
-.int-google{background:#4285F4}
-.int-shortcut{background:var(--purple)}
-
-/* Process list */
-.proc-card{background:var(--gray4);margin:8px 16px;border-radius:var(--radius);overflow:hidden}
-.proc-hd{padding:10px 16px;font-size:12px;font-weight:600;color:var(--gray);text-transform:uppercase;letter-spacing:0.5px;border-bottom:0.5px solid var(--separator)}
-
-.proc-row{display:flex;align-items:center;gap:12px;padding:11px 16px;border-bottom:0.5px solid var(--separator)}
-.proc-row:last-child{border-bottom:none}
-
-.proc-check{
-  width:22px;height:22px;border-radius:50%;
-  border:2px solid var(--gray2);
+.step-row:last-child{border-bottom:none}
+.step-drag{
+  font-size:14px;color:rgba(72,95,165,0.4);
+  flex-shrink:0;width:14px;text-align:center;
+  cursor:grab;
+  -webkit-user-select:none;user-select:none;
+}
+.step-code{
+  width:32px;height:24px;border-radius:5px;
+  background:linear-gradient(180deg,#1a2248,#101530);
   display:flex;align-items:center;justify-content:center;
-  cursor:pointer;flex-shrink:0;transition:all 0.2s;background:transparent;
+  flex-shrink:0;
+  border:.5px solid rgba(80,115,200,0.4);
+  box-shadow:0 0 5px rgba(60,100,200,0.18),inset 0 1px 0 rgba(255,255,255,0.06);
+  font:800 10px/1 -apple-system,sans-serif;
+  color:rgba(180,210,255,0.92);
+  letter-spacing:-.2px;
+}
+.step-names{
+  flex:1;display:flex;flex-direction:column;gap:1px;
+  min-width:0;
+  padding-top:2px;
+}
+.step-jp{
+  font:500 12px/1.3 -apple-system,sans-serif;
+  color:#a8b8d8;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.step-en{
+  font:400 9.5px/1.3 -apple-system,sans-serif;
+  color:#46527a;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.step-hours{
+  display:flex;align-items:center;gap:3px;
+  background:rgba(80,108,188,0.12);
+  border:.5px solid rgba(80,108,188,0.28);
+  border-radius:6px;
+  padding:0 8px;height:24px;
+  flex-shrink:0;
+}
+.step-hours input{
+  width:30px;
+  background:none;border:none;outline:none;
+  color:#a8b8d8;
+  font:600 11px/1 -apple-system,sans-serif;
+  text-align:right;
+  font-variant-numeric:tabular-nums;
+  -moz-appearance:textfield;
+}
+.step-hours input::-webkit-outer-spin-button,
+.step-hours input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.step-hours .h-suffix{
+  font:600 10px/1 -apple-system,sans-serif;
+  color:#46527a;
+}
+.step-delete{
+  background:none;border:none;
+  color:rgba(232,90,90,0.6);
+  font-size:14px;cursor:pointer;
+  width:24px;height:24px;
+  display:flex;align-items:center;justify-content:center;
+  border-radius:5px;
+  flex-shrink:0;
+  transition:background .15s;
+}
+.step-delete:active{background:rgba(232,90,90,0.12)}
+
+/* Step done checkbox in settings */
+.step-done-check{
+  width:22px;height:22px;
+  border-radius:50%;
+  border:1.5px solid rgba(108,140,210,0.42);
+  background:transparent;
+  cursor:pointer;
+  flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  transition:all .15s;
+}
+.step-done-check.on{
+  background:linear-gradient(180deg,#22a854,#168038);
+  border-color:rgba(48,180,90,0.7);
+  box-shadow:0 0 6px rgba(48,180,90,0.4);
+}
+.step-done-check.on::after{
+  content:'';
+  width:8px;height:4px;
+  border-left:1.5px solid #fff;
+  border-bottom:1.5px solid #fff;
+  transform:rotate(-45deg) translate(1px,-1px);
 }
 
-.proc-check.on{background:var(--blue);border-color:var(--blue)}
-.proc-check svg{width:12px;height:12px;stroke:#fff;fill:none;stroke-width:2.8;stroke-linecap:round;stroke-linejoin:round;opacity:0;transition:opacity 0.15s}
-.proc-check.on svg{opacity:1}
-
-.proc-name{font-size:15px;color:var(--text);flex:1}
-.proc-row.pdone .proc-name{color:var(--gray);text-decoration:line-through}
-
-/* Notes */
-.notes-card{background:var(--gray4);margin:8px 16px;border-radius:var(--radius);padding:12px 16px}
-.notes-label{font-size:12px;font-weight:600;color:var(--gray);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px}
-.notes-body{font-size:14px;color:var(--text);line-height:1.5}
-
-/* Delete */
-.del-btn{
-  margin:8px 16px;padding:14px;background:var(--gray4);
-  border-radius:var(--radius);border:none;cursor:pointer;
-  font-family:inherit;font-size:17px;color:var(--red);
-  font-weight:500;width:calc(100% - 32px);transition:opacity 0.1s;
+.total-row{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:8px 12px;
+  font:600 11px/1.3 -apple-system,sans-serif;
+  color:var(--tx-mid);
+  border-top:.5px solid var(--sep);
+}
+.total-row .num{
+  color:#a8c0e0;
+  font-weight:700;
+  font-variant-numeric:tabular-nums;
 }
 
-.del-btn:active{opacity:0.6}
+/* Preset selector */
+.preset-list{display:flex;flex-direction:column;gap:6px;padding:8px 4px}
+.preset-card{
+  display:flex;align-items:center;gap:10px;
+  padding:11px 14px;
+  background:linear-gradient(165deg,rgba(28,30,46,0.96),rgba(16,18,32,0.99));
+  border:.5px solid rgba(160,190,255,0.1);
+  border-radius:9px;
+  cursor:pointer;
+  transition:all .15s;
+}
+.preset-card:active{transform:scale(0.98)}
+.preset-card.on{
+  border-color:rgba(120,180,255,0.4);
+  background:linear-gradient(165deg,rgba(38,52,98,0.98),rgba(20,28,68,0.99));
+  box-shadow:0 0 12px rgba(80,140,255,0.18),inset 0 1px 0 rgba(255,255,255,0.12);
+}
+.preset-info{flex:1;min-width:0}
+.preset-name{
+  font:700 12px/1.3 -apple-system,sans-serif;
+  color:#dce8f8;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  margin-bottom:2px;
+}
+.preset-desc{
+  font:500 10px/1.3 -apple-system,sans-serif;
+  color:var(--tx-low);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.preset-meta{
+  font:600 9px/1.3 -apple-system,sans-serif;
+  color:var(--tx-faint);
+  flex-shrink:0;
+  padding-left:6px;
+}
+.preset-radio{
+  width:18px;height:18px;
+  border:1.5px solid rgba(108,140,210,0.4);
+  border-radius:50%;
+  flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+}
+.preset-card.on .preset-radio{
+  background:#3060d8;
+  border-color:#3060d8;
+  box-shadow:0 0 6px rgba(64,128,255,0.5);
+}
+.preset-card.on .preset-radio::after{
+  content:'';
+  width:6px;height:6px;
+  background:#fff;
+  border-radius:50%;
+}
 
-/* Toast */
+/* Action buttons */
+.btn{
+  display:flex;align-items:center;justify-content:center;
+  border:.5px solid;border-radius:8px;
+  font:700 12px/1.2 -apple-system,sans-serif;
+  cursor:pointer;
+  -webkit-user-select:none;user-select:none;
+  transition:all .15s;
+  padding:10px 14px;
+  gap:5px;
+  width:100%;
+}
+.btn:active{transform:scale(0.98)}
+.btn-secondary{
+  background:rgba(60,88,175,0.12);
+  border-color:rgba(60,88,175,0.28);
+  color:#7088c0;
+  margin-bottom:6px;
+}
+.btn-primary{
+  background:linear-gradient(180deg,#263898,#1a2878);
+  border-color:rgba(95,125,215,0.5);
+  color:rgba(208,228,255,0.96);
+  box-shadow:0 2px 10px rgba(20,36,120,0.4),inset 0 1px 0 rgba(255,255,255,0.18);
+  padding:13px 16px;
+  font-size:13px;
+  letter-spacing:.5px;
+}
+.btn-danger{
+  background:rgba(180,40,40,0.16);
+  border-color:rgba(180,40,40,0.4);
+  color:#ff7878;
+}
+
+.sheet-footer{
+  flex-shrink:0;
+  padding:10px 14px 14px;
+  background:linear-gradient(180deg,transparent,rgba(8,10,18,0.95) 30%);
+  border-top:.5px solid var(--sep);
+  display:flex;flex-direction:column;gap:6px;
+}
+
+/* Add Step modal: choose existing or create new */
+.add-mode-tabs{
+  display:flex;
+  background:rgba(20,22,40,0.6);
+  border-radius:7px;
+  padding:3px;
+  margin-bottom:14px;
+}
+.add-mode-tab{
+  flex:1;
+  padding:7px 0;
+  text-align:center;
+  font:700 10px/1.2 -apple-system,sans-serif;
+  color:var(--tx-low);
+  cursor:pointer;
+  border-radius:5px;
+  transition:all .15s;
+  letter-spacing:.4px;
+}
+.add-mode-tab.on{
+  background:rgba(60,90,180,0.4);
+  color:#dce8f8;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.1);
+}
+
+.lib-step{
+  display:flex;align-items:center;gap:9px;
+  padding:11px 14px;
+  border-bottom:.5px solid var(--sep);
+  cursor:pointer;
+  transition:background .15s;
+}
+.lib-step:last-child{border-bottom:none}
+.lib-step:active{background:rgba(60,90,180,0.18)}
+.lib-step .arrow{font-size:12px;color:#465878}
+
+/* Settings list (in main settings) */
+.settings-row{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:13px 14px;
+  border-bottom:.5px solid var(--sep);
+  cursor:pointer;
+  transition:background .15s;
+}
+.settings-row:last-child{border-bottom:none}
+.settings-row:active{background:rgba(60,90,180,0.1)}
+.settings-row-label{
+  font:600 12px/1.3 -apple-system,sans-serif;
+  color:#a8b8d8;
+}
+.settings-row-value{
+  display:flex;align-items:center;gap:5px;
+  font:600 11px/1 -apple-system,sans-serif;
+  color:var(--tx-mid);
+}
+
+/* Number stepper for max hours */
+.stepper{
+  display:flex;align-items:center;gap:0;
+  background:rgba(80,108,188,0.1);
+  border:.5px solid rgba(80,108,188,0.26);
+  border-radius:7px;
+  padding:0;
+  height:30px;
+  overflow:hidden;
+}
+.stepper button{
+  background:none;border:none;color:#90a4d0;
+  width:28px;height:28px;
+  font:700 14px/1 -apple-system,sans-serif;
+  cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+}
+.stepper button:active{background:rgba(80,108,188,0.25)}
+.stepper input{
+  width:38px;
+  background:none;border:none;outline:none;
+  color:#dce8f8;
+  font:700 12px/1 -apple-system,sans-serif;
+  text-align:center;
+  font-variant-numeric:tabular-nums;
+  -moz-appearance:textfield;
+}
+.stepper input::-webkit-outer-spin-button,
+.stepper input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+
+/* Toast / alerts */
 .toast{
-  position:fixed;bottom:90px;left:50%;transform:translateX(-50%);
-  background:rgba(0,0,0,0.76);color:#fff;
-  padding:10px 20px;border-radius:20px;font-size:14px;
-  opacity:0;transition:opacity 0.3s;pointer-events:none;
-  white-space:nowrap;z-index:999;
+  position:fixed;
+  bottom:90px;left:50%;
+  transform:translate(-50%,20px);
+  background:rgba(20,28,55,0.95);
+  border:.5px solid rgba(120,160,220,0.3);
+  color:#dce8f8;
+  padding:10px 16px;
+  border-radius:8px;
+  font:600 12px/1.3 -apple-system,sans-serif;
+  z-index:200;
+  box-shadow:0 6px 20px rgba(0,0,0,0.5);
+  opacity:0;
+  pointer-events:none;
+  transition:all .25s;
+  white-space:nowrap;
+  max-width:90vw;
+}
+.toast.on{
+  opacity:1;
+  transform:translate(-50%,0);
 }
 
-.toast.show{opacity:1}
+/* Scrollbar styling */
+.main::-webkit-scrollbar,.sheet-content::-webkit-scrollbar{width:0;display:none}
 
-/* Shortcut Guide */
-.guide-section{
-  background:rgba(88,86,214,0.08);
-  margin:8px 16px;border-radius:var(--radius);
-  padding:14px 16px;border:0.5px solid rgba(88,86,214,0.2);
+/* Tap target sizing for mobile */
+@media (pointer:coarse){
+  .pj-step{min-width:32px;height:28px;font-size:10px}
 }
-
-.guide-title{font-size:13px;font-weight:600;color:var(--purple);margin-bottom:8px}
-.guide-step{font-size:13px;color:var(--text2);line-height:1.8;padding-left:4px}
 </style>
 </head>
 <body>
-
-<div class="nav-bar">
-  <div class="nav-inner">
-    <div class="nav-large-title">動画制作管理</div>
-    <div class="nav-search">
-      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      <input type="text" placeholder="検索" id="searchInput" oninput="doFilter()" autocomplete="off" autocorrect="off" spellcheck="false">
+<div id="app">
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-name">EDIT<em>FLOW</em></div>
+      <div class="brand-version">v1.0</div>
     </div>
-  </div>
-</div>
-
-<div class="smart-grid" id="smartGrid"></div>
-
-<div class="section-hd">
-  <div class="section-title">プロジェクト</div>
-  <button class="btn-add-inline" onclick="openCreate()">
+    <nav class="tabs" role="tablist">
+      <button class="tab on" data-view="projects" role="tab">PROJECTS</button>
+      <button class="tab" data-view="calendar" role="tab">CALENDAR</button>
+    </nav>
+  </header>
+  <main class="main" id="main"></main>
+  <button class="fab" id="fab" aria-label="新規プロジェクト">
     <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
   </button>
-</div>
-
-<div id="listArea"></div>
-<div class="bottom-space"></div>
-
-<div class="fab-bar">
-  <button class="fab" onclick="openCreate()">
-    <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-    新規
-  </button>
-</div>
-
-<!-- Create Sheet -->
-<div class="sheet-bg" id="createSheet" onclick="bgClose(event,'createSheet')">
-  <div class="sheet">
+  <div class="sheet-overlay" id="sheetOverlay"></div>
+  <div class="sheet" id="sheet">
     <div class="sheet-handle"></div>
-    <div class="sheet-title">新規プロジェクト</div>
-    <div class="form-section">
-      <div class="form-row">
-        <div class="form-icon fic-title">
-          <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
-        </div>
-        <label>タイトル</label>
-        <input type="text" id="pName" placeholder="プロジェクト名" autocomplete="off">
-      </div>
-      <div class="form-row">
-        <div class="form-icon fic-date">
-          <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg>
-        </div>
-        <label>納期</label>
-        <input type="date" id="pDeadline">
-      </div>
-      <div class="form-row">
-        <div class="form-icon fic-note">
-          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/></svg>
-        </div>
-        <label>メモ</label>
-        <textarea id="pNotes" placeholder="備考（任意）" rows="2"></textarea>
-      </div>
-    </div>
-    <div class="sheet-actions">
-      <button class="sht-btn sht-cancel" onclick="closeCreate()">キャンセル</button>
-      <button class="sht-btn sht-create" onclick="createProject()">追加</button>
-    </div>
+    <div class="sheet-header" id="sheetHeader"></div>
+    <div class="sheet-content" id="sheetContent"></div>
+    <div class="sheet-footer" id="sheetFooter"></div>
   </div>
+  <div class="toast" id="toast"></div>
 </div>
-
-<!-- Detail Sheet -->
-<div class="sheet-bg" id="detailSheet" onclick="bgClose(event,'detailSheet')">
-  <div class="sheet" id="detailContent"></div>
-</div>
-
-<div class="toast" id="toast"></div>
 
 <script>
-const PROCS = [
-  '企画・構成', '撮影', '粗編集',
-  'ナレーション・音声収録', '本編集',
-  'クライアント確認', '修正対応', '最終納品'
+'use strict';
+
+/* ═══════════════════════════════════════════════
+   CONSTANTS & DEFAULTS
+═══════════════════════════════════════════════ */
+const STORAGE_KEY = 'editflow_state_v1_0';
+const APP_VERSION = '1.0';
+
+// Set to a YYYY-MM-DD string to force a specific "today" for demo
+// Set to null to use the real current date
+const TODAY_OVERRIDE = null;
+
+const DEFAULT_STEP_LIBRARY = [
+  { code:'IG', jp:'素材取り込み',           en:'Ingest',          defaultHours:1 },
+  { code:'GR', jp:'カラーグレーディング',   en:'Color Grading',   defaultHours:2 },
+  { code:'RC', jp:'仮編集',                 en:'Rough Cut',       defaultHours:4 },
+  { code:'SC', jp:'ナレーション原稿作成',   en:'Scripting',       defaultHours:2 },
+  { code:'VO', jp:'ナレーション収録',       en:'VO Recording',    defaultHours:2 },
+  { code:'FC', jp:'本編集',                 en:'Fine Cut',        defaultHours:6 },
+  { code:'RV', jp:'修正',                   en:'Revision',        defaultHours:2 }
 ];
 
-let projects = JSON.parse(localStorage.getItem('vpm_v4') || '[]');
-let activeId = null;
-let currentFilter = 'all';
-let searchQ = '';
-
-function save() {
-  localStorage.setItem('vpm_v4', JSON.stringify(projects));
+function makeStepInstance(libStep, hours, done){
+  return {
+    code: libStep.code,
+    jp:   libStep.jp,
+    en:   libStep.en,
+    hours: (hours == null ? libStep.defaultHours : hours),
+    done:  !!done
+  };
 }
 
-function dlStatus(d) {
-  const n = new Date(); n.setHours(0,0,0,0);
-  const t = new Date(d);
-  const diff = Math.ceil((t - n) / 86400000);
-  if (diff < 0) return { label:'期限超過', cls:'tag-red', cat:'urgent' };
-  if (diff === 0) return { label:'今日', cls:'tag-red', cat:'urgent' };
-  if (diff <= 3) return { label:`残り${diff}日`, cls:'tag-red', cat:'urgent' };
-  if (diff <= 7) return { label:`残り${diff}日`, cls:'tag-orange', cat:'warning' };
-  return { label:`残り${diff}日`, cls:'tag-green', cat:'safe' };
+const DEFAULT_PRESETS = [
+  {
+    id:'preset_shisou',
+    name:'しそうチャンネル番組',
+    description:'地域情報番組フル工程',
+    steps: DEFAULT_STEP_LIBRARY.map(s => makeStepInstance(s))
+  },
+  {
+    id:'preset_kagayaite',
+    name:'いま、輝いてます。',
+    description:'兵庫文化番組',
+    steps:[
+      makeStepInstance(DEFAULT_STEP_LIBRARY[0], 1),
+      makeStepInstance(DEFAULT_STEP_LIBRARY[2], 3),
+      makeStepInstance(DEFAULT_STEP_LIBRARY[3], 1),
+      makeStepInstance(DEFAULT_STEP_LIBRARY[4], 1),
+      makeStepInstance(DEFAULT_STEP_LIBRARY[5], 4),
+      makeStepInstance(DEFAULT_STEP_LIBRARY[6], 1)
+    ]
+  },
+  {
+    id:'preset_cm',
+    name:'CM・ショート',
+    description:'CM・短編向け短工程',
+    steps:[
+      makeStepInstance(DEFAULT_STEP_LIBRARY[0], 1),
+      makeStepInstance(DEFAULT_STEP_LIBRARY[1], 2),
+      makeStepInstance(DEFAULT_STEP_LIBRARY[2], 2),
+      makeStepInstance(DEFAULT_STEP_LIBRARY[5], 3),
+      makeStepInstance(DEFAULT_STEP_LIBRARY[6], 1)
+    ]
+  }
+];
+
+function makeDemoProjects(){
+  // Build demo data anchored to a relevant date
+  return [
+    {
+      id:'proj_demo_1',
+      title:'ヴィクトリーナ姫路SEASON2025-26ダイジェスト',
+      startDate:'2026-04-30',
+      deadline:'2026-05-08',
+      presetId:null,
+      steps: DEFAULT_STEP_LIBRARY.map((s,i) =>
+        makeStepInstance(s, s.defaultHours, i < 3))
+    },
+    {
+      id:'proj_demo_2',
+      title:'宍粟市職員募集CM',
+      startDate:'2026-04-21',
+      deadline:'2026-05-12',
+      presetId:'preset_cm',
+      steps: DEFAULT_PRESETS[2].steps.map((s,i) =>
+        makeStepInstance(s, s.hours, i < 2))
+    },
+    {
+      id:'proj_demo_3',
+      title:'しそうチャンネル「藤まつり2026」',
+      startDate:'2026-05-05',
+      deadline:'2026-05-17',
+      presetId:'preset_shisou',
+      steps: DEFAULT_PRESETS[0].steps.map(s =>
+        makeStepInstance(s, s.hours, false))
+    }
+  ];
 }
 
-function getPct(procs) {
-  return Math.round(procs.filter(p => p.done).length / procs.length * 100);
+const DEFAULT_NON_WORKING_DATES = ['2026-05-09','2026-05-10','2026-05-16','2026-05-17','2026-05-23','2026-05-24','2026-05-30','2026-05-31','2026-05-02','2026-05-03'];
+const DEFAULT_MAX_HOURS = 8;
+
+/* ═══════════════════════════════════════════════
+   STATE
+═══════════════════════════════════════════════ */
+let state = loadState();
+
+function loadState(){
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw){
+      const s = JSON.parse(raw);
+      if (s && s.version === APP_VERSION && s.projects && s.presets){
+        return s;
+      }
+    }
+  } catch(e){
+    console.warn('Failed to load state, using defaults', e);
+  }
+  return {
+    version: APP_VERSION,
+    projects: makeDemoProjects(),
+    presets: DEFAULT_PRESETS.map(p => ({...p, steps: p.steps.map(s => ({...s}))})),
+    stepLibrary: DEFAULT_STEP_LIBRARY.map(s => ({...s})),
+    nonWorkingDates: [...DEFAULT_NON_WORKING_DATES],
+    maxHoursPerDay: DEFAULT_MAX_HOURS
+  };
 }
 
-function fmtDate(s) {
-  const d = new Date(s);
-  return `${d.getFullYear()}/${d.getMonth()+1}/${d.getDate()}`;
-}
-
-function fmtGcal(s) { return s.replace(/-/g, ''); }
-
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg; t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2500);
-}
-
-function svgCheck() {
-  return `<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>`;
-}
-
-function mkRing(p, size) {
-  const r = (size/2) - 3.5;
-  const circ = 2 * Math.PI * r;
-  const offset = circ - (p/100) * circ;
-  const c = size/2;
-  const color = p === 100 ? '#34C759' : '#007AFF';
-  return `<svg class="prog-ring" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
-    <circle cx="${c}" cy="${c}" r="${r}" fill="none" stroke="#E5E5EA" stroke-width="3"/>
-    <circle cx="${c}" cy="${c}" r="${r}" fill="none" stroke="${color}" stroke-width="3"
-      stroke-dasharray="${circ.toFixed(1)}" stroke-dashoffset="${offset.toFixed(1)}"
-      transform="rotate(-90 ${c} ${c})"/>
-  </svg>`;
-}
-
-function bgClose(e, id) {
-  if (e.target === e.currentTarget) {
-    document.getElementById(id).classList.remove('open');
-    if (id === 'detailSheet') activeId = null;
+function saveState(){
+  try{
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  } catch(e){
+    console.warn('Failed to save state', e);
   }
 }
 
-/* ── Smart Grid ── */
-function renderSmartGrid() {
-  const total = projects.length;
-  const urgent = projects.filter(p => dlStatus(p.deadline).cat === 'urgent' && getPct(p.procs) < 100).length;
-  const today = new Date(); today.setHours(0,0,0,0);
-  const todayCount = projects.filter(p => {
-    const d = new Date(p.deadline); d.setHours(0,0,0,0);
-    return d.getTime() === today.getTime();
-  }).length;
-  const done = projects.filter(p => getPct(p.procs) === 100).length;
-
-  document.getElementById('smartGrid').innerHTML = `
-    <div class="smart-card" onclick="filterBy('all')">
-      <div class="smart-icon ic-all">
-        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
-      </div>
-      <div class="smart-count">${total}</div>
-      <div class="smart-label">すべて</div>
-    </div>
-    <div class="smart-card" onclick="filterBy('urgent')">
-      <div class="smart-icon ic-urgent">
-        <svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-      </div>
-      <div class="smart-count">${urgent}</div>
-      <div class="smart-label">緊急</div>
-    </div>
-    <div class="smart-card" onclick="filterBy('today')">
-      <div class="smart-icon ic-today">
-        <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg>
-      </div>
-      <div class="smart-count">${todayCount}</div>
-      <div class="smart-label">今日</div>
-    </div>
-    <div class="smart-card" onclick="filterBy('done')">
-      <div class="smart-icon ic-done">
-        <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
-      </div>
-      <div class="smart-count">${done}</div>
-      <div class="smart-label">完了</div>
-    </div>
-  `;
+function resetState(){
+  localStorage.removeItem(STORAGE_KEY);
+  state = loadState();
+  saveState();
 }
 
-/* ── List ── */
-function filterBy(f) { currentFilter = f; renderList(); }
-function doFilter() { searchQ = document.getElementById('searchInput').value.toLowerCase(); renderList(); }
+/* ═══════════════════════════════════════════════
+   UI STATE
+═══════════════════════════════════════════════ */
+const ui = {
+  view: 'projects', // 'projects' | 'calendar'
+  calMonth: null,   // {y, m} — current viewed month
+  calEditMode: false,
+  sheetOpen: false,
+  sheetStack: [], // for nested sheets
+};
 
-function getFiltered() {
-  let list = [...projects];
-  if (searchQ) list = list.filter(p => p.name.toLowerCase().includes(searchQ) || (p.notes||'').toLowerCase().includes(searchQ));
-  if (currentFilter === 'urgent') list = list.filter(p => dlStatus(p.deadline).cat === 'urgent' && getPct(p.procs) < 100);
-  else if (currentFilter === 'today') {
-    const t = new Date(); t.setHours(0,0,0,0);
-    list = list.filter(p => { const d = new Date(p.deadline); d.setHours(0,0,0,0); return d.getTime() === t.getTime(); });
+/* ═══════════════════════════════════════════════
+   DATE UTILITIES
+═══════════════════════════════════════════════ */
+function getTodayDate(){
+  if (TODAY_OVERRIDE){
+    const [y,m,d] = TODAY_OVERRIDE.split('-').map(Number);
+    return new Date(y, m-1, d);
   }
-  else if (currentFilter === 'done') list = list.filter(p => getPct(p.procs) === 100);
-  return list;
+  return new Date();
 }
 
-function renderList() {
-  const list = getFiltered();
-  const area = document.getElementById('listArea');
-  if (!list.length) {
-    area.innerHTML = `<div class="empty"><div class="empty-icon">📋</div><div class="empty-title">プロジェクトがありません</div><div class="empty-sub">右下のボタンから追加できます</div></div>`;
+function getTodayStr(){ return dateToStr(getTodayDate()); }
+
+function dateToStr(d){
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,'0');
+  const day = String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${day}`;
+}
+
+function strToDate(s){
+  if (!s) return null;
+  const [y,m,d] = s.split('-').map(Number);
+  return new Date(y, m-1, d);
+}
+
+function addDays(d, n){
+  const r = new Date(d);
+  r.setDate(r.getDate()+n);
+  return r;
+}
+
+function daysBetween(s1, s2){
+  return Math.round((strToDate(s2) - strToDate(s1)) / 86400000);
+}
+
+function fmtMd(s){
+  if (!s) return '—';
+  const d = strToDate(s);
+  return `${d.getMonth()+1}/${d.getDate()}`;
+}
+
+function isNonWorking(dateStr){
+  return state.nonWorkingDates.includes(dateStr);
+}
+
+/* ═══════════════════════════════════════════════
+   SCHEDULING ALGORITHM
+   — Sequentially schedules remaining work for each project
+   — Most-urgent (earliest deadline) goes first
+   — Skips non-working days
+   — Honors maxHoursPerDay
+═══════════════════════════════════════════════ */
+function computeSchedule(){
+  // Sort by deadline ascending, with completion check
+  const projects = state.projects.map(p => ({...p, steps: p.steps.map(s => ({...s}))}));
+
+  // Pre-compute remaining hours and total hours
+  for (const p of projects){
+    p.remainingHours = p.steps.filter(s => !s.done).reduce((sum,s) => sum + (Number(s.hours)||0), 0);
+    p.totalHours     = p.steps.reduce((sum,s) => sum + (Number(s.hours)||0), 0);
+    p.isComplete     = p.remainingHours === 0;
+  }
+
+  // Sort: incomplete first by deadline; complete last
+  projects.sort((a,b) => {
+    if (a.isComplete && !b.isComplete) return 1;
+    if (!a.isComplete && b.isComplete) return -1;
+    return strToDate(a.deadline) - strToDate(b.deadline);
+  });
+
+  // Assign urgency colors based on order (only for incomplete)
+  let colorIdx = 0;
+  for (const p of projects){
+    if (p.isComplete){
+      p.urgencyColor = 'silver';
+    } else {
+      p.urgencyColor = colorIdx === 0 ? 'red' : (colorIdx === 1 ? 'orange' : 'silver');
+      colorIdx++;
+    }
+  }
+
+  // Schedule sequentially
+  const todayStr = getTodayStr();
+  let cursor = strToDate(todayStr);
+
+  for (const p of projects){
+    if (p.isComplete){
+      p.computedStart = null;
+      p.computedEnd   = null;
+      continue;
+    }
+
+    // Start from max(cursor, today) — never schedule in the past
+    let workDate = new Date(cursor);
+    let hoursLeft = p.remainingHours;
+    let firstWork = null;
+    let lastWork  = null;
+    let safetyCounter = 0;
+
+    while (hoursLeft > 0 && safetyCounter < 365){
+      const ds = dateToStr(workDate);
+      if (!isNonWorking(ds)){
+        const h = Math.min(hoursLeft, state.maxHoursPerDay);
+        if (!firstWork) firstWork = ds;
+        lastWork = ds;
+        hoursLeft -= h;
+      }
+      workDate = addDays(workDate, 1);
+      safetyCounter++;
+    }
+
+    p.computedStart = firstWork;
+    p.computedEnd   = lastWork;
+
+    // Move cursor past this project's last working day
+    cursor = addDays(strToDate(lastWork), 1);
+  }
+
+  // Compute additional flags: days remaining, overdue
+  for (const p of projects){
+    if (p.isComplete){
+      p.daysToDeadline = 0;
+      p.isOverdue = false;
+    } else {
+      p.daysToDeadline = Math.max(0, daysBetween(todayStr, p.deadline));
+      p.isOverdue = (p.computedEnd && strToDate(p.computedEnd) > strToDate(p.deadline)) ||
+                    strToDate(p.deadline) < strToDate(todayStr);
+    }
+  }
+
+  return projects;
+}
+
+/* ═══════════════════════════════════════════════
+   CALENDAR GRID UTILITIES
+═══════════════════════════════════════════════ */
+function getCalendarGrid(year, month){
+  // month: 0-11
+  // Returns { days: [{date, day, isOtherMonth, ...}, ...x42], rows: 6 }
+  const firstOfMonth = new Date(year, month, 1);
+  const startDate = addDays(firstOfMonth, -firstOfMonth.getDay()); // Go back to Sunday
+  const days = [];
+  const todayStr = getTodayStr();
+  for (let i=0; i<42; i++){
+    const d = addDays(startDate, i);
+    const ds = dateToStr(d);
+    days.push({
+      date: ds,
+      day: d.getDate(),
+      dayOfWeek: d.getDay(),
+      isOtherMonth: d.getMonth() !== month,
+      isToday: ds === todayStr,
+      isNonWorking: isNonWorking(ds)
+    });
+  }
+  return { days, rows: 6 };
+}
+
+/* Generate SVG bar segments for projects in current month */
+function computeBarSegments(projects, calDays){
+  const segments = [];
+  for (const p of projects){
+    if (p.isComplete || !p.computedStart || !p.computedEnd) continue;
+
+    const startIdx = calDays.findIndex(d => d.date === p.computedStart);
+    const endIdx   = calDays.findIndex(d => d.date === p.computedEnd);
+
+    // Project might extend before/after current month
+    const visStart = startIdx >= 0 ? startIdx : 0;
+    const visEnd   = endIdx   >= 0 ? endIdx   : 41;
+
+    // Skip if project is entirely outside this month
+    if (startIdx < 0 && endIdx < 0){
+      // Check if any visible cell falls within project span
+      const projStart = strToDate(p.computedStart);
+      const projEnd   = strToDate(p.computedEnd);
+      const calStart  = strToDate(calDays[0].date);
+      const calEnd    = strToDate(calDays[41].date);
+      if (projEnd < calStart || projStart > calEnd) continue;
+      // Otherwise the project completely spans this month — visible from 0 to 41
+    }
+
+    const isProjStartVisible = startIdx >= 0;
+    const isProjEndVisible   = endIdx   >= 0;
+
+    // Group consecutive cells (same row, same isNonWorking) into segments
+    let cur = null;
+    const segs = [];
+    for (let i = visStart; i <= visEnd; i++){
+      const d = calDays[i];
+      const row = Math.floor(i / 7);
+      const col = i % 7;
+      const nw = d.isNonWorking;
+
+      const canExtend = cur && cur.row === row && cur.endCol + 1 === col && cur.isNonWorking === nw;
+      if (canExtend){
+        cur.endCol = col;
+      } else {
+        if (cur) segs.push(cur);
+        cur = {
+          row, startCol: col, endCol: col,
+          isNonWorking: nw,
+          urgencyColor: p.urgencyColor,
+          isProjectStart: false,
+          isProjectEnd: false,
+          projectId: p.id
+        };
+      }
+    }
+    if (cur) segs.push(cur);
+
+    if (segs.length > 0){
+      if (isProjStartVisible) segs[0].isProjectStart = true;
+      if (isProjEndVisible)   segs[segs.length-1].isProjectEnd = true;
+    }
+
+    segments.push(...segs);
+  }
+  return segments;
+}
+
+function colorForUrgency(urg, isNW){
+  const t = {
+    red:    { lt:'rgba(215,52,52,0.92)',  dk:'rgba(118,12,12,0.92)' },
+    orange: { lt:'rgba(212,102,16,0.92)', dk:'rgba(98,42,4,0.92)' },
+    silver: { lt:'rgba(155,158,165,0.92)',dk:'rgba(62,64,72,0.92)' }
+  };
+  return isNW ? t[urg].dk : t[urg].lt;
+}
+
+function renderBarSegmentSVG(seg, scaling){
+  const { cellW, cellH, rowGap, barH } = scaling;
+  const r = barH / 2;
+  const x = seg.startCol * cellW;
+  const w = (seg.endCol - seg.startCol + 1) * cellW;
+  const y = seg.row * (cellH + rowGap) + cellH - barH - 4; // 4px from cell bottom
+
+  const fill = colorForUrgency(seg.urgencyColor, seg.isNonWorking);
+  const lc = seg.isProjectStart;
+  const rc = seg.isProjectEnd;
+
+  let shape;
+  if (lc && rc){
+    shape = `<rect x="${x}" y="${y}" width="${w}" height="${barH}" rx="${r}" fill="${fill}"/>`;
+  } else if (lc){
+    shape = `<path d="M${x+r},${y} H${x+w} V${y+barH} H${x+r} Q${x},${y+barH} ${x},${y+r} Q${x},${y} ${x+r},${y} Z" fill="${fill}"/>`;
+  } else if (rc){
+    shape = `<path d="M${x},${y} H${x+w-r} Q${x+w},${y} ${x+w},${y+r} Q${x+w},${y+barH} ${x+w-r},${y+barH} H${x},${y+barH} Z" fill="${fill}"/>`;
+  } else {
+    shape = `<rect x="${x}" y="${y}" width="${w}" height="${barH}" fill="${fill}"/>`;
+  }
+
+  // Gloss overlay
+  const gloss = `<rect x="${x}" y="${y}" width="${w}" height="${barH/2}" fill="rgba(255,255,255,0.22)" rx="${lc&&rc?r:0}"/>`;
+
+  return shape + gloss;
+}
+
+/* ═══════════════════════════════════════════════
+   VIEW: PROJECTS
+═══════════════════════════════════════════════ */
+function renderProjects(){
+  const projects = computeSchedule();
+  const main = document.getElementById('main');
+
+  if (projects.length === 0){
+    main.innerHTML = `<div class="empty-state">
+      <div class="empty-state-title">プロジェクトがありません</div>
+      <div class="empty-state-text">右下の「＋」ボタンから<br>新規プロジェクトを作成してください</div>
+    </div>`;
     return;
   }
-  const card = document.createElement('div');
-  card.className = 'list-card';
-  card.innerHTML = list.map(p => {
-    const d = dlStatus(p.deadline);
-    const g = getPct(p.procs);
-    const isDone = g === 100;
-    return `<div class="list-row" onclick="openDetail(${p.id})">
-      <div class="check-ring ${isDone?'checked':''}" onclick="event.stopPropagation();toggleAllDone(${p.id})">
-        ${svgCheck()}
-      </div>
-      <div class="row-content">
-        <div class="row-title ${isDone?'done-text':''}">${p.name}</div>
-        <div class="row-subtitle">
-          <span>${fmtDate(p.deadline)}</span>
-          <span class="deadline-tag ${isDone?'tag-green':d.cls}">${isDone?'完了':d.label}</span>
+
+  const html = `<div class="cards-wrap">${projects.map(renderProjectCard).join('')}</div>`;
+  main.innerHTML = html;
+}
+
+function renderProjectCard(p){
+  const c = p.urgencyColor;
+  const totalHours = p.totalHours || 0;
+
+  const stepsHtml = p.steps.map(s => {
+    const flex = Math.max(1, Number(s.hours)||1);
+    const cls  = s.done ? 'done' : 'todo';
+    return `<button class="pj-step ${cls}" style="flex:${flex}" data-act="toggleStep" data-pid="${p.id}" data-code="${escapeAttr(s.code)}" title="${escapeAttr(s.jp)} ${s.hours}h">${escapeHtml(s.code)}</button>`;
+  }).join('');
+
+  const badgeText = p.isComplete ? '完了' : `残り${p.daysToDeadline}日`;
+  const badgeClass = p.isComplete ? 'done' : c;
+  const deadlineCls = p.isComplete ? '' : `deadline-${c}`;
+
+  return `<div class="pj" data-pid="${p.id}">
+    <div class="pj-accent ${c}"></div>
+    <div class="pj-body">
+      <div class="pj-title">${escapeHtml(p.title)}</div>
+      <div class="pj-row">
+        <div class="pj-dates">
+          <span class="lbl">開始</span><span class="val">${fmtMd(p.startDate)}</span>
+          <span class="arrow">→</span>
+          <span class="lbl">納期</span><span class="val ${deadlineCls}">${fmtMd(p.deadline)}</span>
         </div>
+        <div class="pj-badge ${badgeClass}">${badgeText}</div>
+        <button class="pj-gear" data-act="openSettings" data-pid="${p.id}" aria-label="工程設定">⚙</button>
       </div>
-      <div class="row-right">
-        ${mkRing(g, 28)}
-        <svg class="chevron" viewBox="0 0 8 14"><polyline points="1 1 7 7 1 13"/></svg>
-      </div>
+      <div class="pj-steps">${stepsHtml}</div>
+    </div>
+  </div>`;
+}
+
+/* ═══════════════════════════════════════════════
+   VIEW: CALENDAR
+═══════════════════════════════════════════════ */
+function renderCalendar(){
+  const projects = computeSchedule();
+  const main = document.getElementById('main');
+
+  // Initialize calendar month if needed
+  if (!ui.calMonth){
+    const t = getTodayDate();
+    ui.calMonth = { y: t.getFullYear(), m: t.getMonth() };
+  }
+
+  const { y, m } = ui.calMonth;
+  const grid = getCalendarGrid(y, m);
+
+  // Determine deadline cells
+  const dlMap = new Map();
+  for (const p of projects){
+    if (!p.isComplete) dlMap.set(p.deadline, p.urgencyColor);
+  }
+
+  // Build weekday headers
+  const weekdays = ['日','月','火','水','木','金','土'];
+  const wkHtml = weekdays.map((w,i) => {
+    const cls = i === 0 ? 'sun' : (i === 6 ? 'sat' : '');
+    return `<div class="cal-weekday ${cls}">${w}</div>`;
+  }).join('');
+
+  // Build day cells
+  const dayCellsHtml = grid.days.map(d => {
+    const classes = ['cal-day'];
+    if (d.isOtherMonth) classes.push('oth');
+    if (d.isToday) classes.push('tod');
+    if (d.isNonWorking) classes.push('nonworking');
+    if (ui.calEditMode) classes.push('editable');
+
+    const dlColor = dlMap.get(d.date);
+    if (dlColor) classes.push('deadline-'+dlColor);
+
+    return `<div class="${classes.join(' ')}" data-date="${d.date}" data-act="${ui.calEditMode?'toggleNonWorking':''}">
+      <span class="cal-day-num">${d.day}</span>
     </div>`;
   }).join('');
-  area.innerHTML = '';
-  area.appendChild(card);
-}
 
-function toggleAllDone(id) {
-  const p = projects.find(x => x.id === id);
-  if (!p) return;
-  const allDone = p.procs.every(x => x.done);
-  p.procs.forEach(x => x.done = !allDone);
-  save(); renderAll();
-}
+  // Build SVG bar segments
+  const segments = computeBarSegments(projects, grid.days);
+  const cellW = 100/7; // percentage based — but we use viewBox so: use 100 unit
+  // Use viewBox coordinates: 7 cols × 20 units = 140 total, 6 rows × 20 = 120 + 5 gaps × 2 = 130
+  const VB_CELL_W = 20;
+  const VB_CELL_H = 20;
+  const VB_GAP = 2;
+  const VB_BAR_H = 5;
+  const vbW = 7 * VB_CELL_W;
+  const vbH = 6 * VB_CELL_H + 5 * VB_GAP;
 
-function renderAll() { renderSmartGrid(); renderList(); }
+  const svgBars = segments.map(s => renderBarSegmentSVG(s, {
+    cellW: VB_CELL_W, cellH: VB_CELL_H, rowGap: VB_GAP, barH: VB_BAR_H
+  })).join('');
 
-/* ── Create ── */
-function openCreate() {
-  document.getElementById('pName').value = '';
-  document.getElementById('pDeadline').value = '';
-  document.getElementById('pNotes').value = '';
-  document.getElementById('createSheet').classList.add('open');
-  setTimeout(() => document.getElementById('pName').focus(), 400);
-}
+  const editToggleHtml = `<button class="cal-edit-toggle ${ui.calEditMode?'on':''}" data-act="toggleCalEditMode">
+    <span class="ic">${ui.calEditMode?'✓':'✏️'}</span>
+    <span>${ui.calEditMode?'完了':'編集不可日'}</span>
+  </button>`;
 
-function closeCreate() { document.getElementById('createSheet').classList.remove('open'); }
+  const editBannerHtml = ui.calEditMode ? `<div class="cal-edit-banner">
+    <span class="ic">ⓘ</span>
+    <span>日付をタップで編集不可日を切替</span>
+  </div>` : '';
 
-function createProject() {
-  const name = document.getElementById('pName').value.trim();
-  const deadline = document.getElementById('pDeadline').value;
-  if (!name || !deadline) { showToast('タイトルと納期を入力してください'); return; }
-  const p = {
-    id: Date.now(), name, deadline,
-    notes: document.getElementById('pNotes').value.trim(),
-    procs: PROCS.map(n => ({ name: n, done: false })),
-    created: new Date().toISOString()
-  };
-  projects.unshift(p);
-  save(); closeCreate(); renderAll();
-  showToast('プロジェクトを追加しました');
-}
+  // Build gantt
+  const ganttHtml = renderGantt(projects, y, m);
 
-/* ── Detail ── */
-function openDetail(id) {
-  activeId = id;
-  renderDetail();
-  document.getElementById('detailSheet').classList.add('open');
-}
-
-function closeDetail() {
-  document.getElementById('detailSheet').classList.remove('open');
-  activeId = null;
-}
-
-function buildGcalUrl(p) {
-  const dt = fmtGcal(p.deadline);
-  const d = new Date(p.deadline); d.setDate(d.getDate() + 1);
-  const dtEnd = `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;
-  const title = encodeURIComponent(`【納期】${p.name}`);
-  const details = encodeURIComponent(`動画制作プロジェクト: ${p.name}\n納期: ${fmtDate(p.deadline)}${p.notes ? '\n備考: '+p.notes : ''}`);
-  return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${dt}/${dtEnd}&details=${details}`;
-}
-
-function buildShortcutUrl(p) {
-  const input = encodeURIComponent(`【納期】${p.name}　${fmtDate(p.deadline)}`);
-  return `shortcuts://run-shortcut?name=${encodeURIComponent('動画納期リマインダー')}&input=${input}`;
-}
-
-function renderDetail() {
-  const p = projects.find(x => x.id === activeId);
-  if (!p) return;
-  const d = dlStatus(p.deadline);
-  const g = getPct(p.procs);
-  const doneCount = p.procs.filter(x => x.done).length;
-
-  document.getElementById('detailContent').innerHTML = `
-    <div class="sheet-handle"></div>
-    <div class="detail-title">${p.name}</div>
-    <div class="detail-subtitle">
-      <span>${fmtDate(p.deadline)}</span>
-      <span class="deadline-tag ${g===100?'tag-green':d.cls}">${g===100?'完了':d.label}</span>
-    </div>
-
-    <div class="prog-section">
-      ${mkRing(g, 56)}
-      <div>
-        <div class="prog-pct">${g}%</div>
-        <div class="prog-sub">${doneCount}/${p.procs.length} 工程完了</div>
+  main.innerHTML = `
+    <div class="cal-header">
+      <div class="cal-nav">
+        <button class="cal-arrow" data-act="prevMonth" aria-label="前月">‹</button>
+        <div class="cal-title">${y}年${m+1}月</div>
+        <button class="cal-arrow" data-act="nextMonth" aria-label="次月">›</button>
       </div>
+      ${editToggleHtml}
     </div>
-
-    <div class="int-section">
-      <div class="int-title">連携</div>
-      <button class="int-btn" onclick="openGcal()">
-        <div class="int-icon int-google">
-          <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg>
-        </div>
-        Googleカレンダーに追加
-      </button>
-      <button class="int-btn" onclick="openShortcut()">
-        <div class="int-icon int-shortcut">
-          <svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-        </div>
-        リマインダーに追加（ショートカット）
-      </button>
+    ${editBannerHtml}
+    <div class="cal-weekdays">${wkHtml}</div>
+    <div class="cal-grid-wrap">
+      <svg class="cal-bars-svg" viewBox="0 0 ${vbW} ${vbH}" preserveAspectRatio="none">${svgBars}</svg>
+      <div class="cal-grid">${dayCellsHtml}</div>
     </div>
-
-    <div class="proc-card">
-      <div class="proc-hd">工程チェックリスト</div>
-      ${p.procs.map((proc, i) => `
-        <div class="proc-row ${proc.done?'pdone':''}">
-          <div class="proc-check ${proc.done?'on':''}" onclick="toggleProc(${p.id},${i})">
-            ${svgCheck()}
-          </div>
-          <span class="proc-name">${proc.name}</span>
-        </div>
-      `).join('')}
-    </div>
-
-    ${p.notes ? `
-    <div class="notes-card">
-      <div class="notes-label">メモ</div>
-      <div class="notes-body">${p.notes}</div>
-    </div>` : ''}
-
-    <div class="guide-section">
-      <div class="guide-title">📌 ショートカット連携の初回設定</div>
-      <div class="guide-step">
-        1. iPhoneの「ショートカット」アプリを開く<br>
-        2. 右上の「＋」で新規作成<br>
-        3. 「アクションを追加」→「リマインダーを追加」を選択<br>
-        4. 名前を「動画納期リマインダー」にして保存<br>
-        5. 次回から上のボタンで自動追加されます
-      </div>
-    </div>
-
-    <button class="del-btn" onclick="deleteProject()">このプロジェクトを削除</button>
-
-    <div style="padding:0 16px 8px">
-      <button class="sht-btn sht-cancel" style="width:100%" onclick="closeDetail()">閉じる</button>
-    </div>
+    ${ganttHtml}
   `;
-
-  window._gcalUrl = buildGcalUrl(p);
-  window._scUrl = buildShortcutUrl(p);
 }
 
-function openGcal() { window.open(window._gcalUrl, '_blank'); showToast('Googleカレンダーを開きます'); }
-function openShortcut() { window.location.href = window._scUrl; showToast('ショートカットを起動します'); }
+function renderGantt(projects, year, month){
+  const active = projects.filter(p => !p.isComplete && p.computedStart);
+  if (active.length === 0) return '';
 
-function toggleProc(id, i) {
-  const p = projects.find(x => x.id === id);
-  if (!p) return;
-  p.procs[i].done = !p.procs[i].done;
-  save(); renderAll(); renderDetail();
+  // Days in month
+  const daysInMonth = new Date(year, month+1, 0).getDate();
+  const firstStr = `${year}-${String(month+1).padStart(2,'0')}-01`;
+  const lastStr  = `${year}-${String(month+1).padStart(2,'0')}-${String(daysInMonth).padStart(2,'0')}`;
+  const todayStr = getTodayStr();
+
+  // SVG layout
+  const W = 100; // %, will use viewBox
+  const innerW = 90; // 90 units for bars
+  const leftPad = 5;
+  const dayWidth = innerW / (daysInMonth - 1); // pixels per day step
+
+  // Today position
+  let todayX = -1;
+  if (todayStr >= firstStr && todayStr <= lastStr){
+    const td = strToDate(todayStr);
+    todayX = leftPad + (td.getDate()-1) * dayWidth;
+  }
+
+  let barRows = '';
+  const rowH = 7;
+  const rowGap = 6;
+  active.forEach((p, idx) => {
+    const y = idx * (rowH + rowGap);
+    const labelY = y - 1.5;
+
+    const ps = p.computedStart;
+    const pe = p.computedEnd;
+    if (!ps || !pe) return;
+
+    const psDate = strToDate(ps);
+    const peDate = strToDate(pe);
+    const monthStart = strToDate(firstStr);
+    const monthEnd   = strToDate(lastStr);
+
+    // Clamp to current month for display
+    const visStart = psDate < monthStart ? monthStart : psDate;
+    const visEnd   = peDate > monthEnd   ? monthEnd   : peDate;
+    if (visEnd < monthStart || visStart > monthEnd) return;
+
+    const x1 = leftPad + (visStart.getDate() - 1) * dayWidth;
+    const x2 = leftPad + (visEnd.getDate() - 1)   * dayWidth + dayWidth*0.6;
+    const w  = Math.max(2, x2 - x1);
+
+    const fill = colorForUrgency(p.urgencyColor, false);
+    const labelFill = p.urgencyColor === 'red' ? 'rgba(215,55,55,0.9)'
+                    : p.urgencyColor === 'orange' ? 'rgba(212,102,16,0.9)'
+                    : 'rgba(155,158,165,0.9)';
+
+    const titleShort = p.title.length > 22 ? p.title.slice(0,22)+'…' : p.title;
+
+    barRows += `
+      <text x="${leftPad}" y="${labelY}" fill="${labelFill}" font-size="2.4" font-family="-apple-system" font-weight="700">${escapeHtml(titleShort)}</text>
+      <rect x="${x1}" y="${y}" width="${w}" height="${rowH}" rx="2" fill="${fill}"/>
+      <rect x="${x1}" y="${y}" width="${w}" height="${rowH/2}" rx="2" fill="rgba(255,255,255,0.2)"/>
+    `;
+  });
+
+  // Day axis (every 5 days + 1 + last)
+  let axisHtml = '';
+  for (let d=1; d<=daysInMonth; d++){
+    const x = leftPad + (d-1) * dayWidth;
+    const isMajor = (d === 1 || d % 5 === 0 || d === daysInMonth);
+    const fontSize = isMajor ? 2.2 : 0;
+    if (isMajor){
+      axisHtml += `<text x="${x}" y="${active.length * (rowH+rowGap) + 3}" fill="rgba(74,98,160,0.6)" font-size="${fontSize}" font-family="-apple-system" text-anchor="middle">${d}</text>`;
+    }
+  }
+
+  const todayLine = todayX >= 0 ? `<line x1="${todayX}" y1="0" x2="${todayX}" y2="${active.length * (rowH+rowGap)}" stroke="rgba(210,235,255,0.3)" stroke-width="0.4" stroke-dasharray="1,0.8"/>` : '';
+
+  const gantHeight = active.length * (rowH + rowGap) + 6;
+
+  return `<div class="gantt-card">
+    <div class="gantt-body">
+      <div class="gantt-title">PROJECT SCHEDULE — ${year}/${String(month+1).padStart(2,'0')}</div>
+      <svg viewBox="0 0 100 ${gantHeight}" preserveAspectRatio="none" style="display:block;width:100%;height:${gantHeight*1.6}px">
+        ${todayLine}
+        ${barRows}
+        ${axisHtml}
+      </svg>
+    </div>
+  </div>`;
 }
 
-function deleteProject() {
-  if (confirm('このプロジェクトを削除しますか？')) {
-    projects = projects.filter(p => p.id !== activeId);
-    save(); closeDetail(); renderAll();
-    showToast('削除しました');
+/* ═══════════════════════════════════════════════
+   SHEET / MODAL SYSTEM
+═══════════════════════════════════════════════ */
+function openSheet(content){
+  ui.sheetStack.push(content);
+  rerenderSheet();
+  document.getElementById('sheetOverlay').classList.add('on');
+  document.getElementById('sheet').classList.add('on');
+  ui.sheetOpen = true;
+}
+
+function popSheet(){
+  ui.sheetStack.pop();
+  if (ui.sheetStack.length === 0){
+    closeSheet();
+  } else {
+    rerenderSheet();
   }
 }
 
-renderAll();
+function closeSheet(){
+  document.getElementById('sheetOverlay').classList.remove('on');
+  document.getElementById('sheet').classList.remove('on');
+  ui.sheetStack = [];
+  ui.sheetOpen = false;
+}
+
+function rerenderSheet(){
+  if (ui.sheetStack.length === 0) return;
+  const top = ui.sheetStack[ui.sheetStack.length - 1];
+  document.getElementById('sheetHeader').innerHTML = top.header;
+  document.getElementById('sheetContent').innerHTML = top.content;
+  document.getElementById('sheetFooter').innerHTML = top.footer || '';
+}
+
+/* ═══════════════════════════════════════════════
+   SHEET: NEW PROJECT
+═══════════════════════════════════════════════ */
+function openNewProjectSheet(){
+  // Default values
+  const today = getTodayStr();
+  const defaultDeadline = dateToStr(addDays(getTodayDate(), 14));
+  const draft = {
+    title: '',
+    startDate: today,
+    deadline: defaultDeadline,
+    presetId: state.presets[0]?.id || null,
+    steps: state.presets[0] ? state.presets[0].steps.map(s => ({...s, done:false})) : []
+  };
+
+  function rerender(){
+    const presetOpts = state.presets.map(p => `
+      <div class="preset-card ${draft.presetId === p.id ? 'on' : ''}" data-act="selectPreset" data-pid="${p.id}">
+        <div class="preset-radio"></div>
+        <div class="preset-info">
+          <div class="preset-name">${escapeHtml(p.name)}</div>
+          <div class="preset-desc">${escapeHtml(p.description || '')}</div>
+        </div>
+        <div class="preset-meta">${p.steps.length}工程</div>
+      </div>
+    `).join('');
+
+    const customCard = `
+      <div class="preset-card ${draft.presetId === null ? 'on' : ''}" data-act="selectPreset" data-pid="">
+        <div class="preset-radio"></div>
+        <div class="preset-info">
+          <div class="preset-name">カスタム</div>
+          <div class="preset-desc">空の工程から作成</div>
+        </div>
+        <div class="preset-meta">—</div>
+      </div>`;
+
+    const stepsHtml = draft.steps.length === 0
+      ? `<div style="padding:14px;text-align:center;color:var(--tx-low);font-size:11px">工程がありません。「工程を追加」をタップ</div>`
+      : draft.steps.map((s,i) => renderStepRow(s,i,'newproj')).join('');
+
+    const total = draft.steps.reduce((sum,s) => sum + (Number(s.hours)||0), 0);
+
+    const content = `
+      <div class="sheet-section">
+        <div class="sheet-section-label">プロジェクト情報</div>
+        <div class="sheet-card">
+          <div class="form-row">
+            <span class="form-label">タイトル</span>
+            <input class="form-input" id="np-title" type="text" placeholder="プロジェクト名…" value="${escapeAttr(draft.title)}">
+          </div>
+          <div class="form-row">
+            <span class="form-label">開始日</span>
+            <input class="form-input" id="np-start" type="date" value="${draft.startDate}">
+          </div>
+          <div class="form-row">
+            <span class="form-label">納期</span>
+            <input class="form-input" id="np-deadline" type="date" value="${draft.deadline}">
+          </div>
+        </div>
+      </div>
+      <div class="sheet-section">
+        <div class="sheet-section-label">プリセット選択</div>
+        <div class="preset-list">
+          ${presetOpts}
+          ${customCard}
+        </div>
+      </div>
+      <div class="sheet-section">
+        <div class="sheet-section-label">工程 / Production Steps</div>
+        <div class="sheet-card">${stepsHtml}</div>
+      </div>
+      <button class="btn btn-secondary" data-act="addStepNewProj" style="margin-top:8px">＋ 工程を追加 / Add Step</button>
+      <div class="total-row" style="margin-top:8px;background:rgba(28,32,52,0.5);border-radius:8px;border-top:none">
+        <span>合計作業時間 / Total</span>
+        <span class="num">${total}h</span>
+      </div>
+    `;
+
+    const footer = `
+      <button class="btn btn-primary" data-act="createProject">プロジェクト作成 / Create</button>
+    `;
+
+    const header = `
+      <button class="sheet-back" data-act="closeSheet">キャンセル</button>
+      <div class="sheet-title">NEW PROJECT</div>
+      <span style="width:50px"></span>
+    `;
+
+    if (ui.sheetStack.length > 0 && ui.sheetStack[ui.sheetStack.length-1].kind === 'newproj'){
+      ui.sheetStack[ui.sheetStack.length-1] = { kind:'newproj', header, content, footer, draft, rerender };
+    } else {
+      ui.sheetStack.push({ kind:'newproj', header, content, footer, draft, rerender });
+    }
+    rerenderSheet();
+    bindNewProjectInputs();
+  }
+
+  function bindNewProjectInputs(){
+    const t = document.getElementById('np-title');
+    const s = document.getElementById('np-start');
+    const d = document.getElementById('np-deadline');
+    if (t) t.addEventListener('input', e => { draft.title = e.target.value; });
+    if (s) s.addEventListener('input', e => { draft.startDate = e.target.value; });
+    if (d) d.addEventListener('input', e => { draft.deadline = e.target.value; });
+
+    // Step hour inputs
+    document.querySelectorAll('[data-step-hours]').forEach(el => {
+      el.addEventListener('input', e => {
+        const idx = parseInt(el.dataset.stepHours, 10);
+        const v = Math.max(0, parseInt(e.target.value, 10) || 0);
+        if (draft.steps[idx]) draft.steps[idx].hours = v;
+        // update totals only:
+        const total = draft.steps.reduce((sum,s) => sum + (Number(s.hours)||0), 0);
+        const totEl = document.querySelector('.total-row .num');
+        if (totEl) totEl.textContent = `${total}h`;
+      });
+    });
+  }
+
+  // Wire sheet stack action handlers via event delegation (handled in attachEvents)
+  rerender();
+  document.getElementById('sheetOverlay').classList.add('on');
+  document.getElementById('sheet').classList.add('on');
+  ui.sheetOpen = true;
+  // Save draft for handlers
+  ui.activeNewProjectDraft = draft;
+  ui.activeNewProjectRerender = rerender;
+}
+
+function renderStepRow(step, idx, mode){
+  return `<div class="step-row">
+    <span class="step-drag">≡</span>
+    <div class="step-code">${escapeHtml(step.code)}</div>
+    <div class="step-names">
+      <div class="step-jp">${escapeHtml(step.jp)}</div>
+      <div class="step-en">${escapeHtml(step.en)}</div>
+    </div>
+    <div class="step-hours">
+      <input type="number" min="0" max="99" data-step-hours="${idx}" data-mode="${mode}" value="${step.hours}">
+      <span class="h-suffix">h</span>
+    </div>
+    <button class="step-delete" data-act="deleteStep" data-mode="${mode}" data-idx="${idx}" aria-label="削除">✕</button>
+  </div>`;
+}
+
+/* ═══════════════════════════════════════════════
+   SHEET: PROJECT SETTINGS (Production Steps)
+═══════════════════════════════════════════════ */
+function openProjectSettings(projectId){
+  const proj = state.projects.find(p => p.id === projectId);
+  if (!proj) return;
+
+  const draft = JSON.parse(JSON.stringify(proj));
+  ui.activeProjectDraft = draft;
+
+  function rerender(){
+    const total = draft.steps.reduce((sum,s) => sum + (Number(s.hours)||0), 0);
+    const stepsHtml = draft.steps.length === 0
+      ? `<div style="padding:14px;text-align:center;color:var(--tx-low);font-size:11px">工程がありません</div>`
+      : draft.steps.map((s,i) => renderStepRowWithDone(s,i)).join('');
+
+    const content = `
+      <div class="sheet-subtitle">${escapeHtml(draft.title)}</div>
+      <div class="sheet-section">
+        <div class="sheet-section-label">基本情報</div>
+        <div class="sheet-card">
+          <div class="form-row">
+            <span class="form-label">タイトル</span>
+            <input class="form-input" id="ps-title" type="text" value="${escapeAttr(draft.title)}">
+          </div>
+          <div class="form-row">
+            <span class="form-label">開始日</span>
+            <input class="form-input" id="ps-start" type="date" value="${draft.startDate}">
+          </div>
+          <div class="form-row">
+            <span class="form-label">納期</span>
+            <input class="form-input" id="ps-deadline" type="date" value="${draft.deadline}">
+          </div>
+        </div>
+      </div>
+      <div class="sheet-section">
+        <div class="sheet-section-label">工程 / Production Steps</div>
+        <div class="sheet-card">${stepsHtml}</div>
+        <div class="total-row" style="background:rgba(28,32,52,0.5);border-radius:0 0 10px 10px;margin-top:-1px">
+          <span>合計 / Total</span>
+          <span class="num">${total}h</span>
+        </div>
+      </div>
+      <button class="btn btn-secondary" data-act="addStepProj">＋ 工程を追加 / Add Step</button>
+      <button class="btn btn-secondary" data-act="saveAsPreset">プリセットとして保存 / Save as Preset</button>
+      <button class="btn btn-danger" data-act="deleteProject">このプロジェクトを削除</button>
+    `;
+
+    const footer = `
+      <button class="btn btn-primary" data-act="saveProject">保存 / Save</button>
+    `;
+
+    const header = `
+      <button class="sheet-back" data-act="closeSheet">キャンセル</button>
+      <div class="sheet-title">PRODUCTION STEPS</div>
+      <span style="width:50px"></span>
+    `;
+
+    if (ui.sheetStack.length > 0 && ui.sheetStack[ui.sheetStack.length-1].kind === 'projset'){
+      ui.sheetStack[ui.sheetStack.length-1] = { kind:'projset', header, content, footer, draft, rerender };
+    } else {
+      ui.sheetStack.push({ kind:'projset', header, content, footer, draft, rerender });
+    }
+    rerenderSheet();
+    bindProjectSettingsInputs();
+  }
+
+  function bindProjectSettingsInputs(){
+    const t = document.getElementById('ps-title');
+    const s = document.getElementById('ps-start');
+    const d = document.getElementById('ps-deadline');
+    if (t) t.addEventListener('input', e => { draft.title = e.target.value; });
+    if (s) s.addEventListener('input', e => { draft.startDate = e.target.value; });
+    if (d) d.addEventListener('input', e => { draft.deadline = e.target.value; });
+
+    document.querySelectorAll('[data-step-hours]').forEach(el => {
+      el.addEventListener('input', e => {
+        const idx = parseInt(el.dataset.stepHours, 10);
+        const v = Math.max(0, parseInt(e.target.value, 10) || 0);
+        if (draft.steps[idx]) draft.steps[idx].hours = v;
+        const total = draft.steps.reduce((sum,s) => sum + (Number(s.hours)||0), 0);
+        const totEl = document.querySelector('.total-row .num');
+        if (totEl) totEl.textContent = `${total}h`;
+      });
+    });
+  }
+
+  ui.activeProjectRerender = rerender;
+  rerender();
+  document.getElementById('sheetOverlay').classList.add('on');
+  document.getElementById('sheet').classList.add('on');
+  ui.sheetOpen = true;
+}
+
+function renderStepRowWithDone(step, idx){
+  return `<div class="step-row">
+    <button class="step-done-check ${step.done ? 'on' : ''}" data-act="toggleStepDone" data-idx="${idx}" aria-label="完了"></button>
+    <div class="step-code">${escapeHtml(step.code)}</div>
+    <div class="step-names">
+      <div class="step-jp">${escapeHtml(step.jp)}</div>
+      <div class="step-en">${escapeHtml(step.en)}</div>
+    </div>
+    <div class="step-hours">
+      <input type="number" min="0" max="99" data-step-hours="${idx}" data-mode="proj" value="${step.hours}">
+      <span class="h-suffix">h</span>
+    </div>
+    <button class="step-delete" data-act="deleteStep" data-mode="proj" data-idx="${idx}" aria-label="削除">✕</button>
+  </div>`;
+}
+
+/* ═══════════════════════════════════════════════
+   SHEET: ADD STEP (library picker / create new)
+═══════════════════════════════════════════════ */
+function openAddStepSheet(targetMode){
+  // targetMode: 'newproj' or 'proj'
+  ui.addStepTarget = targetMode;
+  ui.addStepMode = 'library'; // 'library' or 'create'
+  ui.addStepDraft = { code:'', jp:'', en:'', defaultHours:1 };
+
+  function rerender(){
+    const libContent = state.stepLibrary.map((s,i) => `
+      <div class="lib-step" data-act="pickLibStep" data-idx="${i}">
+        <div class="step-code">${escapeHtml(s.code)}</div>
+        <div class="step-names">
+          <div class="step-jp">${escapeHtml(s.jp)}</div>
+          <div class="step-en">${escapeHtml(s.en)}</div>
+        </div>
+        <span class="arrow">›</span>
+      </div>
+    `).join('');
+
+    const createContent = `
+      <div class="sheet-card">
+        <div class="form-row">
+          <span class="form-label">日本語名</span>
+          <input class="form-input" id="as-jp" type="text" placeholder="工程名を入力…" value="${escapeAttr(ui.addStepDraft.jp)}">
+        </div>
+        <div class="form-row">
+          <span class="form-label">英語名</span>
+          <input class="form-input" id="as-en" type="text" placeholder="English name…" value="${escapeAttr(ui.addStepDraft.en)}">
+        </div>
+        <div class="form-row">
+          <span class="form-label">略号(2字)</span>
+          <input class="form-input" id="as-code" type="text" maxlength="3" placeholder="XX" value="${escapeAttr(ui.addStepDraft.code)}">
+        </div>
+        <div class="form-row">
+          <span class="form-label">標準時間</span>
+          <input class="form-input" id="as-hours" type="number" min="0" max="99" value="${ui.addStepDraft.defaultHours}">
+        </div>
+      </div>
+      <div style="font-size:10px;color:var(--tx-low);padding:10px 4px;line-height:1.5">
+        作成した工程はライブラリに保存され、他のプロジェクトでも再利用できます
+      </div>
+    `;
+
+    const content = `
+      <div class="add-mode-tabs">
+        <div class="add-mode-tab ${ui.addStepMode === 'library' ? 'on' : ''}" data-act="addStepModeLib">ライブラリから選択</div>
+        <div class="add-mode-tab ${ui.addStepMode === 'create' ? 'on' : ''}" data-act="addStepModeCreate">新規作成</div>
+      </div>
+      ${ui.addStepMode === 'library' ? `<div class="sheet-card">${libContent}</div>` : createContent}
+    `;
+
+    const footer = ui.addStepMode === 'create'
+      ? `<button class="btn btn-primary" data-act="createNewStep">作成して追加 / Create &amp; Add</button>`
+      : '';
+
+    const header = `
+      <button class="sheet-back" data-act="popSheet">⟨ 戻る</button>
+      <div class="sheet-title">ADD STEP</div>
+      <span style="width:50px"></span>
+    `;
+
+    if (ui.sheetStack.length > 0 && ui.sheetStack[ui.sheetStack.length-1].kind === 'addstep'){
+      ui.sheetStack[ui.sheetStack.length-1] = { kind:'addstep', header, content, footer, rerender };
+    } else {
+      ui.sheetStack.push({ kind:'addstep', header, content, footer, rerender });
+    }
+    rerenderSheet();
+    bindAddStepInputs();
+  }
+
+  function bindAddStepInputs(){
+    if (ui.addStepMode !== 'create') return;
+    const jp = document.getElementById('as-jp');
+    const en = document.getElementById('as-en');
+    const code = document.getElementById('as-code');
+    const hours = document.getElementById('as-hours');
+    if (jp) jp.addEventListener('input', e => { ui.addStepDraft.jp = e.target.value; });
+    if (en) en.addEventListener('input', e => { ui.addStepDraft.en = e.target.value; });
+    if (code) code.addEventListener('input', e => { ui.addStepDraft.code = e.target.value.toUpperCase().slice(0,3); e.target.value = ui.addStepDraft.code; });
+    if (hours) hours.addEventListener('input', e => { ui.addStepDraft.defaultHours = Math.max(0, parseInt(e.target.value,10) || 0); });
+  }
+
+  ui.addStepRerender = rerender;
+  rerender();
+}
+
+/* ═══════════════════════════════════════════════
+   ACTIONS / EVENT HANDLERS
+═══════════════════════════════════════════════ */
+function showToast(msg, duration = 2000){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('on');
+  clearTimeout(showToast._timer);
+  showToast._timer = setTimeout(() => t.classList.remove('on'), duration);
+}
+
+function attachEvents(){
+  // Tab switching
+  document.querySelectorAll('.tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const v = btn.dataset.view;
+      if (v === ui.view) return;
+      ui.view = v;
+      document.querySelectorAll('.tab').forEach(t => t.classList.toggle('on', t.dataset.view === v));
+      render();
+    });
+  });
+
+  // FAB → New Project
+  document.getElementById('fab').addEventListener('click', () => {
+    openNewProjectSheet();
+  });
+
+  // Sheet overlay close
+  document.getElementById('sheetOverlay').addEventListener('click', closeSheet);
+
+  // Global delegated click handler
+  document.addEventListener('click', handleAction);
+}
+
+function handleAction(e){
+  // Find first ancestor with data-act
+  let target = e.target;
+  while (target && target !== document.body && !target.dataset?.act){
+    target = target.parentElement;
+  }
+  if (!target || !target.dataset?.act) return;
+
+  const act = target.dataset.act;
+  const ds = target.dataset;
+
+  switch(act){
+    case 'toggleStep':
+      toggleStep(ds.pid, ds.code);
+      break;
+    case 'openSettings':
+      openProjectSettings(ds.pid);
+      break;
+    case 'closeSheet':
+      closeSheet();
+      break;
+    case 'popSheet':
+      popSheet();
+      break;
+    case 'prevMonth':
+      ui.calMonth.m--;
+      if (ui.calMonth.m < 0){ ui.calMonth.m = 11; ui.calMonth.y--; }
+      render();
+      break;
+    case 'nextMonth':
+      ui.calMonth.m++;
+      if (ui.calMonth.m > 11){ ui.calMonth.m = 0; ui.calMonth.y++; }
+      render();
+      break;
+    case 'toggleCalEditMode':
+      ui.calEditMode = !ui.calEditMode;
+      render();
+      break;
+    case 'toggleNonWorking':
+      toggleNonWorkingDate(ds.date);
+      break;
+    case 'selectPreset':
+      selectPreset(ds.pid);
+      break;
+    case 'addStepNewProj':
+      openAddStepSheet('newproj');
+      break;
+    case 'addStepProj':
+      openAddStepSheet('proj');
+      break;
+    case 'addStepModeLib':
+      ui.addStepMode = 'library';
+      ui.addStepRerender?.();
+      break;
+    case 'addStepModeCreate':
+      ui.addStepMode = 'create';
+      ui.addStepRerender?.();
+      break;
+    case 'pickLibStep':
+      pickLibraryStep(parseInt(ds.idx, 10));
+      break;
+    case 'createNewStep':
+      createAndAddNewStep();
+      break;
+    case 'deleteStep':
+      deleteStepFromDraft(ds.mode, parseInt(ds.idx, 10));
+      break;
+    case 'toggleStepDone':
+      toggleProjectDraftStepDone(parseInt(ds.idx, 10));
+      break;
+    case 'createProject':
+      saveNewProject();
+      break;
+    case 'saveProject':
+      saveProjectChanges();
+      break;
+    case 'deleteProject':
+      confirmDeleteProject();
+      break;
+    case 'saveAsPreset':
+      saveCurrentProjectAsPreset();
+      break;
+  }
+}
+
+function toggleStep(projectId, code){
+  const proj = state.projects.find(p => p.id === projectId);
+  if (!proj) return;
+  const step = proj.steps.find(s => s.code === code);
+  if (!step) return;
+  step.done = !step.done;
+  saveState();
+  render();
+}
+
+function toggleNonWorkingDate(dateStr){
+  const idx = state.nonWorkingDates.indexOf(dateStr);
+  if (idx >= 0){
+    state.nonWorkingDates.splice(idx, 1);
+  } else {
+    state.nonWorkingDates.push(dateStr);
+    state.nonWorkingDates.sort();
+  }
+  saveState();
+  render();
+}
+
+function selectPreset(presetId){
+  const draft = ui.activeNewProjectDraft;
+  if (!draft) return;
+  if (presetId === '' || presetId === null){
+    draft.presetId = null;
+    draft.steps = [];
+  } else {
+    const preset = state.presets.find(p => p.id === presetId);
+    if (preset){
+      draft.presetId = presetId;
+      draft.steps = preset.steps.map(s => ({...s, done:false}));
+    }
+  }
+  ui.activeNewProjectRerender?.();
+}
+
+function pickLibraryStep(libIdx){
+  const lib = state.stepLibrary[libIdx];
+  if (!lib) return;
+  const step = makeStepInstance(lib);
+
+  if (ui.addStepTarget === 'newproj'){
+    ui.activeNewProjectDraft.steps.push(step);
+    popSheet();
+    ui.activeNewProjectRerender?.();
+  } else if (ui.addStepTarget === 'proj'){
+    ui.activeProjectDraft.steps.push(step);
+    popSheet();
+    ui.activeProjectRerender?.();
+  }
+}
+
+function createAndAddNewStep(){
+  const d = ui.addStepDraft;
+  if (!d.jp.trim() || !d.code.trim()){
+    showToast('日本語名と略号は必須です');
+    return;
+  }
+  const newLib = {
+    code: d.code.toUpperCase(),
+    jp: d.jp.trim(),
+    en: d.en.trim() || d.jp.trim(),
+    defaultHours: d.defaultHours
+  };
+  // Add to library if code not already there
+  const exists = state.stepLibrary.some(s => s.code === newLib.code);
+  if (!exists){
+    state.stepLibrary.push(newLib);
+  }
+  saveState();
+
+  const stepInstance = makeStepInstance(newLib);
+  if (ui.addStepTarget === 'newproj'){
+    ui.activeNewProjectDraft.steps.push(stepInstance);
+    popSheet();
+    ui.activeNewProjectRerender?.();
+  } else if (ui.addStepTarget === 'proj'){
+    ui.activeProjectDraft.steps.push(stepInstance);
+    popSheet();
+    ui.activeProjectRerender?.();
+  }
+  showToast('工程を追加しました');
+}
+
+function deleteStepFromDraft(mode, idx){
+  if (mode === 'newproj'){
+    ui.activeNewProjectDraft.steps.splice(idx, 1);
+    ui.activeNewProjectRerender?.();
+  } else if (mode === 'proj'){
+    ui.activeProjectDraft.steps.splice(idx, 1);
+    ui.activeProjectRerender?.();
+  }
+}
+
+function toggleProjectDraftStepDone(idx){
+  const step = ui.activeProjectDraft?.steps[idx];
+  if (!step) return;
+  step.done = !step.done;
+  ui.activeProjectRerender?.();
+}
+
+function saveNewProject(){
+  const d = ui.activeNewProjectDraft;
+  if (!d.title.trim()){
+    showToast('タイトルを入力してください');
+    return;
+  }
+  if (!d.startDate || !d.deadline){
+    showToast('開始日と納期を設定してください');
+    return;
+  }
+  if (strToDate(d.deadline) < strToDate(d.startDate)){
+    showToast('納期は開始日以降にしてください');
+    return;
+  }
+  if (d.steps.length === 0){
+    showToast('工程を1つ以上追加してください');
+    return;
+  }
+
+  const newProj = {
+    id: 'proj_' + Date.now() + '_' + Math.random().toString(36).slice(2,7),
+    title: d.title.trim(),
+    startDate: d.startDate,
+    deadline: d.deadline,
+    presetId: d.presetId,
+    steps: d.steps.map(s => ({...s}))
+  };
+  state.projects.push(newProj);
+  saveState();
+  closeSheet();
+  ui.view = 'projects';
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('on', t.dataset.view === 'projects'));
+  render();
+  showToast('プロジェクトを作成しました');
+}
+
+function saveProjectChanges(){
+  const d = ui.activeProjectDraft;
+  if (!d.title.trim()){
+    showToast('タイトルを入力してください');
+    return;
+  }
+  const proj = state.projects.find(p => p.id === d.id);
+  if (!proj) return;
+  proj.title = d.title.trim();
+  proj.startDate = d.startDate;
+  proj.deadline = d.deadline;
+  proj.steps = d.steps.map(s => ({...s}));
+  saveState();
+  closeSheet();
+  render();
+  showToast('保存しました');
+}
+
+function confirmDeleteProject(){
+  if (!confirm('このプロジェクトを削除しますか？\nThis action cannot be undone.')) return;
+  const d = ui.activeProjectDraft;
+  if (!d) return;
+  state.projects = state.projects.filter(p => p.id !== d.id);
+  saveState();
+  closeSheet();
+  render();
+  showToast('削除しました');
+}
+
+function saveCurrentProjectAsPreset(){
+  const d = ui.activeProjectDraft;
+  if (!d) return;
+  const name = prompt('プリセット名を入力\n(例: しそうチャンネル番組)', d.title);
+  if (!name) return;
+  const newPreset = {
+    id: 'preset_' + Date.now(),
+    name: name.trim(),
+    description: '',
+    steps: d.steps.map(s => ({code:s.code, jp:s.jp, en:s.en, hours:s.hours, done:false}))
+  };
+  state.presets.push(newPreset);
+  saveState();
+  showToast('プリセットを保存しました');
+}
+
+/* ═══════════════════════════════════════════════
+   UTILITIES
+═══════════════════════════════════════════════ */
+function escapeHtml(s){
+  return String(s == null ? '' : s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+function escapeAttr(s){
+  return escapeHtml(s);
+}
+
+/* ═══════════════════════════════════════════════
+   MAIN RENDER
+═══════════════════════════════════════════════ */
+function render(){
+  if (ui.view === 'projects'){
+    renderProjects();
+  } else if (ui.view === 'calendar'){
+    renderCalendar();
+  }
+}
+
+/* ═══════════════════════════════════════════════
+   INIT
+═══════════════════════════════════════════════ */
+window.addEventListener('DOMContentLoaded', () => {
+  attachEvents();
+  render();
+
+  // Save on visibility change
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') saveState();
+  });
+});
+
+// Expose for debugging
+window.__editflow = { state, ui, computeSchedule, resetState };
 </script>
 </body>
 </html>

@@ -21,7 +21,7 @@ EditFlow（動画編集工程管理）の開発に活かすため、動画生成
 
 - プロンプトを作らせる: 「藤まつりのオープニング用に、Kling 3.0 向けの3ショット構成のプロンプトを書いて」
   → `video-prompt` スキルがこの資料を読んで、モデルに合わせた形で出力します。
-- 開発に使う: 「05-editflow-integration.md の案Aを実装して」
+- 開発に使う: 「05-editflow-integration.md の案Cを実装して」
   → `data/video-ai-prompts.json` を読み込むプロンプトビルダーを `index.html` に追加する、といった形で進められます。
 
 ## 情報の更新

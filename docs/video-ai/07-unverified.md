@@ -63,6 +63,5 @@
 
 ## 取れていない情報
 
-- RKJ VIDEO「うわ、やば....史上最強かも（Seedance 2.5 & Artlist AI）」（iPr-OlscJOg）: この環境からは YouTube に届かず（Google の自動アクセス判定で止まる）、字幕は取れませんでした。動画の説明文はほぼアフィリエイトのリンクでした。取れる手段は次のどれかです。
-  - 手元のブラウザで YouTube の「文字起こしを表示」を開き、全文をコピーして渡す（無料）
-  - Higgsfield の `video_analysis_create` に URL を渡す（費用がかかるかは未確認。使う前に承認を取る）
+- RKJ VIDEO「うわ、やば....史上最強かも（Seedance 2.5 & Artlist AI）」（iPr-OlscJOg）: 2026-10-22 に Higgsfield の `video_analysis_create` で中身を取り、08 の 17 にまとめた（費用はかからなかった。取引履歴で確認）。
+- RKJ VIDEO の Blender のプリビズのスキル（vLMw3hujMGs）: メンバー限定で入手できない（手元のメモより）。

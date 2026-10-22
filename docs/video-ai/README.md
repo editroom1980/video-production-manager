@@ -19,6 +19,7 @@ EditFlow（動画編集工程管理）と手元の制作環境で使うため、
 | [06-cm-techniques.md](06-cm-techniques.md) | CM の品質を上げる手法（商品の見せ方、人物の同一性、カメラワーク、締めのカット） |
 | [07-unverified.md](07-unverified.md) | 生成で確かめないと分からないことの一覧（試すときは承認を取ってから） |
 | [08-creators.md](08-creators.md) | AI動画で成果を出している作り手の手順と、公開されているスキル（役に立つ順） |
+| [visionreel-提案.md](visionreel-提案.md) | VISIONREEL への提案（企画の項目、広告の形式、カット設計の語彙、確かめる順と費用の目安） |
 | [`/data/video-ai-prompts.json`](../../data/video-ai-prompts.json) | 語彙・モデル・テンプレート・工程の機械可読版 |
 | [`/.claude/skills/video-prompt/SKILL.md`](../../.claude/skills/video-prompt/SKILL.md) | Claude Code 用スキル。「〇〇の動画プロンプトを書いて」で起動（入口はこれ） |
 | [`/.claude/skills/visual-video/`](../../.claude/skills/visual-video/SKILL.md)、[`/.claude/skills/visual-image/`](../../.claude/skills/visual-image/SKILL.md) | 演出と静止画プロンプトの参考書。smixs/visual-skills（Serge Shima、CC BY 4.0）を取り込んだもの。`video-prompt` から読む |

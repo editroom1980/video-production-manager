@@ -41,7 +41,8 @@ Claude Code の CLI では、ローカルの会話そのものをクラウドに
 ## 必要なもの
 
 - Claude Code CLI（`--cloud` に対応した版。2.1.308 で確認）と、claude.ai アカウントでのログイン（`claude auth login`）
-- このリポジトリが GitHub にあり、クラウドセッションから clone・プッシュできること（Claude GitHub App、または `/web-setup`）
+- このリポジトリが GitHub にあり、クラウドセッションからプッシュできること（Claude GitHub App）
+- ローカルの Mac から GitHub へのプッシュ権限は**なくても動きます**。プッシュに失敗すると、ローカルのリポジトリをそのままクラウドにアップロードします（`CCR_FORCE_BUNDLE=1`）。戻すときは読み込みだけなので、権限は要りません。
 - bash と git（Windows では Git Bash か WSL）
 
 ## 補足

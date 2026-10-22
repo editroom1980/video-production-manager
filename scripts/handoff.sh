@@ -79,7 +79,14 @@ cmd_to_cloud() {
 
   git add "$HF"
   git commit -q -m "Hand off to cloud session ($id)"
-  git push -q -u origin "$branch"
+  # プッシュできない環境（GitHub への書き込み権限がない Mac など）では、
+  # ローカルのリポジトリをそのままクラウドにアップロードする。
+  # 返ってくるときは読み込み（fetch）だけなので、書き込み権限は要らない。
+  local bundle=0
+  if ! git push -q -u origin "$branch" 2>/dev/null; then
+    echo "GitHub にプッシュできなかったので、ローカルのリポジトリを直接クラウドに送ります。"
+    bundle=1
+  fi
 
   state_set id "$id"
   state_set branch "$branch"
@@ -94,12 +101,17 @@ cmd_to_cloud() {
 
   if ! command -v claude >/dev/null 2>&1; then
     echo "claude コマンドが見つかりません。次のコマンドを手で実行してください:"
+    [ "$bundle" = 1 ] && printf 'CCR_FORCE_BUNDLE=1 '
     printf 'claude --cloud %q\n' "$prompt"
     return 0
   fi
 
   echo "クラウドセッションを作成しています…"
-  out=$(claude --cloud "$prompt" </dev/null 2>&1) || { echo "$out"; die "claude --cloud が失敗しました。"; }
+  if [ "$bundle" = 1 ]; then
+    out=$(CCR_FORCE_BUNDLE=1 claude --cloud "$prompt" </dev/null 2>&1) || { echo "$out"; die "claude --cloud が失敗しました。"; }
+  else
+    out=$(claude --cloud "$prompt" </dev/null 2>&1) || { echo "$out"; die "claude --cloud が失敗しました。"; }
+  fi
   echo "$out"
   sid=$(printf '%s' "$out" | find_session_id || true)
   if [ -n "$sid" ]; then

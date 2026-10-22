@@ -657,6 +657,25 @@
     {
       "id": "refs",
       "text": "Higgsfield の参照は <<<uuid>>> の書き方で渡す。@名前 では届かない。"
+    },
+    {
+      "id": "standalone",
+      "text": "各プロンプトは単独で読んで分かるように、場所・人物・トーン・画風を毎回書く。"
+    },
+    {
+      "id": "no-filler",
+      "text": "cinematic / epic / masterpiece / dynamic camera / 4K のような中身のない言葉は使わず、レンズ・光・動きを具体的に書く。"
+    },
+    {
+      "id": "dramaturgy",
+      "text": "各ショットは感情を変える・行動を進める・圧力を上げるのどれかをする。環境の圧力1つ、体の小さな動き1つ、音か絵の手がかり1つ。（smixs/visual-skills, CC BY 4.0）"
     }
-  ]
+  ],
+  "estimates": {
+    "generationsPerUsedClip": [
+      20,
+      60
+    ],
+    "note": "作り手の公開例（PJ Accetturo 約20〜27、Hell Grind 約63）。手元の実績が出たら置き換える。"
+  }
 }

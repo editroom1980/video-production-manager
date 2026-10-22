@@ -14,6 +14,7 @@ description: Write or improve prompts for AI video generators used through Higgs
    - `docs/video-ai/02-models.md` のうち、対象モデルの節
    - 用途が合えば `docs/video-ai/03-templates.md` の該当テンプレート
    - CM なら `docs/video-ai/06-cm-techniques.md`
+   - 演出の土台として、`.claude/skills/visual-video/references/dramaturgy.md` と `universal-rules.md` を読む。モデル別の書き方は、同じフォルダの `seedance.md`（2.5 なら `seedance-25.md` も）、`kling.md`、`veo.md` のうち1つだけ読む。CM・商品なら `patterns-and-genres.md`、崩れの直し方は `fixes-and-skeletons.md`。設定画・絵コンテのグリッド・開始のフレームの静止画が要るときは `visual-image` スキルの参照ファイルを使う。これらは smixs/visual-skills（Serge Shima、CC BY 4.0）。手元の規則と食い違うときは手元の規則を優先する。
 2. 足りない情報があれば聞く。ただし聞くのは「何を撮るか」「尺」「縦か横か」程度にとどめ、残りは妥当な既定値で埋める。モデルの指定がなければ、`04-workflow.md` の「モデル選びの目安」で選び、理由を一言添える。
 3. モデルの仕様が要るときは、Higgsfield の `models_explore`（無料）で引き直す。資料の数値と違えば、引いた値を使い、違いを伝える。
 4. 出力の形式:
@@ -25,7 +26,19 @@ description: Write or improve prompts for AI video generators used through Higgs
    - 費用: 書かない。「生成の前に `get_cost` で確かめる」と添える
    - 崩れたときの直し方を1〜2個
 
+## 書く前に決めること（演出）
+
+smixs/visual-skills の dramaturgy.md・universal-rules.md より（Serge Shima、CC BY 4.0）。
+- 場面の式: 欲しいもの、障害、位置関係、視線、リズムを1文ずつ決めてから書く。
+- ショットの仕事: どのショットも、感情を変える／行動を進める／圧力を上げる、のどれかをする。どれもしないショットは切る。
+- 細部の決まり: 1ショットに、環境からの圧力1つ、体の小さな動き1つ、音か絵の手がかり1つ。
+- 禁止語: `cinematic`、`epic`、`masterpiece`、`dynamic camera`、`4K` のような、中身のない言葉は使わない。代わりに具体的なレンズ・光・動きを書く。
+- 最後の絵を決める（締めのカットで何が見えているか）。
+- 書き出す前に、上の5点を全ショットで点検し、満たさないものは直してから出す。
+
 ## 守ること
+
+- 各プロンプトは、前後のショットを知らなくても分かるように書く。場所・人物・トーン・画風を毎回書き直す（PJ Accetturo の手法。生成は1本ずつ独立して行われるため）。
 
 - 生成（クレジットを使う操作）はしない。プロンプトを作るだけにする。生成するなら、費用を見積もって承認を取ってから、手元で行う。
 - カットの数は秒数で決め打ちせず、内容で決める。上限を書かない。

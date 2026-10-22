@@ -30,7 +30,8 @@ Claude Code の CLI では、ローカルの会話そのものをクラウドに
 
 | どこで | 言うこと | 中で動くもの |
 |---|---|---|
-| ローカル | 「クラウドに送って」（追加の指示があれば一緒に） | `to-cloud` スキル → `scripts/handoff.sh to-cloud` |
+| ローカル | 「クラウドに送って」（追加の指示があれば一緒に） | `to-cloud` スキル → `scripts/handoff.sh to-cloud`（送る準備） |
+| 別のターミナル | `scripts/handoff.sh launch` を手で実行し、出た URL をチャットに貼る | `claude --cloud`（Claude の中からは実行できないため） |
 | ローカル | 「クラウドにこれも伝えて: …」 | `scripts/handoff.sh send "…"`（`claude -p … --cloud <id>`） |
 | ローカル | 「クラウドはもう終わった？」 | `scripts/handoff.sh status` |
 | クラウド | （自動、または）「ローカルに戻して」 | `to-local` スキル → `scripts/handoff.sh mark-returned` → プッシュ |
@@ -48,4 +49,5 @@ Claude Code の CLI では、ローカルの会話そのものをクラウドに
 ## 補足
 
 - クラウドでの会話の全文が欲しい場合は、`claude --teleport <セッションID>` で取り込めます。ただし、これは元のチャットではなく、別のローカルセッションとして開きます。
-- `scripts/handoff.sh to-cloud` から `claude --cloud` を実行したときに処理が返ってこない場合は、表示されたコマンドを自分で実行し、`scripts/handoff.sh record-session <URL>` でセッションを記録してください。
+- `claude --cloud` は Claude Code の中からは実行できません。そのため、送る最後の一歩（`scripts/handoff.sh launch`）だけは、別のターミナルで手で実行します。
+- Mac の bash では、変数名の直後に全角文字があると変数名の一部として読まれます。スクリプトを直すときは `${id}` のように波かっこで囲んでください。

@@ -3,7 +3,8 @@
 # 受け渡しの中身は .claude/handoff/HANDOFF.md（git で運ぶ）、
 # 受け渡しの状態はローカル専用の .claude/handoff/.state（git 管理外）に置く。
 #
-#   scripts/handoff.sh to-cloud ["追加の指示"]   ローカル → クラウド（コミット、プッシュ、クラウドセッション作成）
+#   scripts/handoff.sh to-cloud ["追加の指示"]   ローカル → クラウドの準備（引き継ぎメモのコミット、プッシュ）
+#   scripts/handoff.sh launch                     準備したものをクラウドに送る（別のターミナルで直接実行する）
 #   scripts/handoff.sh send "メッセージ"          動いているクラウドセッションに追加の指示を送る
 #   scripts/handoff.sh status                     受け渡しの状態と、クラウドから戻っているかを表示
 #   scripts/handoff.sh from-cloud [handoff-id]    クラウド → ローカル（戻ってきたブランチを取り込む）
@@ -15,6 +16,7 @@ ROOT=$(git rev-parse --show-toplevel)
 cd "$ROOT"
 HF=.claude/handoff/HANDOFF.md
 STATE=.claude/handoff/.state
+PROMPT_FILE=.claude/handoff/.prompt
 
 die() { echo "エラー: $*" >&2; exit 1; }
 
@@ -93,35 +95,43 @@ cmd_to_cloud() {
   state_set status to-cloud
   state_set session ""
 
-  prompt="ローカルのチャットから作業を引き継ぎます（handoff id: $id、元のブランチ: $branch）。
+  prompt="ローカルのチャットから作業を引き継ぎます（handoff id: ${id}、元のブランチ: ${branch}）。
 1. .claude/handoff/HANDOFF.md を最初に読み、「次にやること」を進めてください。会話の履歴は引き継がれていないので、HANDOFF.md とリポジトリの内容だけを頼りにしてください。
 2. 区切りがついたら、または私の判断が必要になったら、to-local スキルの手順で結果を HANDOFF.md に書き、コミットしてプッシュしてください。"
   [ -n "$extra" ] && prompt="$prompt
 追加の指示: $extra"
 
-  if ! command -v claude >/dev/null 2>&1; then
-    echo "claude コマンドが見つかりません。次のコマンドを手で実行してください:"
-    [ "$bundle" = 1 ] && printf 'CCR_FORCE_BUNDLE=1 '
-    printf 'claude --cloud %q\n' "$prompt"
-    return 0
-  fi
+  # claude --cloud は Claude Code の中（Bash ツール）からは実行できないので、
+  # 指示文を保存しておき、ユーザーが別のターミナルで launch を実行する。
+  printf '%s\n' "$prompt" > "$PROMPT_FILE"
+  state_set bundle "$bundle"
+  echo
+  echo "受け渡しの準備ができました（${id}）。"
+  echo "別のターミナルのウィンドウで、次の2行を実行してクラウドに送ってください:"
+  echo
+  echo "  cd \"$ROOT\""
+  echo "  scripts/handoff.sh launch"
+}
 
-  echo "クラウドセッションを作成しています…"
-  if [ "$bundle" = 1 ]; then
-    out=$(CCR_FORCE_BUNDLE=1 claude --cloud "$prompt" </dev/null 2>&1) || { echo "$out"; die "claude --cloud が失敗しました。"; }
+# to-cloud で用意した指示文で、クラウドセッションを作る（ターミナルで直接実行する）
+cmd_launch() {
+  local prompt bundle id
+  id=$(state_get id)
+  [ -n "$id" ] || die "送る準備ができていません。先に Claude に「クラウドに送って」と頼んでください。"
+  command -v claude >/dev/null 2>&1 || die "claude コマンドが見つかりません。"
+  if [ -f "$PROMPT_FILE" ]; then
+    prompt=$(cat "$PROMPT_FILE")
   else
-    out=$(claude --cloud "$prompt" </dev/null 2>&1) || { echo "$out"; die "claude --cloud が失敗しました。"; }
+    prompt="ローカルのチャットから作業を引き継ぎます（handoff id: ${id}）。.claude/handoff/HANDOFF.md を最初に読み、「次にやること」を進めてください。区切りがついたら to-local スキルの手順で結果を返してください。"
   fi
-  echo "$out"
-  sid=$(printf '%s' "$out" | find_session_id || true)
-  if [ -n "$sid" ]; then
-    state_set session "$sid"
-    echo
-    echo "受け渡し完了: $id → https://claude.ai/code/$sid"
+  # プッシュ済みと分かっている場合（bundle=0）以外は、ローカルのリポジトリをそのまま送る
+  bundle=$(state_get bundle)
+  echo "クラウドに送ります（${id}）。表示される URL を、ローカルの Claude のチャットに貼ってください。"
+  echo
+  if [ "$bundle" = 0 ]; then
+    claude --cloud "$prompt"
   else
-    echo
-    echo "セッションIDを読み取れませんでした。URL が分かったら次で記録してください:"
-    echo "  scripts/handoff.sh record-session <セッションのURLまたはID>"
+    CCR_FORCE_BUNDLE=1 claude --cloud "$prompt"
   fi
 }
 
@@ -165,7 +175,7 @@ cmd_status() {
   [ -n "$sid" ] && echo "クラウド   : https://claude.ai/code/$sid"
   git fetch -q origin --prune
   if ref=$(find_returned_ref "$id"); then
-    echo "→ クラウドから戻っています（$ref）。scripts/handoff.sh from-cloud で取り込めます。"
+    echo "→ クラウドから戻っています（${ref}）。scripts/handoff.sh from-cloud で取り込めます。"
   else
     echo "→ まだ戻っていません。"
   fi
@@ -179,7 +189,7 @@ cmd_from_cloud() {
 
   git fetch -q origin --prune
   if ! ref=$(find_returned_ref "$id"); then
-    echo "クラウドからはまだ戻っていません（$id）。"
+    echo "クラウドからはまだ戻っていません（${id}）。"
     sid=$(state_get session)
     [ -n "$sid" ] && echo "進み具合: https://claude.ai/code/$sid"
     exit 2
@@ -209,10 +219,11 @@ cmd_mark_returned() {
 
 case "${1:-}" in
   to-cloud)       shift; cmd_to_cloud "${1:-}" ;;
+  launch)         cmd_launch ;;
   send)           shift; cmd_send "${1:-}" ;;
   status)         cmd_status ;;
   from-cloud)     shift; cmd_from_cloud "${1:-}" ;;
   mark-returned)  cmd_mark_returned ;;
   record-session) shift; cmd_record_session "${1:-}" ;;
-  *) sed -n '2,12p' "$0" | sed 's/^# \{0,1\}//'; exit 1 ;;
+  *) sed -n '2,13p' "$0" | sed 's/^# \{0,1\}//'; exit 1 ;;
 esac

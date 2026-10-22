@@ -1,3 +1,4 @@
 # handoff.sh のローカル専用の状態
 .claude/handoff/.state
 .claude/handoff/.state.tmp
+.claude/handoff/.prompt

@@ -1,166 +1,176 @@
 # モデル別チートシート
 
-> 2026-10 時点の情報です。仕様の確度を次の印で示します。
-> ✅ 公式ドキュメントで確認済み / ⚠️ 第三者の記事による（要確認）
+根拠の印:
+- ✅ 確認済み（公式）: メーカーの文書、または Higgsfield の `models_explore` / ワークフローから取ったもの
+- ⚠️ 第三者の記事
+- ❔ 未確認
+- 🔧 手元で確認（生成して確かめた）
 
-## 早見表
-
-| モデル | 強み | 尺 | 音声 | 主な入力 | 向いている用途 |
-|---|---|---|---|---|---|
-| Veo 3.1 / Gemini Omni Flash (Google) | 映画的な画、プロンプトへの忠実さ、価格（Omni Flash） | ⚠️ 〜8秒程度、延長あり | あり | テキスト、最初の1枚、最初と最後の1枚、参照画像、延長、編集 ✅ | 情景カット、CMのイメージ映像 |
-| Sora 2 / Sora 2 Pro (OpenAI) | 物理表現、台詞つきの芝居、キャラクター機能 | ✅ 4/8/12/16/20秒、延長で最長120秒 | あり | テキスト、`input_reference` 画像、キャラクター ✅ | ドラマ・再現VTR、インタビュー風 |
-| Kling 3.0 (Kuaishou) | 動きとカメラワーク、最大6ショットのマルチショット、多言語の台詞 | ✅ 最大15秒 | あり | テキスト、画像、要素（エレメント）参照 | アクション、ダンス、スポーツ風 |
-| Runway Gen-4.5 | 画像から動画（I2V）でのカメラワーク、編集ツールとの連携 | ⚠️ 2〜10秒 | ⚠️ | テキスト、開始画像 | 素材写真を動かす、B-roll |
-| Seedance 2.0 / 2.5 (ByteDance) | 参照素材（画像・動画・音）の組み合わせ、マルチショット、動画の編集 | ✅ 2.0: 5〜15秒 / 2.5: 最大30秒 | あり（同時生成） | `@Image` `@Video` `@Audio` の参照 | 既存素材の差し替え・編集、CM |
-| Wan 2.7 (Alibaba, オープン) | Apache 2.0 のオープンウェイト、ローカル実行、最初と最後のフレーム指定 | ⚠️ 最大15秒・1080p | ⚠️ あり | テキスト、画像、最初と最後のフレーム | 社内GPUでの量産、検証 |
-
-順位はリーダーボード（Artificial Analysis Video Arena など）で頻繁に入れ替わります。2026年には Gemini Omni Flash と Seedance 2.0 がそれぞれ首位と紹介されています ⚠️。
+単価は書きません。使う前に Higgsfield の `get_cost`（無料）で確かめてください。モデルの仕様は変わるので、生成の前に `models_explore`（無料）でも引き直してください。
 
 ---
 
-## Google Veo 3.1 / Gemini Omni Flash
+## 1. Higgsfield で使えるモデル（2026-10-22 時点）
 
-**プロンプトの要素（公式）✅**: 被写体、動作、場所と文脈、カメラアングル、カメラの動き、レンズと光学効果、ビジュアルスタイル（照明・トーン・画風・雰囲気）、時間の要素（スローモーション、タイムラプス）、映画用語（match cut、jump cut、montage）
+手元の生成はすべて Higgsfield の MCP 経由です。以下の数値は、2026-10-22 に `models_explore` で引いたものです ✅。
 
-- 全部の要素を毎回書く必要はありません。要素ごとに分けて考えます。
-- **音声**: 音が欲しいときは明記し、映像とは別の文で書きます。台詞は `The seasoned detective says: Your story has holes.` の形式です ✅
-- **ネガティブプロンプト**: "no" や "don't" は使いません。除外したい要素を名詞で並べます（例: `urban background, man-made structures, dark, stormy atmosphere`）✅
-- 生成モード ✅: Text to video / First frame image to video / First and last frames to video / Generate from references / Extend / Edit
-- 運用のコツ ⚠️: 試すときは Fast 版を使い、本番だけ高品質版で生成するとコストを抑えられます。
-- 長さの目安 ⚠️: 100〜150語
+### 早見表
 
-```
-Slow dolly-in, medium shot, eye level. An elderly potter in an indigo apron
-shapes a tall vase on a spinning wheel, wet clay glistening under a single
-warm tungsten lamp. A small wooden workshop at dusk; rain streaks the window
-behind him. Documentary style, shallow depth of field, 35mm film grain,
-palette of amber, indigo and cream.
-Audio: soft rain on the roof, the hum of the wheel. He says quietly in
-Japanese: "土は、急かすと割れるんです。"
-```
-ネガティブ: `text, subtitles, watermark, logo, extra fingers`
+| 用途 | 第一候補（Higgsfield のモデルID） | 次点 |
+|---|---|---|
+| 会話シーン、参照素材（顔・商品・声）を組み合わせる CM | `seedance_2_5` | `seedance_2_0`、`minimax_h3` |
+| 参照を多く使う長めのカット、2K で欲しいもの | `minimax_h3` | `seedance_2_5` |
+| 動きの多いカット、マルチショットを1回で | `kling3_0`、`kling_o3_image_reference`（Omni） | `kling4_0` ❔ |
+| 映画的な画作り（カメラ・レンズ・照明を項目で指定） | `cinematic_studio_video_4_0`（Cinema Studio 4.0） | `cinematic_studio_3_0` |
+| 動きの試作（安く数を出す） | `veo3_1_lite` | `seedance_2_0_mini`、`kling3_0_turbo` |
+| 日本語の台詞・ナレーション | `elevenlabs_v4` | — |
 
----
+### MiniMax H3（`minimax_h3`）
+- 尺: 4〜15秒（整数）。解像度: 2K のみ。1回に1〜4本 ✅
+- 縦横比: auto、21:9、16:9、4:3、1:1、3:4、9:16 ✅
+- 入力: start_image、end_image、image_references、video_references、audio_references ✅
+- start_image と image_references は同時に渡せない（422 エラー）🔧
+- 出力の縦横比は start_image の比に引っ張られる 🔧
+- 公式のモデル本体の仕様: 24fps、音声 32kHz ステレオ、台詞は日本語を含む11言語。参照は画像9枚・動画3本・音声3本まで（動画・音声はそれぞれ合計15秒以内）、合わせて12ファイルまで ✅（MiniMax 公式。Higgsfield 経由で同じ上限かは ❔）
+- 速い版: `minimax_h3_max`（5〜15秒、480p／768p）✅
+- 書き方は §2 の MiniMax H3 を参照。
 
-## OpenAI Sora 2 / Sora 2 Pro
+### Seedance 2.5（`seedance_2_5`）
+- モード: `t2v`（文章だけ）、`omni_reference`（画像・動画・音声の参照）、`video_edit`（参照動画1本を編集。料金はその動画の長さ）、`video_extension`（前後に延長）✅
+- 尺: 4〜30秒（整数）。解像度: 480p／720p／1080p（既定 720p）✅
+- 音声の生成: 既定でオン（`generate_audio`）✅
+- 下書き: `draft` をオンにすると 480p の下書きを作り、7日以内に `draft_job_id` で 1080p に仕上げられる ✅。下書きと仕上げで絵がどこまで同じかは ❔
+- 縦横比: auto、21:9〜9:16 ✅
+- 参照の上限は、画像30・動画10・音声10（合計50）という記事が多い ⚠️（Artlist、Runware）
+- 会話シーンは、台詞を1行ずつ音声にして `audio_references` で渡す（RKJ VIDEO の手法）🔧
+- `ad_multiplier`（Ad Multiplier）も中身は Seedance 2.5 ✅
 
-**API パラメータ ✅**（プロンプト文ではなくリクエスト側で指定）
-- `model`: `sora-2` / `sora-2-pro`
-- `size`: sora-2 は `1280x720` / `720x1280`。pro はこれに加えて `1792x1024` / `1024x1792` / `1920x1080` / `1080x1920`
-- `seconds`: `"4"`（既定）/ `"8"` / `"12"` / `"16"` / `"20"`
-- `input_reference`: 最初のフレームになる画像（JPEG/PNG/WebP、`size` と同じ解像度にする）
-- `characters`: Characters API の ID を最大2つ（720p〜1080p、2〜4秒の MP4 をアップロードして作成）
-- 延長: 1回あたり最大20秒、最大6回で合計120秒
+### Seedance 2.0（`seedance_2_0`）／ 2.0 Mini（`seedance_2_0_mini`）
+- 2.0: 4〜15秒、480p〜4K（1080p と 4K は `mode: std` のみ）、`genre`（action、horror、comedy、noir、drama、epic）の指定あり ✅
+- 2.0 Mini: 4〜15秒、480p／720p、安い試作向け ✅
+- 入力はどちらも start/end_image と画像・動画・音声の参照 ✅
 
-**書き方 ✅**
-- 絵コンテを描くように書きます。構図、被写界深度、動作のビート、照明、パレット。
-- スタイル（時代・フォーマット）を最初に決めると、ほかの要素がそれに沿います。
-- パレットは3〜5色で指定します。
-- 台詞は映像の説明とは分けた `Dialogue:` ブロックに書き、話者のラベルを統一します。
-- 公式ガイドの例: `In a 90s documentary-style interview, an old Swedish man sits in a study and says, "I still remember when I was young."`
+### Kling 3.0（`kling3_0`）と Kling 3.0 Omni（`kling_o3_image_reference`）
+- `kling3_0`: 3〜15秒、`mode` は std／pro／4k、`sound` はオン／オフ（オフで安くなる）、入力は start_image と end_image だけ、縦横比は 16:9／9:16／1:1 ✅
+- `kling_o3_image_reference`（Omni）: 参照画像を7枚まで。`multi_shots` をオンにして、`multi_prompt` に `{prompt, duration}` を順に並べると、カットごとの指示と秒数を渡せる ✅
+- `kling3_0_turbo`: 3〜15秒、start_image だけの速い版 ✅
+- `kling4_0`（Kling 4.0）も使える。3〜30秒、720p／1080p、参照・編集・`kling_element_ids`（7つまで）に対応 ✅。画質や指示への従い方は ❔
 
-```
-Style: 1990s Japanese TV documentary, 4:3 look, slight tape softness.
-A rural train station platform in early spring, cherry petals drifting.
-Camera: static, medium wide, eye level.
-Beats: (1) a station master in a navy cap checks his pocket watch,
-(2) looks down the track, (3) raises a white-gloved hand as the train arrives.
-Lighting: overcast soft daylight. Palette: navy, pale pink, concrete grey.
-Dialogue:
-- Station master (calm, warm): "定刻どおり。今日もいい日だ。"
-```
+### Cinema Studio
+- `cinematic_studio_video_4_0`（Cinema Studio 4.0）: 4〜30秒、480p〜1080p。モードは Seedance 2.5 と同じ4つ。時代（`era_id`）、カメラ本体、レンズ、絞り、編集のテンポ、ジャンル、照明（プリセット／自分の配置）、カラーパレットを項目で指定できる。「プロンプトの演出を自動で補う」と説明されている ✅。自動の補いが手元のプロンプトをどこまで書き換えるかは ❔
+- `cinematic_studio_3_0`（Cinema Studio Video 3.0）: 480p〜4K、`genre` あり、音声は既定でオフ ✅
+- 手元のメモの `cinematic_studio` という ID は、2026-10-22 の一覧にはありませんでした。上の ID を使ってください。
 
-> 注意: 取得した Cookbook ページには「アーカイブ済み」の表示がありました。実装の前に最新の API リファレンスを確認してください。
+### Veo 3.1 Lite（`veo3_1_lite`）／ Veo 3.1（`veo3_1`）
+- Lite: 4／6／8秒、入力は start_image と end_image、縦横比は 16:9／9:16／auto、音声は既定でオフ。説明は「速く安い試作向け」✅
+- `veo3_1`: 4／6／8秒、`quality`（basic／high／ultra）、`variant`（preview＝高品質／fast）、入力は start_image だけ ✅
+- Higgsfield の `veo3_1` は参照画像（Google のいう Ingredients）と end_image を受けないので、Google 側の機能がそのまま使えるわけではありません ✅
 
----
+### そのほか（一覧にあったもの）
+- `gemini_omni_flash_1_1`（Gemini Omni Flash 1.1）: 3〜10秒、360p〜4K、参照・編集あり ✅
+- `wan2_7`（Wan 2.7）: 2〜15秒、720p／1080p、start/end_image と音声の参照 ✅。手元のメモでは「Higgsfield で使えない」可能性があるとしていましたが、一覧にはありました。
+- Sora 2 は、Higgsfield の一覧にありませんでした ✅（2026-10-22）。§2 の Sora 2 の節は、ほかのサービスで使う場合の参考です。
 
-## Kling 3.0
+### 音声
+- `elevenlabs_v4`（Eleven v4）: 1回の台詞（`dialogue`）に最大10人の声、全体で1万字まで、1回に1〜4本。`stability` と `similarity_boost` を調整できる ✅
+- BGM は Higgsfield では作れない（sonilo_music の説明が「Game pipeline only.」）🔧
 
-- **シーンの演出指示として書く。** 物の一覧ではなく、カメラが何をどう撮るかを書きます ✅（fal ガイド）
-- **マルチショット**: 1回の出力で最大6ショットです。`Shot 1 (Duration: 3 seconds): …` のようにラベルを付け、ショットごとに画角・被写体・動きを書きます。
-- **カメラと被写体の関係を書く**: tracks / follows / pans / freezes / holds a medium shot のように書きます。長回しでは、カメラの立ち位置を決めておくと破綻が減ります。
-- **指示がないと固定画角になりがち**です ⚠️。カメラワークは必ず書きます。
-- **台詞**: 話者ラベルを統一し、動作を台詞より先に書きます。台詞ごとに声のトーンを書き添え、話者が替わるところは明示します。多言語の切り替えにも対応しています。
-- 尺: 最大15秒。長尺では、時間とともに何がどう進むかを書きます。
-
-```
-Shot 1 (3s): Wide establishing shot, slow crane down. A mountain shrine
-festival at night, hundreds of paper lanterns glowing orange.
-Shot 2 (4s): Tracking shot, camera follows from behind. [Taro], a young man
-in a red happi coat, carries a portable shrine with five others, shouting
-in rhythm.
-Shot 3 (3s): Close-up, handheld. [Taro] wipes sweat from his brow and grins
-at the camera.
-[Taro] (breathless, joyful, Japanese): "まだまだいけるぞ!"
-Audio: taiko drums, crowd cheers, wooden creak of the shrine poles.
-```
-
----
-
-## Runway Gen-4.5
-
-- **「何があるか」より「どう動くか」を書く。** 動きを中心に書き、映画用語（dolly-in など）を使います ⚠️
-- **開始画像があるときは、見た目を書き直さない。** プロンプトに書くのは、次の数秒でフレームがどう変わるかだけです ⚠️
-- 書く順: カメラの動き → 被写体の動き → 照明・雰囲気・フィルムの質感 を1つずつ足します。
-- 尺 ⚠️: 2〜10秒。アスペクト比は 16:9 / 9:16 など。長いものはクリップをつないで作ります。
-- 比較するときはシードを固定します。否定形の指示は避けます ⚠️
-
-```
-(開始画像: 姫路城の静止画)
-Slow push-in toward the main keep. Clouds drift quickly behind the castle
-as the light shifts from midday to warm golden hour. A flock of birds
-crosses the frame from left to right. Subtle cinematic film grain.
-```
+### Higgsfield のワークフロー（`get_workflow_instructions`、2026-10-22 取得）✅
+使いどころのあるもの:
+- `narration`（v1.1）: 決まった尺に合わせたナレーション。時間の伸縮は禁止、合わなければ文を書き直す。数は文字で書く。1行あたりの試行は3回まで。
+- `ad-multiplier`: 4〜30秒の既存の広告を、人物・商品・言語を変えて作り直す（編集モードと作り直しモード）。
+- `katana`: 参考動画をもとに作り直す（手元の試作で 15秒 64.24 クレジット 🔧）。
+- `product-photoshoot`: 商品の静止画（パッケージ写真、使用シーン、バナー）。
+- `character-sheet`: 人物の設定画（正面・横・後ろ、表情）。
+- `ugc-video`: 作り手が話す形式の短い動画（レビュー、開封、使い方）。
+- `video-montage`: 既存のクリップをつなぐ、曲を差し替える、字幕を焼く。
+- `video-editing`: 文字のアニメーション、タイトル、図形などのモーショングラフィックス。
 
 ---
 
-## Seedance 2.0 / 2.5
+## 2. 書き方のメーカー別のくせ（公式ガイドから）
 
-- **8つの要素をつながった文章で書く** ✅: 被写体、動作の詳細、場面、照明と色、カメラの動き、映像スタイル、画質、制約
-- **2層構造** ✅: 外側に `Shot 1:` などのショットのラベル、内側に散文。ショット内は カメラ → 動作と表情 → 空間の変化 → 音 の順に書きます。
-- **1ショットにカメラの動き1つ。** 秒数の厳密な指定は不安定なので、展開から尺を決めさせます ✅
-- **参照タグ** ✅: `@Image 1` `@Video 1` `@Audio 1` を付け、それぞれが何を決めるのか（顔、衣装、カメラワーク、BGM）を明示します。被写体は、安定した特徴を2〜3個で定義してからラベルで呼びます。素材は4〜5個までにします。
-- **編集** ✅: `Remove the mug from the table in @Video 1, keeping the rest of the video content unchanged.` のように、元の動画を直接指して書きます。
-- **音の記号** ✅: `{台詞}`、`(音楽)`、`<効果音>`、`「字幕」`。英語・中国語以外の台詞には言語名を付けます。
-- **上限** ✅: 2.0 は 5〜15秒、画像9・動画3・音声3まで。参照する動画と音声の合計は15秒まで。2.5 は最大30秒、参照は50個まで、タイムスタンプ指定での編集と延長に対応。出力は 480p / 720p / 1080p（Fast と Mini は 720p まで）、アスペクト比は 21:9〜9:16。
-- 制約は最後に肯定形でまとめます: `Keep it subtitle-free, do not generate a logo or watermark.`
+### MiniMax H3（公式ガイド ✅、Hugging Face のリポジトリ、2026-10-22 閲覧）
+- 参照の書き方: `<Subject N>`（人・物・場所・衣装・画風など、再利用する中身）、`<Picture N>`（その画像を実際の一コマとして使うとき）、`<Video N>`（元の動画の編集・続き・カメラワークの借用）、`<Audio N>`（声質や曲の参照）。ラベルの意味は全体で変えない。
+- どこまで残すかを決まった言葉で書く: 映像は `fully_preserved`／`partially_preserved`／`attribute_transfer`／`weak_reference`、音は `fully_copy`／`partially_copy`／`reference`／`weak_reference`。
+- カット: `[Shot 1]` には時刻を付けない。2つ目以降は `[Shot 2] At 00:03.500, the camera cuts to …` のように、切り替わる時刻を書く。
+- 台詞: 話者に `(S1)` などの番号を振り、`<d>[Japanese] …</d>` で原文のまま書く。画面外のナレーションは `says in an off-screen voiceover` と書き、口は閉じたままと明記する。
+- 画面上の文字は英語の二重引用符で原文のまま書く。
+- 音は `overall_soundscape`（環境音・物音、1〜4文）と `non_diegetic_music`（劇伴、1〜3文。気分の言葉ではなく楽器・テンポで書く）に分ける。曲を使わないなら N/A。
+- 最初と最後の画像を渡すとき（FL2VA）は、2枚の静止画の説明ではなく、その間の動きの道筋を書く。
+- 参照生成の文章は 350〜500 語が目安。
 
-```
-@Image 1 is the main character: a woman in her 30s with short black hair
-and a mustard-yellow cardigan. @Audio 1 is the background music.
-Shot 1: Close on her hands. She pours hot water over coffee in a glass
-dripper; steam curls upward. <gentle pouring sound>
-Shot 2: Slow pull-out to a medium shot. She lifts the cup, closes her eyes
-and her shoulders relax. She says in Japanese {やっと、朝が来た。}
-Soft morning window light, warm beige and white palette, clean commercial
-look, 1080p. Keep it subtitle-free, do not generate a logo or watermark.
-```
+### Seedance 2.5
+- Higgsfield の公式ガイド（2026-08-13）✅: 節の順番は GLOBAL STYLE → SCENE → CHARACTERS → LOCATION → FIRST FRAME AND BLOCKING → ショットごとの内訳 → OPTICS → CAMERA → PHYSICS → LIGHTING → AUDIO。各ショットに `0.0s to 3.0s` のような時間と、最後に `HARD CUT` を書く。冒頭に `Five segments, hard cuts only.` のように区切りの数を宣言する。
+- 時間の区切りは `[0-3s]` のように途切れなく続け、1秒くらいの細かさにする。詰め込みすぎると勝手にカットが入ったり、出来事が抜けたりする ⚠️（Runware、2026-08-07）
+- 参照は1つの役割に1つ（顔・商品・場所・画風）。上限まで詰め込まず、少なく選ぶ ✅（Higgsfield）
+- 文字の括弧の書き方（台詞・字幕・効果音を括弧の種類で分ける）は、記事によって食い違っています ⚠️。Higgsfield 経由で効くかは ❔（07 に記載）。
+
+### Kling 3.0（公式ガイド ✅、2026-02-06）
+- マルチショット（AI Director）: スイッチをオンにすると、場面の説明からカット割りを考える。カスタムにすると、カットの数と各秒数を決められ、指示によく従う。尺は合計 3〜15秒。
+- 台詞: 話者の名前と、括弧で口調を書いてから台詞。日本語に対応。1本の中で言語を切り替えられる。
+- 文字: 入力画像の看板・文字・ロゴを保ち、ぼかさない。見せたい文字は「カメラがその文字にとどまる」と書く。
+- 要素（Element）: 正面の画像1枚＋別の角度1〜3枚で作る。声も結びつけられる（結びつけた場合は、プロンプトで声の調子を指定しない）。最初のフレームで使う要素は、そのフレームに写っている必要がある。Omni では動画の入力がなければ7つまで、あれば4つまで（2026-02-05）。
+
+### Veo 3.1（Google Cloud 公式 ✅、2025-10-16）
+- 式: `[カメラ] + [被写体] + [動作] + [場所] + [スタイルと雰囲気]`
+- 音: 台詞は `A woman says, "…"`、効果音は `SFX: …`、環境音は `Ambient noise: …`
+- 時間の区切り: `[00:00-00:02] …` で1回の生成の中にカットを割れる。
+- 参照（Ingredients）: 最大3枚 ✅（Google Developers Blog）。プロンプトは `Using the provided images for the detective, the woman, and the office setting, create …` の形。
+- 否定は「ないもの」を書かず、「あるもの」で書く（例: 「建物も道路もない荒れ地」）。
+- Higgsfield の `veo3_1` / `veo3_1_lite` は参照画像を受けない点に注意 ✅
+
+### Runway Gen-4.5（Higgsfield にはありません）
+- 動きを中心に書き、開始画像があるときは見た目を書き直さない ⚠️
+
+### Sora 2（Higgsfield にはありません）
+- `seconds` は 4／8／12／16／20、`size` 指定、台詞は `Dialogue:` の節に分ける ✅（OpenAI Cookbook。アーカイブ表示あり）
 
 ---
 
-## Wan 2.7（オープンソース）
+## 3. 作例（Higgsfield のモデル向け）
 
-- ⚠️ Apache 2.0 のオープンウェイト。最大15秒・1080p、音声の同時生成、最初と最後のフレーム指定に対応すると紹介されています。
-- ComfyUI などでローカル実行できるので、外部サービスに素材を出せない案件（自治体、未公開の商品）に向いています。
-- プロンプトの書き方は基本構造（01）に沿えば十分です。中国語・英語のどちらでも書けます。
+### Seedance 2.5（omni_reference、CM の1カット）
+```
+GLOBAL STYLE: clean commercial look, natural skin texture, soft daylight. No music, no subtitles.
+SCENE: a woman makes her first cup of coffee of the day.
+CHARACTERS: the woman from the reference, identical features in every shot, zero drift.
+LOCATION: a small bright kitchen with a white tile wall.
+FORMAT: three segments, hard cuts only.
+0.0s to 2.0s: macro close-up, static. Hot water pours over coffee in a glass dripper; steam rises. HARD CUT.
+2.0s to 5.0s: medium shot, slow push-in. She lifts the cup with both hands and her shoulders relax. HARD CUT.
+5.0s to 7.0s: close-up of the product on the counter, locked-off. The package is inherited exactly from the reference; its lettering stays sharp and correctly spelled.
+AUDIO: water pouring, a ceramic cup set down, quiet room tone. No BGM.
+```
+
+### MiniMax H3（参照生成）
+```
+<Subject 1> is the woman in <Picture 1> (fully_preserved). <Subject 2> is the coffee package in <Picture 2> (fully_preserved).
+[Shot 1] Medium shot. <Subject 1> stands at a bright kitchen counter and pours hot water over a dripper; the camera pushes in with small amplitude at slow speed.
+[Shot 2] At 00:03.000, the camera cuts to a close-up of <Subject 2> on the counter, its printed text "…" unchanged.
+overall_soundscape: Water pours steadily, a cup is set down on tile, a fridge hums softly.
+non_diegetic_music: N/A
+```
+
+### Kling 3.0 Omni（multi_shots）
+`multi_prompt` に次のように渡します（秒数は内容に合わせて決める）。
+```
+[{"prompt": "Wide shot, slow crane down over a mountain shrine festival at night, paper lanterns glowing.", "duration": 3},
+ {"prompt": "Tracking shot from behind. [Taro], a young man in a red happi coat, carries the portable shrine with five others.", "duration": 4},
+ {"prompt": "Close-up, handheld. [Taro] wipes his brow and grins. [Taro] (breathless, joyful, Japanese): \"まだまだいけるぞ!\"", "duration": 3}]
+```
 
 ---
 
 ## 出典
-- Google Cloud Veo prompt guide: https://docs.cloud.google.com/vertex-ai/generative-ai/docs/video/video-gen-prompt-guide
-- OpenAI Sora 2 Prompting Guide: https://developers.openai.com/cookbook/examples/sora/sora2_prompting_guide
-- fal Kling 3.0 Prompting Guide: https://blog.fal.ai/kling-3-0-prompting-guide/
-- Kling camera control: https://kling.ai/blog/kling-ai-camera-control-video-guide
-- Magic Hour Kling 3.0 Reference Guide: https://magichour.ai/blog/kling-30-reference-guide
-- imagine.art Kling 3.0 Prompt Guide: https://www.imagine.art/blogs/kling-3-0-prompt-guide
-- Runway Seedance 2.0 Prompt Guide: https://runway.com/resources/seedance-2-0-prompt-guide
-- fal Seedance 2.0: https://fal.ai/learn/tools/how-to-use-seedance-2-0
-- Luma Seedance 2.0 Complete Guide: https://lumalabs.ai/learning-center/articles/seedance-2.0-complete-guide
-- Krea Runway prompt gallery: https://www.krea.ai/models/runway/prompt-gallery
-- Runware Gen-4.5 directing motion: https://runware.ai/docs/models/runway-gen-4-5/guides/directing-motion
-- Scenario Gen4.5 essentials: https://help.scenario.com/articles/5854126955-runway-gen4-5-the-essentials
-- frameo Veo 3 guide: https://frameo.ai/blog/google-veo-3-prompt-guide-best-practices/
-- piapi Veo 3.1 guide (ja): https://piapi.ai/ja/blogs/veo-3-1-api-pricing-prompting-guide-2026
-- VideoGen best models: https://videogen.io/best-ai-video-models
-- Storista best AI video generators: https://storista.io/blog/best-ai-video-generators
-- Atlas Cloud comparison: https://atlascloud.ai/blog/guides/best-ai-video-generation-models-2026
+- Higgsfield MCP `models_explore` / `get_workflow_instructions` 2026-10-22 取得
+- MiniMax「MiniMax-H3」 https://huggingface.co/MiniMaxAI/MiniMax-H3 （ガイド: docs/VIDEO_PROMPT_WRITING_GUIDE_base_en.md、_ref_en.md）2026-10-22 閲覧
+- Higgsfield「Seedance 2.5: Complete Prompting Guide」2026-08-13 https://higgsfield.ai/blog/seedance-2-5-prompting-guide
+- Runware「Seedance 2.5 Prompting」2026-08-07 https://runware.ai/docs/models/bytedance-seedance-2-5/guides/prompting
+- Artlist「Seedance 2.5 is live on Artlist」 https://artlist.io/blog/seedance-2-5-on-artlist-the-ai-video-model-moving-the-needle/
+- Kling「VIDEO 3.0 Model User Guide」2026-02-06 https://kling.ai/quickstart/klingai-video-3-model-user-guide
+- Kling「Element Library 3.0 User Guide」2026-02-05 https://kling.ai/quickstart/klingai-element-library-3-user-guide
+- Google Cloud「The ultimate prompting guide for Veo 3.1」2025-10-16 https://cloud.google.com/blog/products/ai-machine-learning/ultimate-prompting-guide-for-veo-3-1
+- Google Developers Blog「Introducing Veo 3.1」 https://developers.googleblog.com/introducing-veo-3-1-and-new-creative-capabilities-in-the-gemini-api/
+- OpenAI「Sora 2 Prompting Guide」 https://developers.openai.com/cookbook/examples/sora/sora2_prompting_guide
+- Runware「Runway Gen-4.5: Directing motion」 https://runware.ai/docs/models/runway-gen-4-5/guides/directing-motion

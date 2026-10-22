@@ -13,7 +13,7 @@
 ```
 
 注意点:
-- `DEFAULT_PRESETS` は `DEFAULT_STEP_LIBRARY[0]` のようにインデックスで参照しています。**末尾に追加**しないと既存のプリセットがずれます。
+- `DEFAULT_PRESETS` は `DEFAULT_STEP_LIBRARY[0]` のようにインデックスで参照しています。末尾に追加しないと既存のプリセットがずれます。
 - 既存ユーザーの `localStorage` には古いライブラリが保存されているので、`loadState` で不足しているコードを補うマイグレーションが必要か確認してください。
 - 必要なら「AI活用CM」プリセットを追加します: IG → SC → AP → AG → AF → RC → FC → RV
 
@@ -26,7 +26,7 @@
 {
   id: 'shot_xxx',
   label: 'OP空舞台',            // カット名
-  model: 'veo-3.1',             // data/video-ai-prompts.json の models[].id
+  model: 'seedance_2_5',        // Higgsfield のモデルID（data/video-ai-prompts.json の models[].id）
   mode: 't2v',                  // t2v | i2v | ref | edit
   prompt: '...',
   negative: '...',
@@ -61,9 +61,9 @@
 
 ## 案D: 外部APIとの連携（大・将来）
 
-- 生成APIを直接呼ぶ（Sora 2 API、Vertex AI の Veo、fal などの集約API）
-- 静的な HTML から API キーを使うと漏れるため、**中継サーバー（Cloudflare Workers など）が必須**です
-- コストを表示するため、モデルごとに秒単価を `video-ai-prompts.json` に持たせる（価格は変わりやすいので更新日を付ける）
+- 生成を直接呼ぶ（手元は Higgsfield の MCP 経由。アプリから呼ぶなら Higgsfield の API か、各社の API）
+- 静的な HTML から API キーを使うと漏れるため、中継サーバー（Cloudflare Workers など）が必要です
+- 費用は資料に持たせず、生成の前に Higgsfield の `get_cost`（無料）で毎回引く
 
 ## おすすめの順番
 

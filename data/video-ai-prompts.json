@@ -1,169 +1,662 @@
 {
-  "version": 1,
+  "version": 2,
   "updated": "2026-10-22",
-  "note": "Human-readable source: docs/video-ai/. Values marked verified:false come from third-party articles; check vendor docs before relying on them.",
-  "promptOrder": ["camera", "subject", "action", "setting", "lighting", "style", "audio"],
+  "note": "Human-readable source: docs/video-ai/. Generation runs through Higgsfield MCP. Specs come from Higgsfield models_explore on 2026-10-22; re-check with models_explore and get_cost before generating. No prices are stored here.",
+  "promptOrder": [
+    "camera",
+    "subject",
+    "action",
+    "setting",
+    "lighting",
+    "style",
+    "audio"
+  ],
   "vocab": {
     "shotSize": [
-      { "jp": "超クローズアップ", "en": "extreme close-up" },
-      { "jp": "クローズアップ", "en": "close-up" },
-      { "jp": "バストショット", "en": "medium close-up" },
-      { "jp": "ミディアムショット", "en": "medium shot" },
-      { "jp": "フルショット", "en": "full shot" },
-      { "jp": "引き・状況説明", "en": "wide establishing shot" },
-      { "jp": "超ロング", "en": "extreme wide shot" },
-      { "jp": "肩越し", "en": "over-the-shoulder shot" },
-      { "jp": "主観", "en": "point-of-view shot" },
-      { "jp": "マクロ", "en": "macro close-up" }
+      {
+        "jp": "超クローズアップ",
+        "en": "extreme close-up"
+      },
+      {
+        "jp": "クローズアップ",
+        "en": "close-up"
+      },
+      {
+        "jp": "バストショット",
+        "en": "medium close-up"
+      },
+      {
+        "jp": "ミディアムショット",
+        "en": "medium shot"
+      },
+      {
+        "jp": "フルショット",
+        "en": "full shot"
+      },
+      {
+        "jp": "引き・状況説明",
+        "en": "wide establishing shot"
+      },
+      {
+        "jp": "超ロング",
+        "en": "extreme wide shot"
+      },
+      {
+        "jp": "肩越し",
+        "en": "over-the-shoulder shot"
+      },
+      {
+        "jp": "主観",
+        "en": "point-of-view shot"
+      },
+      {
+        "jp": "マクロ",
+        "en": "macro close-up"
+      }
     ],
     "angle": [
-      { "jp": "目線の高さ", "en": "eye level" },
-      { "jp": "あおり", "en": "low angle" },
-      { "jp": "俯瞰", "en": "high angle" },
-      { "jp": "真上から", "en": "bird's-eye view" },
-      { "jp": "地面すれすれ", "en": "worm's-eye view" },
-      { "jp": "斜め傾け", "en": "Dutch angle" }
+      {
+        "jp": "目線の高さ",
+        "en": "eye level"
+      },
+      {
+        "jp": "あおり",
+        "en": "low angle"
+      },
+      {
+        "jp": "俯瞰",
+        "en": "high angle"
+      },
+      {
+        "jp": "真上から",
+        "en": "bird's-eye view"
+      },
+      {
+        "jp": "地面すれすれ",
+        "en": "worm's-eye view"
+      },
+      {
+        "jp": "斜め傾け",
+        "en": "Dutch angle"
+      }
     ],
     "movement": [
-      { "jp": "フィックス", "en": "static shot" },
-      { "jp": "パン", "en": "slow pan right" },
-      { "jp": "ティルトアップ", "en": "tilt up" },
-      { "jp": "ドリーイン", "en": "slow dolly-in" },
-      { "jp": "ドリーアウト", "en": "dolly-out" },
-      { "jp": "トラック", "en": "truck left" },
-      { "jp": "クレーン", "en": "crane up" },
-      { "jp": "空撮", "en": "aerial drone shot" },
-      { "jp": "追従", "en": "tracking shot, camera follows from behind" },
-      { "jp": "回り込み", "en": "orbit around the subject" },
-      { "jp": "手持ち", "en": "handheld" },
-      { "jp": "ウィップパン", "en": "whip pan" },
-      { "jp": "めまいショット", "en": "dolly zoom" },
-      { "jp": "フォーカス送り", "en": "rack focus" }
+      {
+        "jp": "フィックス",
+        "en": "static shot"
+      },
+      {
+        "jp": "パン",
+        "en": "slow pan right"
+      },
+      {
+        "jp": "ティルトアップ",
+        "en": "tilt up"
+      },
+      {
+        "jp": "ドリーイン",
+        "en": "slow dolly-in"
+      },
+      {
+        "jp": "ドリーアウト",
+        "en": "dolly-out"
+      },
+      {
+        "jp": "トラック",
+        "en": "truck left"
+      },
+      {
+        "jp": "クレーン",
+        "en": "crane up"
+      },
+      {
+        "jp": "空撮",
+        "en": "aerial drone shot"
+      },
+      {
+        "jp": "追従",
+        "en": "tracking shot, camera follows from behind"
+      },
+      {
+        "jp": "回り込み",
+        "en": "orbit around the subject"
+      },
+      {
+        "jp": "手持ち",
+        "en": "handheld"
+      },
+      {
+        "jp": "ウィップパン",
+        "en": "whip pan"
+      },
+      {
+        "jp": "めまいショット",
+        "en": "dolly zoom"
+      },
+      {
+        "jp": "フォーカス送り",
+        "en": "rack focus"
+      }
     ],
     "lighting": [
-      { "jp": "夕景・マジックアワー", "en": "golden hour" },
-      { "jp": "ブルーアワー", "en": "blue hour" },
-      { "jp": "曇天の柔らかい光", "en": "overcast soft light" },
-      { "jp": "逆光", "en": "backlit" },
-      { "jp": "輪郭光", "en": "rim light" },
-      { "jp": "窓明かり", "en": "soft window light" },
-      { "jp": "電球色", "en": "warm tungsten light" },
-      { "jp": "ネオン", "en": "neon glow" },
-      { "jp": "光の筋", "en": "volumetric light through haze" }
+      {
+        "jp": "夕景・マジックアワー",
+        "en": "golden hour"
+      },
+      {
+        "jp": "ブルーアワー",
+        "en": "blue hour"
+      },
+      {
+        "jp": "曇天の柔らかい光",
+        "en": "overcast soft light"
+      },
+      {
+        "jp": "逆光",
+        "en": "backlit"
+      },
+      {
+        "jp": "輪郭光",
+        "en": "rim light"
+      },
+      {
+        "jp": "窓明かり",
+        "en": "soft window light"
+      },
+      {
+        "jp": "電球色",
+        "en": "warm tungsten light"
+      },
+      {
+        "jp": "ネオン",
+        "en": "neon glow"
+      },
+      {
+        "jp": "光の筋",
+        "en": "volumetric light through haze"
+      }
     ],
     "style": [
-      { "jp": "ドキュメンタリー", "en": "documentary style" },
-      { "jp": "映画風", "en": "cinematic" },
-      { "jp": "フィルム調", "en": "35mm film grain" },
-      { "jp": "CM・クリーン", "en": "clean commercial look" },
-      { "jp": "90年代テレビ", "en": "1990s TV broadcast look" },
-      { "jp": "アニメ", "en": "Japanese anime style" },
-      { "jp": "スマホVlog", "en": "smartphone vlog look" },
-      { "jp": "クレイアニメ", "en": "stop-motion claymation" }
+      {
+        "jp": "ドキュメンタリー",
+        "en": "documentary style"
+      },
+      {
+        "jp": "映画風",
+        "en": "cinematic"
+      },
+      {
+        "jp": "フィルム調",
+        "en": "35mm film grain"
+      },
+      {
+        "jp": "CM・クリーン",
+        "en": "clean commercial look"
+      },
+      {
+        "jp": "90年代テレビ",
+        "en": "1990s TV broadcast look"
+      },
+      {
+        "jp": "アニメ",
+        "en": "Japanese anime style"
+      },
+      {
+        "jp": "スマホVlog",
+        "en": "smartphone vlog look"
+      },
+      {
+        "jp": "クレイアニメ",
+        "en": "stop-motion claymation"
+      }
     ],
-    "negativeDefaults": ["text", "subtitles", "watermark", "logo", "distorted hands"]
+    "negativeDefaults": [
+      "subtitles",
+      "watermark",
+      "distorted hands",
+      "extra fingers",
+      "music"
+    ]
   },
   "models": [
     {
-      "id": "veo-3.1",
-      "name": "Google Veo 3.1 / Gemini Omni Flash",
-      "modes": ["t2v", "i2v", "first-last-frame", "ref", "extend", "edit"],
+      "id": "seedance_2_5",
+      "name": "Seedance 2.5",
+      "platform": "higgsfield",
+      "modes": [
+        "t2v",
+        "omni_reference",
+        "video_edit",
+        "video_extension"
+      ],
+      "minSeconds": 4,
+      "maxSeconds": 30,
+      "resolutions": [
+        "480p",
+        "720p",
+        "1080p"
+      ],
+      "draft": "480p draft, finalize at 1080p within 7 days",
       "audio": true,
-      "negativePrompt": true,
-      "syntax": { "dialogue": "The {speaker} says: {line}", "audio": "separate sentences" },
-      "verified": true,
-      "source": "https://docs.cloud.google.com/vertex-ai/generative-ai/docs/video/video-gen-prompt-guide"
+      "mediaRoles": [
+        "start_image",
+        "end_image",
+        "image_references",
+        "video_references",
+        "audio_references"
+      ],
+      "evidence": "official"
+    },
+    {
+      "id": "seedance_2_0",
+      "name": "Seedance 2.0",
+      "platform": "higgsfield",
+      "minSeconds": 4,
+      "maxSeconds": 15,
+      "resolutions": [
+        "480p",
+        "720p",
+        "1080p",
+        "4k"
+      ],
+      "genre": [
+        "auto",
+        "action",
+        "horror",
+        "comedy",
+        "noir",
+        "drama",
+        "epic"
+      ],
+      "audio": true,
+      "mediaRoles": [
+        "start_image",
+        "end_image",
+        "image_references",
+        "video_references",
+        "audio_references"
+      ],
+      "evidence": "official"
+    },
+    {
+      "id": "seedance_2_0_mini",
+      "name": "Seedance 2.0 Mini",
+      "platform": "higgsfield",
+      "minSeconds": 4,
+      "maxSeconds": 15,
+      "resolutions": [
+        "480p",
+        "720p"
+      ],
+      "use": "cheap draft",
+      "evidence": "official"
+    },
+    {
+      "id": "minimax_h3",
+      "name": "MiniMax H3",
+      "platform": "higgsfield",
+      "minSeconds": 4,
+      "maxSeconds": 15,
+      "resolutions": [
+        "2K"
+      ],
+      "batch": [
+        1,
+        4
+      ],
+      "mediaRoles": [
+        "start_image",
+        "end_image",
+        "image_references",
+        "video_references",
+        "audio_references"
+      ],
+      "localNotes": [
+        "start_image and image_references cannot be combined (422)",
+        "output aspect ratio follows start_image"
+      ],
+      "syntax": {
+        "shot": "[Shot 1] … / [Shot N] At MM:SS.mmm, the camera cuts to …",
+        "refs": "<Subject N> <Picture N> <Video N> <Audio N>",
+        "dialogue": "<d>[Japanese] …</d>",
+        "audio": "overall_soundscape / non_diegetic_music"
+      },
+      "evidence": "official"
+    },
+    {
+      "id": "minimax_h3_max",
+      "name": "MiniMax H3 Max",
+      "platform": "higgsfield",
+      "minSeconds": 5,
+      "maxSeconds": 15,
+      "resolutions": [
+        "480p",
+        "768p"
+      ],
+      "evidence": "official"
+    },
+    {
+      "id": "kling3_0",
+      "name": "Kling 3.0",
+      "platform": "higgsfield",
+      "minSeconds": 3,
+      "maxSeconds": 15,
+      "modes": [
+        "std",
+        "pro",
+        "4k"
+      ],
+      "sound": [
+        "on",
+        "off"
+      ],
+      "mediaRoles": [
+        "start_image",
+        "end_image"
+      ],
+      "aspects": [
+        "16:9",
+        "9:16",
+        "1:1"
+      ],
+      "evidence": "official"
+    },
+    {
+      "id": "kling_o3_image_reference",
+      "name": "Kling 3.0 Omni",
+      "platform": "higgsfield",
+      "minSeconds": 3,
+      "maxSeconds": 15,
+      "maxReferenceImages": 7,
+      "multiShot": "multi_shots + multi_prompt [{prompt, duration}]",
+      "evidence": "official"
+    },
+    {
+      "id": "kling4_0",
+      "name": "Kling 4.0",
+      "platform": "higgsfield",
+      "minSeconds": 3,
+      "maxSeconds": 30,
+      "resolutions": [
+        "720p",
+        "1080p"
+      ],
+      "quality": "unverified",
+      "evidence": "official"
+    },
+    {
+      "id": "cinematic_studio_video_4_0",
+      "name": "Cinema Studio 4.0",
+      "platform": "higgsfield",
+      "minSeconds": 4,
+      "maxSeconds": 30,
+      "resolutions": [
+        "480p",
+        "720p",
+        "1080p"
+      ],
+      "controls": [
+        "era_id",
+        "camera_model_id",
+        "camera_lens_id",
+        "camera_aperture_id",
+        "pacing_id",
+        "genre_id",
+        "light",
+        "color_palette"
+      ],
+      "evidence": "official"
+    },
+    {
+      "id": "cinematic_studio_3_0",
+      "name": "Cinema Studio Video 3.0",
+      "platform": "higgsfield",
+      "resolutions": [
+        "480p",
+        "720p",
+        "1080p",
+        "4k"
+      ],
+      "evidence": "official"
+    },
+    {
+      "id": "veo3_1_lite",
+      "name": "Veo 3.1 Lite",
+      "platform": "higgsfield",
+      "seconds": [
+        4,
+        6,
+        8
+      ],
+      "mediaRoles": [
+        "start_image",
+        "end_image"
+      ],
+      "audioDefault": false,
+      "use": "motion drafts",
+      "evidence": "official"
+    },
+    {
+      "id": "veo3_1",
+      "name": "Veo 3.1",
+      "platform": "higgsfield",
+      "seconds": [
+        4,
+        6,
+        8
+      ],
+      "quality": [
+        "basic",
+        "high",
+        "ultra"
+      ],
+      "mediaRoles": [
+        "start_image"
+      ],
+      "evidence": "official"
+    },
+    {
+      "id": "wan2_7",
+      "name": "Wan 2.7",
+      "platform": "higgsfield",
+      "minSeconds": 2,
+      "maxSeconds": 15,
+      "resolutions": [
+        "720p",
+        "1080p"
+      ],
+      "evidence": "official"
+    },
+    {
+      "id": "elevenlabs_v4",
+      "name": "Eleven v4",
+      "platform": "higgsfield",
+      "type": "audio",
+      "maxVoices": 10,
+      "maxCharacters": 10000,
+      "evidence": "official"
     },
     {
       "id": "sora-2",
-      "name": "OpenAI Sora 2 / Sora 2 Pro",
-      "modes": ["t2v", "i2v", "extend"],
-      "seconds": [4, 8, 12, 16, 20],
-      "sizes": {
-        "sora-2": ["1280x720", "720x1280"],
-        "sora-2-pro": ["1280x720", "720x1280", "1792x1024", "1024x1792", "1920x1080", "1080x1920"]
-      },
-      "audio": true,
-      "negativePrompt": false,
-      "syntax": { "dialogue": "Dialogue: block, one line per speaker", "beats": "(1) ... (2) ..." },
-      "verified": true,
-      "source": "https://developers.openai.com/cookbook/examples/sora/sora2_prompting_guide"
-    },
-    {
-      "id": "kling-3.0",
-      "name": "Kling 3.0",
-      "modes": ["t2v", "i2v", "ref"],
-      "maxSeconds": 15,
-      "maxShots": 6,
-      "audio": true,
-      "syntax": { "shot": "Shot {n} (Duration: {s} seconds): ...", "dialogue": "[Name] (tone, language): \"line\"" },
-      "verified": true,
-      "source": "https://blog.fal.ai/kling-3-0-prompting-guide/"
-    },
-    {
-      "id": "runway-gen-4.5",
-      "name": "Runway Gen-4.5",
-      "modes": ["t2v", "i2v"],
-      "minSeconds": 2,
-      "maxSeconds": 10,
-      "aspects": ["16:9", "9:16"],
-      "syntax": { "i2v": "describe motion only, not appearance" },
-      "verified": false,
-      "source": "https://runware.ai/docs/models/runway-gen-4-5/guides/directing-motion"
-    },
-    {
-      "id": "seedance-2.0",
-      "name": "Seedance 2.0 (2.5: up to 30s, 50 refs)",
-      "modes": ["t2v", "i2v", "ref", "edit"],
-      "minSeconds": 5,
-      "maxSeconds": 15,
-      "maxRefs": { "image": 9, "video": 3, "audio": 3 },
-      "resolutions": ["480p", "720p", "1080p"],
-      "audio": true,
-      "syntax": {
-        "shot": "Shot {n}: ...",
-        "ref": "@Image 1 / @Video 1 / @Audio 1",
-        "dialogue": "{line}",
-        "music": "(music)",
-        "sfx": "<sound effect>",
-        "subtitle": "「subtitle」",
-        "constraints": "at the end, e.g. Keep it subtitle-free, do not generate a logo or watermark."
-      },
-      "verified": true,
-      "source": "https://runway.com/resources/seedance-2-0-prompt-guide"
-    },
-    {
-      "id": "wan-2.7",
-      "name": "Wan 2.7 (open weights, Apache 2.0)",
-      "modes": ["t2v", "i2v", "first-last-frame"],
-      "maxSeconds": 15,
-      "audio": true,
-      "local": true,
-      "verified": false,
-      "source": "https://videogen.io/best-ai-video-models"
+      "name": "Sora 2",
+      "platform": "openai",
+      "onHiggsfield": false,
+      "evidence": "official"
     }
   ],
   "templates": [
-    { "id": "T1", "name": "地域情報番組の情景カット", "models": ["veo-3.1", "kling-3.0"], "aspect": "16:9", "seconds": 8,
-      "body": "{movement}, wide establishing shot. {season} morning over {place}. {weather}. Natural, documentary look, soft {lighting}, palette of {palette}. Gentle, unhurried pacing.\nAudio: {ambient}. No music." },
-    { "id": "T2", "name": "職人の手元（文化番組）", "models": ["sora-2", "veo-3.1"], "aspect": "16:9", "seconds": 8,
-      "body": "Macro close-up, static camera. The hands of {job} {action}. {place}, a single shaft of window light. Documentary style, shallow depth of field, 35mm film grain.\nAudio: {ambient}." },
-    { "id": "T3", "name": "CM 15秒・3ショット", "models": ["kling-3.0", "seedance-2.0"], "aspect": "16:9", "seconds": 15,
-      "body": "Shot 1: Wide shot, slow dolly-in. {scene1}.\nShot 2: Medium shot, tracking. {hero} {action}.\nShot 3: Close-up, static. {hero} looks into the camera and says in Japanese {\"{catchcopy}\"}.\nBright, clean commercial look, warm natural light, palette of {palette}.\n(upbeat acoustic guitar music)\nKeep it subtitle-free, do not generate a logo or watermark." },
-    { "id": "T4", "name": "スポーツダイジェストのイメージ", "models": ["kling-3.0"], "aspect": "16:9", "seconds": 5,
-      "body": "Low angle, slow motion. An empty indoor {sport} arena just before a match, spotlights sweeping across the court, dust particles floating in the beams. The camera slowly pushes in toward {target}. Dramatic, high-contrast lighting, palette of {palette}.\nAudio: deep cinematic boom, distant crowd anticipation." },
-    { "id": "T5", "name": "写真を動かす（I2V）", "models": ["runway-gen-4.5", "veo-3.1", "kling-3.0"], "aspect": "source", "seconds": 5,
-      "body": "Subtle parallax push-in. {moving_elements}. The people stay mostly still. Camera movement stays slow and smooth." },
-    { "id": "T6", "name": "縦型ショート告知", "models": ["sora-2", "kling-3.0"], "aspect": "9:16", "seconds": 8,
-      "body": "Vertical 9:16 framing, subject centered. Handheld, energetic, quick whip pan between beats.\nBeat 1: {highlight1}.\nBeat 2: whip pan to {highlight2}.\nBeat 3: {person} turns to camera and says in Japanese: \"{line}\"\nVibrant, saturated colors, smartphone vlog look.\nAudio: crowd ambience, a whoosh on each whip pan." },
-    { "id": "T7", "name": "再現VTR", "models": ["sora-2"], "aspect": "16:9", "seconds": 12,
-      "body": "Style: {era} Japanese home drama, warm faded film look.\n{setting}.\nCamera: static medium shot, eye level.\nBeats: (1) {beat1}, (2) {beat2}, (3) {beat3}.\nLighting: {lighting}. Palette: {palette}.\nDialogue:\n- {speaker} ({tone}): \"{line}\"" },
-    { "id": "T8", "name": "トランジション素材", "models": ["veo-3.1", "kling-3.0"], "aspect": "16:9", "seconds": 3,
-      "body": "Seamless match cut from {from} to {to}, macro close-up, shallow depth of field, soft pastel light." }
+    {
+      "id": "T1",
+      "name": "地域情報番組の情景カット",
+      "models": [
+        "veo3_1_lite",
+        "kling3_0"
+      ],
+      "aspect": "16:9",
+      "seconds": 8,
+      "body": "{movement}, wide establishing shot. {season} morning over {place}. {weather}. Natural, documentary look, soft {lighting}, palette of {palette}. Gentle, unhurried pacing.\nAudio: {ambient}. No music."
+    },
+    {
+      "id": "T2",
+      "name": "職人の手元（文化番組）",
+      "models": [
+        "seedance_2_5",
+        "veo3_1_lite"
+      ],
+      "aspect": "16:9",
+      "seconds": 8,
+      "body": "Macro close-up, static camera. The hands of {job} {action}. {place}, a single shaft of window light. Documentary style, shallow depth of field, 35mm film grain.\nAudio: {ambient}. No music."
+    },
+    {
+      "id": "T3",
+      "name": "CM（時間で区切る形）",
+      "models": [
+        "seedance_2_5",
+        "minimax_h3"
+      ],
+      "aspect": "16:9",
+      "seconds": null,
+      "body": "GLOBAL STYLE: {style}. No music, no subtitles.\nSCENE: {logline}.\nCHARACTERS: {person} from the reference, identical features in every shot, zero drift.\nPRODUCT: inherited exactly from the reference: {details}. Lettering stays sharp and correctly spelled whenever visible.\nLOCATION: {location}.\nFORMAT: {n} segments, hard cuts only.\n{shots}\nAUDIO: {sfx}. No BGM.",
+      "note": "ショット数は内容で決める"
+    },
+    {
+      "id": "T4",
+      "name": "スポーツダイジェストのイメージ",
+      "models": [
+        "kling3_0"
+      ],
+      "aspect": "16:9",
+      "seconds": 5,
+      "body": "Low angle, slow motion. An empty indoor {sport} arena just before a match, spotlights sweeping across the court, dust particles floating in the beams. The camera slowly pushes in toward {target}. Dramatic, high-contrast lighting, palette of {palette}.\nAudio: deep cinematic boom, distant crowd anticipation. No music."
+    },
+    {
+      "id": "T5",
+      "name": "写真を動かす（I2V）",
+      "models": [
+        "kling3_0",
+        "veo3_1_lite"
+      ],
+      "aspect": "source",
+      "seconds": 5,
+      "body": "Subtle parallax push-in. {moving_elements}. The people stay mostly still. Camera movement stays slow and smooth."
+    },
+    {
+      "id": "T6",
+      "name": "縦型ショート告知",
+      "models": [
+        "seedance_2_5",
+        "kling3_0"
+      ],
+      "aspect": "9:16",
+      "seconds": 8,
+      "body": "Vertical 9:16 framing, subject centered. Handheld, energetic, quick whip pan between beats.\nBeat 1: {highlight1}.\nBeat 2: whip pan to {highlight2}.\nBeat 3: {person} turns to camera and says in Japanese: \"{line}\"\nVibrant, saturated colors, smartphone vlog look.\nAudio: crowd ambience, a whoosh on each whip pan. No music."
+    },
+    {
+      "id": "T7",
+      "name": "再現VTR",
+      "models": [
+        "seedance_2_5"
+      ],
+      "aspect": "16:9",
+      "seconds": 12,
+      "body": "Style: {era} Japanese home drama, warm faded film look.\n{setting}.\nCamera: static medium shot, eye level.\nBeats: (1) {beat1}, (2) {beat2}, (3) {beat3}.\nLighting: {lighting}. Palette: {palette}.\nDialogue:\n- {speaker} ({tone}): \"{line}\" No music."
+    },
+    {
+      "id": "T8",
+      "name": "トランジション素材",
+      "models": [
+        "veo3_1_lite",
+        "kling3_0"
+      ],
+      "aspect": "16:9",
+      "seconds": 3,
+      "body": "Seamless match cut from {from} to {to}, macro close-up, shallow depth of field, soft pastel light."
+    },
+    {
+      "id": "T9",
+      "name": "商品の見せ場（開始と終了の画像）",
+      "models": [
+        "minimax_h3",
+        "seedance_2_5",
+        "kling3_0"
+      ],
+      "aspect": "16:9",
+      "seconds": null,
+      "body": "The camera holds the same angle and the same lens perspective. {action}. The product keeps its exact shape, color, label and proportions in every frame; the pedestal stays the same size, height and position. Lighting on the product does not change. Audio: {sfx}. No music."
+    },
+    {
+      "id": "T10",
+      "name": "会話シーン（台詞を音声で渡す）",
+      "models": [
+        "seedance_2_5"
+      ],
+      "aspect": "16:9",
+      "seconds": null,
+      "body": "{audio mapping}. Medium two-shot, static. {place}. The woman speaks first (Audio 1), then the man answers (Audio 2). Their lips match the reference audio exactly. No other lines are spoken. Audio: quiet room tone. No music, no subtitles."
+    },
+    {
+      "id": "T11",
+      "name": "締めのカット",
+      "models": [
+        "seedance_2_5",
+        "minimax_h3",
+        "kling3_0"
+      ],
+      "aspect": "16:9",
+      "seconds": null,
+      "body": "Final shot, locked-off. {product} sharp in the foreground, inherited exactly from the reference; {person} softly out of focus behind it. Empty space on the {side} third of the frame for an end card. Hold for one second, then hard cut to black."
+    }
   ],
   "steps": [
-    { "code": "AP", "jp": "AIカット設計", "en": "AI Shot Planning", "defaultHours": 1 },
-    { "code": "AG", "jp": "AI生成・選別", "en": "AI Generation", "defaultHours": 2 },
-    { "code": "AF", "jp": "AI素材仕上げ", "en": "AI Finishing", "defaultHours": 1 }
+    {
+      "code": "AP",
+      "jp": "AIカット設計",
+      "en": "AI Shot Planning",
+      "defaultHours": 1
+    },
+    {
+      "code": "AG",
+      "jp": "AI生成・選別",
+      "en": "AI Generation",
+      "defaultHours": 2
+    },
+    {
+      "code": "AF",
+      "jp": "AI素材仕上げ",
+      "en": "AI Finishing",
+      "defaultHours": 1
+    }
+  ],
+  "evidence": {
+    "official": "確認済み（公式）",
+    "third_party": "第三者の記事",
+    "unverified": "未確認",
+    "tested_locally": "手元で確認（生成して確かめた）"
+  },
+  "rules": [
+    {
+      "id": "money",
+      "text": "生成（クレジットを使う操作）は承認を取ってから手元で行う。資料作りでは生成しない。"
+    },
+    {
+      "id": "9b",
+      "text": "実在の建物・ロゴ・商品・文字は生成してよい。実物の写真を参照に渡し、出た絵を写真と照合し、1か所でも違えば使わない。仕上げで支給データを重ねるのが確実な道。"
+    },
+    {
+      "id": "cuts",
+      "text": "カットの数は秒数で決め打ちせず、内容で決める。上限なし。"
+    },
+    {
+      "id": "9c",
+      "text": "日本語の台詞・ナレーションは生成してよい。ElevenLabs v4 で1句3テイク以上作り耳で選ぶ。数と助数詞は仮名で書く。音は伸縮させない。会話は1行ずつ音声にして Seedance 2.5 の audio_references で渡す。"
+    },
+    {
+      "id": "bgm",
+      "text": "BGM は生成しない（Higgsfield では作れない）。支給か使用許諾のある音源を使う。効果音・環境音は生成してよい。"
+    },
+    {
+      "id": "refs",
+      "text": "Higgsfield の参照は <<<uuid>>> の書き方で渡す。@名前 では届かない。"
+    }
   ]
 }

@@ -403,13 +403,6 @@
         "video_references"
       ],
       "maxElements": 7,
-      "costCheck": {
-        "date": "2026-10-23",
-        "10s_720p": 5,
-        "10s_1080p": 10,
-        "30s_1080p": 30,
-        "note": "launch price possible; re-check with get_cost"
-      },
       "unverified": [
         "keyframe count and role on Higgsfield",
         "per-element voice",

@@ -20,6 +20,7 @@ EditFlow（動画編集工程管理）と手元の制作環境で使うため、
 | [07-unverified.md](07-unverified.md) | 生成で確かめないと分からないことの一覧（試すときは承認を取ってから） |
 | [08-creators.md](08-creators.md) | AI動画で成果を出している作り手の手順と、公開されているスキル（役に立つ順） |
 | [09-genre-playbook.md](09-genre-playbook.md) | ジャンル別の作り方7つ（アニメ CM、企業紹介・予告、POV、構造分解、モーショングラフィックス、アプリ広告、MV 風）と、つなぎ方・工程の土台 |
+| [10-direction-qc-compliance.md](10-direction-qc-compliance.md) | ディレクションの言語化、作業の仕分け、検品のチェックリスト、権利と開示（文化庁・法務省・EU・YouTube） |
 | [visionreel-提案.md](visionreel-提案.md) | VISIONREEL への提案（企画の項目、広告の形式、カット設計の語彙、確かめる順と費用の目安） |
 | [`/data/video-ai-prompts.json`](../../data/video-ai-prompts.json) | 語彙・モデル・テンプレート・工程の機械可読版 |
 | [`/.claude/skills/video-prompt/SKILL.md`](../../.claude/skills/video-prompt/SKILL.md) | Claude Code 用スキル。「〇〇の動画プロンプトを書いて」で起動（入口はこれ） |

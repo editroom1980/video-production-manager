@@ -56,6 +56,8 @@ EditFlow の既存の工程（取り込み → グレーディング → 仮編�
 | 動きの多いカット、1回でマルチショット | `kling3_0`、`kling_o3_image_reference` | `seedance_2_5` |
 | 参照（顔・商品・場所）を多く組み合わせる CM | `seedance_2_5` | `minimax_h3` |
 | 2K で欲しい | `minimax_h3` | — |
+| 長い1本（〜30秒）や 21:9 の情景を安く試す | `kling4_0`（出来は 07 の M3 で確かめる） | `seedance_2_5` の `draft` |
+| 曲に合わせたアニメ MV | `seedance_2_5`（人物の参照＋前のカットの最後のコマ。`hf-anime-mv`） | — |
 | 写真を動かす | `kling3_0` / `minimax_h3`（start_image） | `veo3_1_lite` |
 | 既存の動画の一部を差し替える | `seedance_2_5`（`video_edit`） | `kling_video_edit` |
 | 既存の広告を別の人物・商品・言語で作り直す | `ad_multiplier`（ワークフロー `ad-multiplier`） | — |

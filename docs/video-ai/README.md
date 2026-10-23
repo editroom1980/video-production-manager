@@ -22,6 +22,7 @@ EditFlow（動画編集工程管理）と手元の制作環境で使うため、
 | [09-genre-playbook.md](09-genre-playbook.md) | ジャンル別の作り方7つ（アニメ CM、企業紹介・予告、POV、構造分解、モーショングラフィックス、アプリ広告、MV 風）と、つなぎ方・工程の土台 |
 | [10-direction-qc-compliance.md](10-direction-qc-compliance.md) | ディレクションの言語化、作業の仕分け、検品のチェックリスト、権利と開示（文化庁・法務省・EU・YouTube） |
 | [11-claude-higgsfield-canvas.md](11-claude-higgsfield-canvas.md) | Topview Canvas と Renoise AI の使い方を Claude と Higgsfield で行う手順（作る前に聞く、複数パターン、モーショングラフィックス、脚本から映画、一部だけ直す、スキル化、アニメ MV、モデルの作り比べ、まとめて生成と整理） |
+| [開発チャットへの依頼.md](開発チャットへの依頼.md) | 開発のチャット（映像制作フォルダ）に渡す依頼をまとめたもの。取り込み、点検、機能の検討、生成が要る確認 |
 | [visionreel-提案.md](visionreel-提案.md) | VISIONREEL への提案（企画の項目、広告の形式、カット設計の語彙、確かめる順と費用の目安） |
 | [`/data/video-ai-prompts.json`](../../data/video-ai-prompts.json) | 語彙・モデル・テンプレート・工程の機械可読版 |
 | [`/.claude/skills/video-prompt/SKILL.md`](../../.claude/skills/video-prompt/SKILL.md) | Claude Code 用スキル。「〇〇の動画プロンプトを書いて」で起動（入口はこれ） |

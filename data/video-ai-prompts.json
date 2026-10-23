@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "updated": "2026-10-22",
+  "updated": "2026-10-23",
   "note": "Human-readable source: docs/video-ai/. Generation runs through Higgsfield MCP. Specs come from Higgsfield models_explore on 2026-10-22; re-check with models_explore and get_cost before generating. No prices are stored here.",
   "promptOrder": [
     "camera",
@@ -382,7 +382,40 @@
         "1080p"
       ],
       "quality": "unverified",
-      "evidence": "official"
+      "evidence": "official",
+      "modes": [
+        "text-to-video",
+        "image-to-video",
+        "reference-to-video",
+        "video-edit"
+      ],
+      "aspectRatios": [
+        "21:9",
+        "16:9",
+        "9:16",
+        "1:1",
+        "auto"
+      ],
+      "mediaRoles": [
+        "start_image",
+        "end_image",
+        "image_references",
+        "video_references"
+      ],
+      "maxElements": 7,
+      "costCheck": {
+        "date": "2026-10-23",
+        "10s_720p": 5,
+        "10s_1080p": 10,
+        "30s_1080p": 30,
+        "note": "launch price possible; re-check with get_cost"
+      },
+      "unverified": [
+        "keyframe count and role on Higgsfield",
+        "per-element voice",
+        "Creative Recreation",
+        "Japanese lip-sync quality"
+      ]
     },
     {
       "id": "cinematic_studio_video_4_0",

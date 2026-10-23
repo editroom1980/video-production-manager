@@ -20,7 +20,7 @@
 |---|---|---|
 | 会話シーン、参照素材（顔・商品・声）を組み合わせる CM | `seedance_2_5` | `seedance_2_0`、`minimax_h3` |
 | 参照を多く使う長めのカット、2K で欲しいもの | `minimax_h3` | `seedance_2_5` |
-| 動きの多いカット、マルチショットを1回で | `kling3_0`、`kling_o3_image_reference`（Omni） | `kling4_0` ❔ |
+| 動きの多いカット、マルチショットを1回で | `kling3_0`、`kling_o3_image_reference`（Omni） | `kling4_0`（安い。出来は ❔） |
 | 映画的な画作り（カメラ・レンズ・照明を項目で指定） | `cinematic_studio_video_4_0`（Cinema Studio 4.0） | `cinematic_studio_3_0` |
 | 動きの試作（安く数を出す） | `veo3_1_lite` | `seedance_2_0_mini`、`kling3_0_turbo` |
 | 日本語の台詞・ナレーション | `elevenlabs_v4` | — |
@@ -54,7 +54,29 @@
 - `kling3_0`: 3〜15秒、`mode` は std／pro／4k、`sound` はオン／オフ（オフで安くなる）、入力は start_image と end_image だけ、縦横比は 16:9／9:16／1:1 ✅
 - `kling_o3_image_reference`（Omni）: 参照画像を7枚まで。`multi_shots` をオンにして、`multi_prompt` に `{prompt, duration}` を順に並べると、カットごとの指示と秒数を渡せる ✅
 - `kling3_0_turbo`: 3〜15秒、start_image だけの速い版 ✅
-- `kling4_0`（Kling 4.0）も使える。3〜30秒、720p／1080p、参照・編集・`kling_element_ids`（7つまで）に対応 ✅。画質や指示への従い方は ❔
+
+### Kling 4.0（`kling4_0`）
+Higgsfield の `models_explore` で 2026-10-23 に確かめたこと ✅:
+- 3〜30秒（整数）、720p／1080p、縦横比は 21:9／16:9／9:16／1:1／auto
+- `mode`: text-to-video／image-to-video／reference-to-video／video-edit
+- 渡せる素材の役割: start_image、end_image、image_references、video_references。`kling_element_ids` は7つまで。音声の参照の役割は無い
+- 説明に「順に並べたキーフレーム（ordered keyframes）から作る」とある。ただし、何枚まで渡せるか、キーフレームをどの役割で渡すかは書かれていない ❔
+- 費用（`get_cost`、素材なし）: 10秒 720p が 5、10秒 1080p が 10、30秒 1080p が 30。1秒あたり 0.5〜1 で、`kling3_0` 10秒（17.5）や `seedance_2_5` 10秒 1080p（160）よりかなり安い。出たばかりの値段かもしれないので、使う前に毎回 `get_cost` で確かめる ❔
+
+Kling の発表（2026-09-28）として紹介されていること ⚠️（「動画編集の中の人」の速報の回 wkyzJK38MGw と、第三者の記事 Atlas Cloud）:
+- 1回で30秒。延長で2分まで（近日）。10ビットの HDR の書き出し（近日）
+- キーフレームを10枚まで置ける（振り向く・驚く・走り出す、のように演技を1枚ずつ指定）。プロンプトは8000トークンまで
+- 参照は合計15まで（画像10、動画5本で合計30秒、登場する物や人物の「要素」7つ）。要素ごとに声も指定できる
+- 声がステレオに。口の動きの合い方が良くなった。話せる言語が増えた（3.0 の中国語・英語・日本語・韓国語・スペイン語に、ポルトガル語・ドイツ語・フランス語などが加わる）
+- 一部だけ直す編集（表情、体の動き、カメラ、雰囲気や背景）と、既存の動画の構図やテンポをそのままに商品や人物を差し替える「Creative Recreation」
+- 文字・絵文字・ロゴが崩れにくくなった
+- 先に出た Flash 版は 20秒・720p で、キーフレームを複数置けない、という記事がある。Higgsfield の `kling4_0` は 30秒・1080p なので Flash 版ではなさそうだが、確かめていない ❔
+
+手元での扱い:
+- Higgsfield で使えるのは、上の ✅ の範囲。キーフレーム10枚、要素ごとの声、Creative Recreation は、Higgsfield の道具から使えるか分からない ❔。差し替えは今のところ Ad Multiplier か Seedance 2.5 の `video_edit` で行う
+- 日本語の台詞の口の動きは、ElevenLabs v4 で作った台詞と合わせて、07 の M6 で確かめる
+- 文字・ロゴが崩れにくくなったとしても、規則9b（実物の写真と照合）は変えない。文字は引き続きコードで重ねる
+- Seedance 2.5 との使い分けは 07 の M3 で決める。それまでは、参照を多く組む CM と会話シーンは Seedance 2.5、安く長い試作や 21:9 の情景は Kling 4.0 を候補にする
 
 ### Cinema Studio
 - `cinematic_studio_video_4_0`（Cinema Studio 4.0）: 4〜30秒、480p〜1080p。モードは Seedance 2.5 と同じ4つ。時代（`era_id`）、カメラ本体、レンズ、絞り、編集のテンポ、ジャンル、照明（プリセット／自分の配置）、カラーパレットを項目で指定できる。「プロンプトの演出を自動で補う」と説明されている ✅。自動の補いが手元のプロンプトをどこまで書き換えるかは ❔

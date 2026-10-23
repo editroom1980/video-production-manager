@@ -158,7 +158,7 @@
 - ジャンル別の作り方7つと、つなぎ方・モデルの使い分け・5つの工程の土台。詳しくは [09-genre-playbook.md](09-genre-playbook.md)
 - 要点: 三面図＋秒割りの台本で30秒を1回で、元になる画像で承認してから動画化、つなぐのは動きの途中、POV は最初と最後の画像を指定、構造分解は部品の数と順番を指定、文字は生成せず編集で、MV は曲を先に音声の参照へ
 
-#### 「AI臭を99％消す方法5選」（Ar8P3gaJIzI）は 06 §6、「Claude と AZ8 で完全自動化」（9eb3qCWL9Qs）は 09 §4、「AIが動画編集の仕事を奪い始めた…5つのスキル」（fcKulM4HwBg）は 10、「AI動画制作の悩み、まとめて解決」（fuyu5RrGHLw）は 09 §4.5、「Topview Canvas で Seedance 2.5 の活用5選」（ze9HHzP3a6s）は 11 とスキル5つに取り込み済み（2026-10-23）
+#### 「AI臭を99％消す方法5選」（Ar8P3gaJIzI）は 06 §6、「Claude と AZ8 で完全自動化」（9eb3qCWL9Qs）は 09 §4、「AIが動画編集の仕事を奪い始めた…5つのスキル」（fcKulM4HwBg）は 10、「AI動画制作の悩み、まとめて解決」（fuyu5RrGHLw）は 09 §4.5、「Topview Canvas で Seedance 2.5 の活用5選」（ze9HHzP3a6s）は 11 とスキル5つ、「Kling 4.0」の速報（wkyzJK38MGw）は 02 の Kling 4.0 の節と 07 の M6〜M9、「Renoise AI × Seedance 2.5 の活用法5選」（Vlg-OcEsBOk）は 11 §4 とスキル3つ（hf-anime-mv、hf-model-compare、hf-batch）に取り込み済み（2026-10-23）
 
 #### 「動画編集の中の人」のほかの動画（2026-10-23 にチャンネルの新着一覧から選んだ。中身は未読）
 運営者は企業系 YouTube のディレクター。火・木・土の18時に公開。提供つきの回が多い（Higgsfield、AZ8、Renoise AI、Topview）。
@@ -170,8 +170,8 @@
 | 3 | AIが動画編集の仕事を奪い始めた…5つのスキル（fcKulM4HwBg） | 2026-10-21 | 検品の仕組み化、コンプライアンス、ディレクション。VISIONREEL の関門・検品と関係 |
 | 4 | 【AI動画制作】その悩み、まとめて解決（fuyu5RrGHLw） | 2026-09-24 | カメラワーク、自動化、費用、AI ナレーション、AI 音楽の質問への回答 |
 | 5 | Topview Canvas で Seedance 2.5 の活用5選（ze9HHzP3a6s、Topview 提供） | 2026-09-03 | 共通テクニック、商品 CM の複数パターン、モーショングラフィックス、「スキルとして覚えさせる」 |
-| 6 | 【Kling 4.0】参照素材15個・キーフレーム10枚（wkyzJK38MGw） | 2026-10-02 | Kling 4.0 の機能。07 の M3（Kling 4.0 は 3.0 より良いか）の材料 |
-| 7 | Renoise AI × Seedance 2.5 の活用法5選（Vlg-OcEsBOk、Renoise AI 提供） | 2026-09-12 | アニメ MV、複数の広告、シネマティック広告、Claude Code との連携 |
+| 6 | 【Kling 4.0】参照素材15個・キーフレーム10枚（wkyzJK38MGw） | 2026-10-02 | Kling 4.0 の機能。取り込み済み（02、07 の M6〜M9） |
+| 7 | Renoise AI × Seedance 2.5 の活用法5選（Vlg-OcEsBOk、Renoise AI 提供） | 2026-09-12 | アニメ MV、複数の広告、シネマティック広告、Claude Code との連携。取り込み済み（11 §4） |
 | 8 | 2026年5月最新版 動画生成AIの最適解（RNJSErtgXm8） | 2026-05 | ツール構成。5か月前なので古い可能性 |
 | 参考 | 最新AIニュースの回（I3E1XH-sU94、ayUJB0RCqEc、xK0fmkndz6w、69m7rdHJaS4、zptyHlExR9o、scmVJABzhJI、Z7uEbVYgro4、rSocovafKF8） | 2026-08〜10 | 動画づくりに関係する話題だけ拾うなら: 「カメラを数値で動かす時代へ」（xK0fmkndz6w 07:28）、「映画の現場ではAIをどこまで使っているのか」（69m7rdHJaS4 07:29）、「MiniMax-H3 が自分のパソコンで生成し放題に」（rSocovafKF8 03:27）、「画像生成AIを全部まとめて比較できる」（Z7uEbVYgro4 06:45） |
 

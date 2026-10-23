@@ -5,11 +5,11 @@ description: Plan several variants of a product CM or ad (different hooks, ad fo
 
 # 商品 CM の複数パターン
 
-`docs/video-ai/11-claude-higgsfield-canvas.md` の §0（共通の決まり）と §2 ① に沿って進める。返答は日本語、太字や劇的な断定を避けた普通の文で。
+`docs/video-ai/11-claude-higgsfield-canvas.md` の §0（共通の決まり）、§2 ①、§4-3 に沿って進める。返答は日本語、太字や劇的な断定を避けた普通の文で。
 
 ## 手順
-1. 受け取るもの: 商品の実物の写真、伝えたいこと、本数、縦横、媒体。足りなければ一度だけまとめて聞く。
-2. 変える軸を決めて案を出す（フック、広告の形式、相手、トーン、縦横）。形式は `docs/video-ai/visionreel-提案.md` の2章と `09-genre-playbook.md` を参照。案は表にして、選んでもらう。
+1. 受け取るもの: 商品の実物の写真、伝えたいこと、本数、縦横、媒体、予算。足りなければ一度だけまとめて聞く（11 §0 の5）。
+2. 変える軸を決めて案を出す（フック、広告の形式、相手、トーン、縦横）。軸に迷ったら、最初の候補として3方向を示す: スタジオで撮ったような商品映像／価格と機能を前に出した SNS 広告／実際に使う場面（11 §4-3）。A/B テスト用なら縦型（9:16）も。形式は `docs/video-ai/visionreel-提案.md` の2章と `09-genre-playbook.md` を参照。案は表にして、選んでもらう。
 3. 選ばれた案ごとに、`video-prompt` スキルの決まりでプロンプトを書く。商品は「参照のとおり」と書き、文字は崩さない指示を添える。
 4. 当たりの見積もり: `seedance_2_0_mini` 4秒 480p を案の数だけ。`get_cost: true` で1本ずつ引き、合計を示す。
 5. 生成は承認のあと。手元では VISIONREEL の承認待ちに置く（`visionreel_request_generation`）。VISIONREEL が無ければ、承認を得てから生成のまとめ投入で。

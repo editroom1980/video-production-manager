@@ -3,7 +3,7 @@
 EditFlow（動画編集工程管理）と手元の制作環境で使うため、動画生成AIのプロンプト技法・モデル別の特性・ワークフローを集めた資料です。
 手元の生成は Higgsfield の MCP 経由で行う前提で、手元の規則（生成は承認を取ってから、実在の物は写真と照合、BGM は生成しない、など）に合わせています。
 
-最終更新: 2026-10-22。動画生成AIは数か月単位で仕様が変わります。モデルの仕様は `models_explore`、費用は `get_cost`（どちらも無料）で、使う前に引き直してください。出典は各ファイルの末尾にあります。
+最終更新: 2026-10-23。動画生成AIは数か月単位で仕様が変わります。モデルの仕様は `models_explore`、費用は `get_cost`（どちらも無料）で、使う前に引き直してください。出典は各ファイルの末尾にあります。
 
 根拠の印: ✅ 確認済み（公式）／ ⚠️ 第三者の記事／ ❔ 未確認／ 🔧 手元で確認（生成して確かめた）
 
@@ -21,11 +21,11 @@ EditFlow（動画編集工程管理）と手元の制作環境で使うため、
 | [08-creators.md](08-creators.md) | AI動画で成果を出している作り手の手順と、公開されているスキル（役に立つ順） |
 | [09-genre-playbook.md](09-genre-playbook.md) | ジャンル別の作り方7つ（アニメ CM、企業紹介・予告、POV、構造分解、モーショングラフィックス、アプリ広告、MV 風）と、つなぎ方・工程の土台 |
 | [10-direction-qc-compliance.md](10-direction-qc-compliance.md) | ディレクションの言語化、作業の仕分け、検品のチェックリスト、権利と開示（文化庁・法務省・EU・YouTube） |
-| [11-claude-higgsfield-canvas.md](11-claude-higgsfield-canvas.md) | Topview Canvas の5つの使い方を Claude と Higgsfield で行う手順（複数パターン、モーショングラフィックス、脚本から映画、一部だけ直す、スキル化） |
+| [11-claude-higgsfield-canvas.md](11-claude-higgsfield-canvas.md) | Topview Canvas と Renoise AI の使い方を Claude と Higgsfield で行う手順（作る前に聞く、複数パターン、モーショングラフィックス、脚本から映画、一部だけ直す、スキル化、アニメ MV、モデルの作り比べ、まとめて生成と整理） |
 | [visionreel-提案.md](visionreel-提案.md) | VISIONREEL への提案（企画の項目、広告の形式、カット設計の語彙、確かめる順と費用の目安） |
 | [`/data/video-ai-prompts.json`](../../data/video-ai-prompts.json) | 語彙・モデル・テンプレート・工程の機械可読版 |
 | [`/.claude/skills/video-prompt/SKILL.md`](../../.claude/skills/video-prompt/SKILL.md) | Claude Code 用スキル。「〇〇の動画プロンプトを書いて」で起動（入口はこれ） |
-| `/.claude/skills/hf-variants/`、`hf-motion/`、`hf-script-to-film/`、`hf-partial-fix/`、`workflow-to-skill/` | 11 の5つの使い方を行うスキル。生成は見積もりと承認のあと（手元は VISIONREEL の承認待ち） |
+| `/.claude/skills/hf-variants/`、`hf-motion/`、`hf-script-to-film/`、`hf-partial-fix/`、`workflow-to-skill/`、`hf-anime-mv/`、`hf-model-compare/`、`hf-batch/` | 11 の使い方を行うスキル。生成は見積もりと承認のあと（手元は VISIONREEL の承認待ち） |
 | [`/.claude/skills/visual-video/`](../../.claude/skills/visual-video/SKILL.md)、[`/.claude/skills/visual-image/`](../../.claude/skills/visual-image/SKILL.md) | 演出と静止画プロンプトの参考書。smixs/visual-skills（Serge Shima、CC BY 4.0）を取り込んだもの。`video-prompt` から読む |
 
 ## Claude Code での使い方

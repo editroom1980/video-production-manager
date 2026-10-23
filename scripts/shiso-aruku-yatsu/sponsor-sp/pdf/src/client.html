@@ -3,78 +3,99 @@
 <head>
 <meta charset="utf-8">
 <title>撮影のご案内 株式会社川本石材商会様</title>
-<link rel="stylesheet" href="common.css">
+<link rel="stylesheet" href="design.css">
+<style>
+.req td:first-child { width: 8mm; }
+.req td:nth-child(2) { width: 34mm; font-weight: bold; color: var(--g); }
+.steps { counter-reset: s; margin: 1mm 0 3mm; }
+.steps .st { display: grid; grid-template-columns: 9mm 1fr 34mm; gap: 3mm; align-items: start; padding: 2mm 0; border-bottom: 0.6pt solid var(--line); break-inside: avoid; }
+.steps .st .n { width: 7mm; height: 7mm; border-radius: 50%; background: var(--g); color: #fff; font-weight: bold; font-size: 9pt; display: flex; align-items: center; justify-content: center; }
+.steps .st.am .n { background: var(--am); }
+.steps .st.peak .n { background: var(--pm); }
+.steps .st .w { font-size: 8.4pt; color: var(--mid); text-align: right; }
+</style>
 </head>
 <body>
 
-<div class="kicker">しそチャンNET　クラウドファンディング ご支援企業 訪問スペシャル</div>
-<h1>宍粟を歩くやつ スペシャル<br>「株式会社川本石材商会」撮影のご案内</h1>
-<p class="sub">株式会社川本石材商会　川本洋司 様／川本こず江 様　｜　2026年10月23日　しそチャンNET　山内一輝</p>
+<!-- ================= 表紙 ================= -->
+<section class="cover">
+  <div class="band">
+    <div class="eyebrow">しそチャンNET　クラウドファンディング ご支援企業 訪問スペシャル</div>
+    <h1><small>宍粟を歩くやつ スペシャル</small>株式会社川本石材商会</h1>
+    <span class="doc">撮影のご案内</span>
+  </div>
+  <div class="body">
+    <p style="font-size:12pt;font-weight:bold;margin-bottom:5mm">株式会社川本石材商会<br>川本洋司 様／川本こず江 様</p>
+    <div class="facts">
+      <div class="fact wide"><div class="k">撮影日</div><div class="v">2026年10月28日（水）<br><span style="font-weight:normal;font-size:10pt">午前：安富町の工事現場（時間はご相談のうえ決定）　／　13:00〜：一宮町</span></div></div>
+      <div class="fact"><div class="k">番組</div><div class="v">30分の特別番組</div></div>
+      <div class="fact"><div class="k">放送</div><div class="v">しそチャンNET<br><span style="font-weight:normal;font-size:9.5pt">映像データもお渡しいたします</span></div></div>
+      <div class="fact wide"><div class="k">出演</div><div class="v">菊地周星（しそう観光大使）／岡本陽子（アナウンサー）／加藤智子（健康体操トレーナー・森林セラピスト）</div></div>
+    </div>
+  </div>
+  <div class="art"><img src="../../assets/shisochan_lineart.png" alt=""></div>
+  <div class="foot"><span>2026年10月23日</span><span>しそチャンNET　担当　山内一輝</span></div>
+</section>
 
+<h2>ごあいさつ<span class="en">GREETING</span></h2>
 <p>このたびは、しそチャンNETのクラウドファンディングにご支援いただき、誠にありがとうございました。<br>
 ご支援のお礼として、御社をご紹介する30分の特別番組を制作いたします。撮影の内容と当日の流れをまとめましたので、ご確認をお願いいたします。</p>
 
-<h2>番組の概要</h2>
-<table class="meta">
-<tr><td>番組名</td><td>宍粟を歩くやつ スペシャル「株式会社川本石材商会」</td></tr>
-<tr><td>長さ</td><td>30分</td></tr>
-<tr><td>出演</td><td>菊地周星（しそう観光大使）／岡本陽子（アナウンサー）／加藤智子（健康体操トレーナー・森林セラピスト）</td></tr>
-<tr><td>撮影日</td><td><b>2026年10月28日（水）</b>　午前：安富町の工事現場（時間はご相談のうえ決定）／13:00〜：一宮町</td></tr>
-<tr><td>放送</td><td>しそチャンNETで放送し、映像データもお渡しいたします</td></tr>
-</table>
+<h2>撮影場所の位置関係<span class="en">MAP</span></h2>
+<div class="mapwrap"><!--MAP--></div>
+<p class="note" style="margin-top:1.5mm">出演者は、国道29号を南から歩いて御社へ伺います。後半は社長にご案内いただき、御社から伊和神社へ歩いて向かいます。安富町の工事現場は午前に撮影し、番組の中でつなぎます。</p>
 
-<h2>番組の流れ</h2>
-<table>
-<tr><th class="c">順</th><th>内容</th><th>撮影場所</th></tr>
-<tr><td class="c">1</td><td>出演者3人が国道29号を歩いて、御社を目指します</td><td>国道29号</td></tr>
-<tr><td class="c">2</td><td>お店の前で社長にお会いし、慶応元年の創業からの御社の歩みを伺います</td><td>お店</td></tr>
-<tr><td class="c">3</td><td>ふるさと納税の返礼品になっている石のフクロウを、現物を見ながらご紹介します</td><td>お店</td></tr>
-<tr><td class="c">4</td><td>石のサンプル（3種類ほど）を触って、何という石かを当てるクイズに、出演者が挑戦します</td><td>お店</td></tr>
-<tr><td class="c">5</td><td>しそチャンNETのキャラクターを、レーザーで石に刻んでいただきます（クイズに勝った出演者がスタートボタンを押します）。刻んでいただいた石は、<b>視聴者プレゼント（1個）</b>にさせていただければと考えています</td><td>お店</td></tr>
-<tr><td class="c">6</td><td>最近のお墓に刻まれる言葉を伺い、出演者がそれぞれ「自分なら何と刻むか」を考えます</td><td>お店</td></tr>
-<tr><td class="c">7</td><td>安富町のお墓の工事現場を見学し、工事の様子や、お仕事で大切にされていることを伺います</td><td>安富町の工事現場（午前に撮影）</td></tr>
-<tr><td class="c">8</td><td>社長に、お墓づくりへの思いを伺います。また、お墓についてのよくあるお悩み（お参りに行けない、継ぐ人がいない、費用など）を出演者が代わりにお尋ねし、社長にお答えいただきます</td><td>お店</td></tr>
-<tr><td class="c">9</td><td>「お墓以外にもつくっているものは？」とお尋ねし、社長のご案内で伊和神社へ。道中で、秋祭りや須行名の屋台のお話を伺います</td><td>お店 → 伊和神社</td></tr>
-<tr><td class="c">10</td><td>御社が施工された伊和神社の太鼓橋をご案内いただき、地元への思いを伺います</td><td>伊和神社</td></tr>
-<tr><td class="c">11</td><td>社長と出演者で、視聴者プレゼントのご紹介と、御社のご紹介をして締めくくります</td><td>伊和神社</td></tr>
-</table>
-<p class="sub">※撮影はこの順番ではありません（当日の流れは下の表）。現場の様子に合わせて、内容が変わることがあります。</p>
-
-<h2>10月28日（水）当日の流れ（予定）</h2>
-<table>
-<tr><th class="c">時間（目安）</th><th>場所</th><th>内容</th></tr>
-<tr><td class="c">11:00〜12:00</td><td>安富町の工事現場</td><td>工事のご様子の撮影<br><span class="sub">※時間・場所はご相談のうえ決めさせてください</span></td></tr>
-<tr><td class="c">13:00</td><td>お店</td><td>簡単な打ち合わせ</td></tr>
-<tr><td class="c">13:15</td><td>国道29号 → お店</td><td>出演者が歩いてお店へ／御社の歩み</td></tr>
-<tr><td class="c">14:00</td><td>お店</td><td>石のフクロウ／石当てクイズ／レーザー刻印／お墓に刻む言葉</td></tr>
-<tr><td class="c">15:10</td><td>お店</td><td>お墓づくりへの思い・お墓のお悩み</td></tr>
-<tr><td class="c">15:40</td><td>お店 → 伊和神社</td><td>お祭りのお話を伺いながら神社へ</td></tr>
-<tr><td class="c">15:55</td><td>伊和神社</td><td>太鼓橋／締めくくり</td></tr>
-<tr><td class="c">16:40ごろ</td><td></td><td>終了予定</td></tr>
-</table>
-
-<h2>ご協力のお願い・ご確認したいこと</h2>
-<table>
-<tr><th class="c">#</th><th>内容</th></tr>
-<tr><td class="c">1</td><td><b>安富町の工事現場</b>：午前（昼前）に伺ってもよろしいでしょうか。現場の場所と時間、墓地での撮影に許可が必要かどうかを教えてください。現場では、施工をされているスタッフの方にお話を伺えればと思います。<b>社長にもお越しいただけるようでしたら</b>、ぜひお願いいたします。</td></tr>
-<tr><td class="c">2</td><td><b>レーザー刻印</b>：キャラクターの図案（下の線画）を、別途データでお送りします。刻む石の種類・大きさ、かかる時間、データの形式で不都合があれば教えてください。</td></tr>
-<tr><td class="c">3</td><td><b>視聴者プレゼント</b>：刻んでいただいた石（1個）を、番組の視聴者プレゼントにさせていただいてもよろしいでしょうか。しそチャンNETのInstagramをフォローしてDMを送ってくださった方の中から、抽選でお贈りする予定です。</td></tr>
-<tr><td class="c">4</td><td><b>石当てクイズ</b>：石のサンプルを3種類ほどご用意いただけますでしょうか。石の名前は、当日の打ち合わせで伺います。</td></tr>
-<tr><td class="c">5</td><td><b>石のフクロウ</b>：ふるさと納税での寄附の額や、申し込めるサイトなど、番組でご紹介してよい内容を教えてください。</td></tr>
-<tr><td class="c">6</td><td><b>伊和神社での撮影</b>：神社での撮影について、御社からご紹介いただけますでしょうか。それとも、こちらから直接お願いしたほうがよろしいでしょうか。</td></tr>
-<tr><td class="c">7</td><td><b>太鼓橋</b>：施工された時期や、当時のお写真があれば、拝見させてください。</td></tr>
-<tr><td class="c">8</td><td><b>番組でのご紹介</b>：お墓の価格の目安を番組で出してよいか、また、番組で触れてほしくないことがあれば教えてください。</td></tr>
-<tr><td class="c">9</td><td><b>駐車場</b>：お店の近くに、車を2台ほど停められる場所はありますでしょうか。</td></tr>
-</table>
-
-<h3 style="break-before:avoid">レーザー刻印の図案（しそチャンNETのキャラクター）</h3>
-<img class="art" src="../../assets/shisochan_lineart.png" alt="しそチャンNETのキャラクターの線画">
-<p class="sub" style="text-align:center">データはPNG（2000px・4000px）とSVGの3種類をお送りします。使いやすいものをお使いください。</p>
-
-<div class="foot">
-お問い合わせ：しそチャンNET　担当　山内一輝　（電話）080-3831-6483<br>
-ご不明な点や、ご都合の悪いことがあれば、いつでもお気軽にご連絡ください。どうぞよろしくお願いいたします。
+<h2>番組の流れ<span class="en">PROGRAM</span></h2>
+<p class="note">番組で放送する順番です。撮影はこの順番ではありません（当日の流れは下の表）。現場の様子に合わせて、内容が変わることがあります。</p>
+<div class="steps">
+  <div class="st"><span class="n">1</span><span>出演者3人が国道29号を歩いて、御社を目指します</span><span class="w">国道29号</span></div>
+  <div class="st"><span class="n">2</span><span>お店の前で社長にお会いし、慶応元年の創業からの御社の歩みを伺います</span><span class="w">お店</span></div>
+  <div class="st"><span class="n">3</span><span>ふるさと納税の返礼品になっている石のフクロウを、現物を見ながらご紹介します</span><span class="w">お店</span></div>
+  <div class="st"><span class="n">4</span><span>石のサンプル（3種類ほど）を触って、何という石かを当てるクイズに、出演者が挑戦します</span><span class="w">お店</span></div>
+  <div class="st"><span class="n">5</span><span>しそチャンNETのキャラクターを、レーザーで石に刻んでいただきます（クイズに勝った出演者がスタートボタンを押します）。刻んでいただいた石は、<b>視聴者プレゼント（1個）</b>にさせていただければと考えています</span><span class="w">お店</span></div>
+  <div class="st"><span class="n">6</span><span>最近のお墓に刻まれる言葉を伺い、出演者がそれぞれ「自分なら何と刻むか」を考えます</span><span class="w">お店</span></div>
+  <div class="st am"><span class="n">7</span><span>安富町のお墓の工事現場を見学し、工事の様子や、お仕事で大切にされていることを伺います</span><span class="w">安富町の工事現場<br>（午前に撮影）</span></div>
+  <div class="st"><span class="n">8</span><span>社長に、お墓づくりへの思いを伺います。また、お墓についてのよくあるお悩み（お参りに行けない、継ぐ人がいない、費用など）を出演者が代わりにお尋ねし、社長にお答えいただきます</span><span class="w">お店</span></div>
+  <div class="st"><span class="n">9</span><span>「お墓以外にもつくっているものは？」とお尋ねし、社長のご案内で伊和神社へ。道中で、秋祭りや須行名の屋台のお話を伺います</span><span class="w">お店 → 伊和神社</span></div>
+  <div class="st peak"><span class="n">10</span><span>御社が施工された伊和神社の太鼓橋をご案内いただき、地元への思いを伺います</span><span class="w">伊和神社</span></div>
+  <div class="st"><span class="n">11</span><span>社長と出演者で、視聴者プレゼントのご紹介と、御社のご紹介をして締めくくります</span><span class="w">伊和神社</span></div>
 </div>
+
+<h2>10月28日（水）当日の流れ（予定）<span class="en">TIMETABLE</span></h2>
+<div class="tl">
+  <div class="row am"><div class="t">11:00</div><div class="dot"></div><div class="c"><span class="p">安富町の工事現場</span>　<span class="s">工事のご様子の撮影（〜12:00ごろ。時間・場所はご相談のうえ決めさせてください）</span></div></div>
+  <div class="row pm"><div class="t">13:00</div><div class="dot"></div><div class="c"><span class="p">お店</span>　<span class="s">簡単な打ち合わせ</span></div></div>
+  <div class="row pm"><div class="t">13:15</div><div class="dot"></div><div class="c"><span class="p">国道29号 → お店</span>　<span class="s">出演者が歩いてお店へ／御社の歩み</span></div></div>
+  <div class="row pm"><div class="t">14:00</div><div class="dot"></div><div class="c"><span class="p">お店</span>　<span class="s">石のフクロウ／石当てクイズ／レーザー刻印／お墓に刻む言葉</span></div></div>
+  <div class="row pm"><div class="t">15:10</div><div class="dot"></div><div class="c"><span class="p">お店</span>　<span class="s">お墓づくりへの思い・お墓のお悩み</span></div></div>
+  <div class="row pm"><div class="t">15:40</div><div class="dot"></div><div class="c"><span class="p">お店 → 伊和神社</span>　<span class="s">お祭りのお話を伺いながら神社へ</span></div></div>
+  <div class="row pm"><div class="t">15:55</div><div class="dot"></div><div class="c"><span class="p">伊和神社</span>　<span class="s">太鼓橋／締めくくり</span></div></div>
+  <div class="row"><div class="t">16:40</div><div class="dot"></div><div class="c"><span class="p">終了予定</span></div></div>
+</div>
+<p class="note">撮影は、合わせて4時間ほどを予定しています。社長にはほぼ全体にご出演いただく形になります。ご都合の悪い時間があれば、お知らせください。</p>
+
+<h2>ご協力のお願い・ご確認したいこと<span class="en">REQUEST</span></h2>
+<table class="req">
+<tr><td class="num">1</td><td>安富町の工事現場</td><td>午前（昼前）に伺ってもよろしいでしょうか。現場の場所と時間、墓地での撮影に許可が必要かどうかを教えてください。現場では、施工をされているスタッフの方にお話を伺えればと思います。社長にもお越しいただけるようでしたら、ぜひお願いいたします。</td></tr>
+<tr><td class="num">2</td><td>レーザー刻印</td><td>キャラクターの図案（下の線画）を、別途データでお送りします。刻む石の種類・大きさ、かかる時間、データの形式で不都合があれば教えてください。</td></tr>
+<tr><td class="num">3</td><td>視聴者プレゼント</td><td>刻んでいただいた石（1個）を、番組の視聴者プレゼントにさせていただいてもよろしいでしょうか。しそチャンNETのInstagramをフォローしてDMを送ってくださった方の中から、抽選でお贈りする予定です。</td></tr>
+<tr><td class="num">4</td><td>石当てクイズ</td><td>石のサンプルを3種類ほどご用意いただけますでしょうか。石の名前は、当日の打ち合わせで伺います。</td></tr>
+<tr><td class="num">5</td><td>石のフクロウ</td><td>ふるさと納税での寄附の額や、申し込めるサイトなど、番組でご紹介してよい内容を教えてください。</td></tr>
+<tr><td class="num">6</td><td>伊和神社での撮影</td><td>神社での撮影について、御社からご紹介いただけますでしょうか。それとも、こちらから直接お願いしたほうがよろしいでしょうか。</td></tr>
+<tr><td class="num">7</td><td>太鼓橋</td><td>施工された時期や、当時のお写真があれば、拝見させてください。</td></tr>
+<tr><td class="num">8</td><td>番組でのご紹介</td><td>お墓の価格の目安を番組で出してよいか、また、番組で触れてほしくないことがあれば教えてください。</td></tr>
+<tr><td class="num">9</td><td>駐車場</td><td>お店の近くに、車を2台ほど停められる場所はありますでしょうか。</td></tr>
+</table>
+
+<h3>レーザー刻印の図案（しそチャンNETのキャラクター）</h3>
+<img class="art" src="../../assets/shisochan_lineart.png" alt="しそチャンNETのキャラクターの線画">
+<p class="note" style="text-align:center">データはPNG（2000px・4000px）とSVGの3種類をお送りします。使いやすいものをお使いください。</p>
+
+<div class="contact">
+  <div><span class="s">お問い合わせ</span><br><b>しそチャンNET　担当　山内一輝</b></div>
+  <div style="text-align:right"><span class="s">電話</span><br><b>080-3831-6483</b></div>
+</div>
+<p class="note" style="margin-top:2mm">ご不明な点や、ご都合の悪いことがあれば、いつでもお気軽にご連絡ください。どうぞよろしくお願いいたします。</p>
 
 </body>
 </html>

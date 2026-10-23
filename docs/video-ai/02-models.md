@@ -71,6 +71,9 @@
 - `wan2_7`（Wan 2.7）: 2〜15秒、720p／1080p、start/end_image と音声の参照 ✅。手元のメモでは「Higgsfield で使えない」可能性があるとしていましたが、一覧にはありました。
 - Sora 2 は、Higgsfield の一覧にありませんでした ✅（2026-10-22）。§2 の Sora 2 の節は、ほかのサービスで使う場合の参考です。
 
+### 4つのモデルを比べた作り手の例（参考）
+「動画編集の中の人」が、壊れやすい動き（麺を放る・炎・湯気）の1本で Seedance 2.5、MiniMax H3、Wan 3.0、Kling 3.0 を比べた結果は 09 §4-2 にあります（⚠️ 1回ずつの比較）。カメラの1カットを守れたのは MiniMax H3 だけ、顔と服が崩れなかったのは Seedance 2.5 と MiniMax H3 でした。`wan3_0`（Wan 3.0、最大30秒）も Higgsfield にあります ✅。
+
 ### 音声
 - `elevenlabs_v4`（Eleven v4）: 1回の台詞（`dialogue`）に最大10人の声、全体で1万字まで、1回に1〜4本。`stability` と `similarity_boost` を調整できる ✅
 - BGM は Higgsfield では作れない（sonilo_music の説明が「Game pipeline only.」）🔧

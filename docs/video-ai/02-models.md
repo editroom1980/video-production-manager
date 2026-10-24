@@ -91,6 +91,11 @@ Kling の発表（2026-09-28）として紹介されていること ⚠️（「
 ### そのほか（一覧にあったもの）
 - `gemini_omni_flash_1_1`（Gemini Omni Flash 1.1）: 3〜10秒、360p〜4K、参照・編集あり ✅
 - `wan2_7`（Wan 2.7）: 2〜15秒、720p／1080p、start/end_image と音声の参照 ✅。手元のメモでは「Higgsfield で使えない」可能性があるとしていましたが、一覧にはありました。
+- `wan3_0`（Wan 3.0）: 2〜30秒、480p〜1080p、参照（画像・動画・音声）と start/end_image、`enable_thinking`（遅いが指示に従いやすい）✅。5秒 720p で 8.75 と安く、盲検の評価で文から動画の1位（2026-10-24 ⚠️）。12 の V3
+- `flux_3_video`（FLUX 3 Video）: 5〜20秒、720p〜4K、21:9 あり、複数コマから動画・続きを作る ✅。5秒 720p で 30
+- `grok_video_v15`（Grok Video 1.5）: 2〜15秒、480p〜1080p、start_image と画像・音声の参照 ✅
+- `minimax_h3_max`（MiniMax H3 Max）: 5〜15秒、速い版 ✅
+- 口合わせの `sync_so`（Sync Lipsync 3）、仕上げの `fps_boost`・`video_deflicker`・`topaz_video`・`topaz_hyperion_2_5` などもある ✅（12 の V2・V4）
 - Sora 2 は、Higgsfield の一覧にありませんでした ✅（2026-10-22）。§2 の Sora 2 の節は、ほかのサービスで使う場合の参考です。
 
 ### 4つのモデルを比べた作り手の例（参考）

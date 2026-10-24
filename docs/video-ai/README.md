@@ -23,6 +23,7 @@ EditFlow（動画編集工程管理）と手元の制作環境で使うため、
 | [10-direction-qc-compliance.md](10-direction-qc-compliance.md) | ディレクションの言語化、作業の仕分け、検品のチェックリスト、権利と開示（文化庁・法務省・EU・YouTube） |
 | [11-claude-higgsfield-canvas.md](11-claude-higgsfield-canvas.md) | Topview Canvas と Renoise AI の使い方を Claude と Higgsfield で行う手順（作る前に聞く、複数パターン、モーショングラフィックス、脚本から映画、一部だけ直す、スキル化、アニメ MV、モデルの作り比べ、まとめて生成と整理） |
 | [12-visionreel-改善案.md](12-visionreel-改善案.md) | VISIONREEL の改善案（Cinema Studio 4.0 の欄、口合わせ、モデルの評価の更新、仕上げの道具、商品動画の公式の型18種、台帳の照合、FCPXML の書き出し） |
+| [13-visionreel-UI調査.md](13-visionreel-UI調査.md) | VISIONREEL の UI 文言の置き換え表、用語集の追加、現場と生成 AI の用語の対応、使い勝手の改善案（課題の番号つき）、手法の画面への入れ方 |
 | [開発チャットへの依頼.md](開発チャットへの依頼.md) | 開発のチャット（映像制作フォルダ）に渡す依頼をまとめたもの。取り込み、点検、機能の検討、生成が要る確認 |
 | [visionreel-提案.md](visionreel-提案.md) | VISIONREEL への提案（企画の項目、広告の形式、カット設計の語彙、確かめる順と費用の目安） |
 | [`/data/video-ai-prompts.json`](../../data/video-ai-prompts.json) | 語彙・モデル・テンプレート・工程の機械可読版 |

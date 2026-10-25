@@ -10,7 +10,7 @@ description: Daily 30-second artistic satire video about the day's news, weather
 ## 決めてある設定（17 §5.5）
 - 天気の地域: 姫路。モデル: `kling4_0`、30秒、1080p、`aspect_ratio: 9:16`。1日の見積もりの上限: 60。
 - 生成の前に毎回、依頼者の OK を待つ。
-- 投稿のモード: 2026-11-01 までは `UPLOAD_TO_DRAFT`。そのあとは依頼者に聞く。
+- 投稿のモード: 最初から `DIRECT_POST`（公開）。送るのは依頼者。
 
 ## 朝の実行（定期実行。生成しない）
 1. 調べる（Web 検索。出典の URL と日付を残す）: その日の主な時事、天気（地域は 17 §5 で決めたもの）、話題。
@@ -25,7 +25,7 @@ description: Daily 30-second artistic satire video about the day's news, weather
 1. 生成する（承認した金額の範囲で）。
 2. 検品: 十数コマを切り出す。実在の人やロゴに似ていないか、文字が勝手に出ていないか、写実的すぎてニュース映像に見えないか。だめなら理由を書いて、作り直すか聞く。
 3. 文字を入れるなら、短い一言をコードで重ねる（生成させない）。
-4. 投稿の画面を開く（`tiktok_accounts` で connector_id を取り、`tiktok_prepare_publish`）。`media_type: VIDEO`、モードは依頼者が決めたもの（初めの1週間は `UPLOAD_TO_DRAFT`）。説明文に出典の要点と AI 生成である旨を入れる。`is_aigc` は依頼者が「はい」と決めていれば入れる。曲は依頼者が投稿の画面で選ぶ。
+4. 投稿の画面を開く（`tiktok_accounts` で connector_id を取り、`tiktok_prepare_publish`）。`media_type: VIDEO`、モードは `DIRECT_POST`。説明文に出典の要点と AI 生成である旨を入れる。`is_aigc` は依頼者が「はい」と決めていれば入れる。曲は依頼者が投稿の画面で選ぶ。
 5. 送るのは依頼者。Claude は投稿の道具を自分で呼ばない。送ったあと、`tiktok_publish_status` で状態を確かめる。
 
 ## 守ること

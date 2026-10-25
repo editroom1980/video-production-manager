@@ -16,6 +16,12 @@ description: Produce many videos of a fixed format on Higgsfield from a project 
 6. 記録: 行ごとにプロンプト、モデルと設定、参照とその役割、ジョブ ID、保存先、費用を残す（`docs/video-ai/04-workflow.md` §7）。
 7. 検品: 十数コマを切り出して並べ、文字・ロゴ・商品を実物の写真と照合する（規則9b）。
 
+## 商品の一覧から全商品の動画を作るとき（16 §1 ⑫）
+- 一覧の表は「商品名・写真・特徴・価格」の4列があればよい。
+- カテゴリーごとに元になる広告を1本だけ作り、承認する。その1本を `hf_mult_replace_object`（`hf-remix` スキル）で商品だけ差し替える。
+- フック違いは `ad_multiplier_v2`（`mode: sections`、`section: hook`）、言語違いは `hf-localize`。掛け算で本数が増えるので、合計の見積もりを必ず先に出す。
+- 価格・商品名・数字は映像に生成させない。テロップで後から入れる。
+
 ## 守ること
 - 最後の確認と仕上げの編集は人が行う。
 - 曲は生成しない。

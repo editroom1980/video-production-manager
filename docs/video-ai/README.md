@@ -26,11 +26,12 @@ EditFlow（動画編集工程管理）と手元の制作環境で使うため、
 | [13-visionreel-UI調査.md](13-visionreel-UI調査.md) | VISIONREEL の UI 文言の置き換え表、用語集の追加、現場と生成 AI の用語の対応、使い勝手の改善案（課題の番号つき）、手法の画面への入れ方 |
 | [14-finalcut-plugin.md](14-finalcut-plugin.md) | Final Cut Pro のプラグイン・拡張を作れるか（公式の5つの方法、できること・できないこと、VISIONREEL とつなぐ進め方） |
 | [15-テロッパー構想.md](15-テロッパー構想.md) | FCP 用のテロップ作成の拡張「テロッパー」の構想（雰囲気を読む、座布団と装飾の作り方、FCP への戻し方、段階の案） |
+| [16-chatgpt-dots-to-claude.md](16-chatgpt-dots-to-claude.md) | 「ChatGPT に話しかけるだけで AI 動画」15の方法を Claude と Higgsfield で行う対応表と、定期実行（話していない間も動く）の作り方 |
 | [開発チャットへの依頼.md](開発チャットへの依頼.md) | 開発のチャット（映像制作フォルダ）に渡す依頼をまとめたもの。取り込み、点検、機能の検討、生成が要る確認 |
 | [visionreel-提案.md](visionreel-提案.md) | VISIONREEL への提案（企画の項目、広告の形式、カット設計の語彙、確かめる順と費用の目安） |
 | [`/data/video-ai-prompts.json`](../../data/video-ai-prompts.json) | 語彙・モデル・テンプレート・工程の機械可読版 |
 | [`/.claude/skills/video-prompt/SKILL.md`](../../.claude/skills/video-prompt/SKILL.md) | Claude Code 用スキル。「〇〇の動画プロンプトを書いて」で起動（入口はこれ） |
-| `/.claude/skills/hf-variants/`、`hf-motion/`、`hf-script-to-film/`、`hf-partial-fix/`、`workflow-to-skill/`、`hf-anime-mv/`、`hf-model-compare/`、`hf-batch/` | 11 の使い方を行うスキル。生成は見積もりと承認のあと（手元は VISIONREEL の承認待ち） |
+| `/.claude/skills/hf-variants/`、`hf-motion/`、`hf-script-to-film/`、`hf-partial-fix/`、`workflow-to-skill/`、`hf-anime-mv/`、`hf-model-compare/`、`hf-batch/`、`hf-autopilot/`、`hf-localize/`、`hf-remix/` | 11 の使い方を行うスキル。生成は見積もりと承認のあと（手元は VISIONREEL の承認待ち） |
 | [`/.claude/skills/visual-video/`](../../.claude/skills/visual-video/SKILL.md)、[`/.claude/skills/visual-image/`](../../.claude/skills/visual-image/SKILL.md) | 演出と静止画プロンプトの参考書。smixs/visual-skills（Serge Shima、CC BY 4.0）を取り込んだもの。`video-prompt` から読む |
 
 ## Claude Code での使い方

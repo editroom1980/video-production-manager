@@ -16,6 +16,12 @@ description: Plan several variants of a product CM or ad (different hooks, ad fo
 6. 当たりを見て、良い案だけ `seedance_2_5` の下書き（480p）→ 承認 → 1080p に仕上げる。
 7. 既存の広告の冒頭・最後だけを変えるなら Ad Multiplier（`get_workflow_instructions` の `ad-multiplier`、sections）。静止画のバナーも要るなら `ads-studio`。
 
+## UGC（一般の人の紹介動画風）のとき
+- `get_workflow_instructions` の `ugc-video` を使う。
+- 画面にスマホが2台出ると AI らしく見えるので、「スマホは1台だけ」と書く（16 §1 ⑦）。
+- いきなり動画にしない。最初のコマを静止画で作って承認してから動画にする。
+- 生成した人物の「使ってみた」を、実在の利用者の感想のように見せない。
+
 ## 守ること
 - 商品・ロゴ・文字は実物の写真と照合し、1か所でも違えば使わない（規則9b）。
 - 曲は生成させない（`No music`）。

@@ -10,7 +10,7 @@ description: Turn a synopsis or rough script into a short AI film or drama on Hi
 ## 手順
 1. あらすじか脚本を受け取り、台本の形に整える（場面、台詞、秒数の目安）。物語が先。誰に何を感じてほしいかを一言で書く。
 2. 場面ごとにショット一覧を作る。`.claude/skills/visual-video/references/dramaturgy.md` と `role-modes.md` の型で、各ショットの仕事と最後の絵を決める。
-3. 人物の設定画: Higgsfield の `character-sheet` ワークフロー、または `visual-image` スキル。三面図は参照に使い、開始の画像にはしない。
+3. 人物の設定画: Higgsfield の `character-sheet` ワークフロー、`ai_influencer_prepare`（見積もりだけ。1枚 1.125 前後。承認のあと `ai_influencer_generate`）、または `visual-image` スキル。繰り返し使う人物は `manage_reference_elements` で要素にする。三面図は参照に使い、開始の画像にはしない。
 4. 場所の画像と、各ショットの元になる画像を作る。ここで承認を取る（動画にする前に）。
 5. 声と曲を決める。台詞は ElevenLabs v4（1句3テイク以上、数は仮名、伸縮しない）。曲は支給か許諾済み。
 6. ショットごとに動画にする。人物が続く場面は Seedance 2.5 の参照で。1本で作るか分けるかは、人物の一貫性と直しやすさで決める。会話は台詞を1行ずつ `audio_references` で。

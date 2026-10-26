@@ -9,6 +9,7 @@ description: Run unattended, scheduled video work (daily trend research, idea sh
 
 ## 守ること（最優先）
 - 生成（クレジットを使う操作）はしない。`generate_*` は `get_cost: true` の見積もりだけ。`execute_preset`、`ai_influencer_generate`、`dubbing`、`remove_background` など、課金のある道具も呼ばない。
+- `get_cost: true` は必ず `params` の中に入れる（`{"params": {"model": ..., "get_cost": true}}`）。`params` の外に置くと無視され、そのまま生成されて課金される（2026-10-27 の定期実行で起きた。30 クレジット）。返りに `id` と `status: pending` が出たら見積もりではなく生成なので、すぐ依頼者に知らせる。
 - 1回の実行で見積もる合計は、頼まれた上限まで（指定が無ければ100クレジット）。
 - 結果は「承認待ち」として残す。手元では VISIONREEL の承認待ちに置く（`visionreel_request_generation` など）。それが無ければ、報告ファイルか通知で知らせる。
 

@@ -193,6 +193,92 @@ h3 { font-size: 13px; letter-spacing: .06em; color: var(--muted); margin-top: 6p
 .block { font-size: 14px; font-weight: 800; color: var(--muted); margin-top: 8px; display: flex; justify-content: space-between; }
 .row .prog { font-size: 12px; font-weight: 800; color: var(--muted); }
 .swipehint { text-align: center; font-size: 12px; color: var(--muted); }
+/* v3: instructions first, flexible pool below, location bar at the thumb */
+#v-now { padding: 0; display: flex; flex-direction: column; overflow: hidden; }
+#v-now[hidden] { display: none; }
+#mini2 { height: min(26vh, 210px); }
+.missbar { display: flex; justify-content: space-between; align-items: center; gap: 8px; min-height: 46px; border-radius: 12px; padding: 0 12px; background: var(--surface); border: 2px solid var(--ng) !important; color: var(--ng); font-size: 14px; }
+.missbar b { font-weight: 800; }
+.missbar span { font-size: 12px; font-weight: 700; }
+.nowwrap > * { flex-shrink: 0; }
+.nowwrap { flex: 1 1 auto; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 10px max(14px, env(safe-area-inset-right, 0px)) 18px max(14px, env(safe-area-inset-left, 0px)); display: flex; flex-direction: column; gap: 10px; }
+.ins { border-radius: 16px; padding: 14px; display: flex; flex-direction: column; gap: 6px; color: #fff; }
+.ins .note { color: inherit; opacity: .92; }
+.ins-k { font-size: 13px; font-weight: 800; letter-spacing: .04em; opacity: .9; }
+.ins-t { font-size: 26px; font-weight: 800; line-height: 1.2; }
+.ins-s { font-size: 15px; font-weight: 700; }
+.ins.go { background: var(--ng); }
+.ins.must { background: var(--surface); color: var(--ink); border: 3px solid var(--accent); }
+.ins.must .ins-k { color: var(--accent); }
+.ins.must .note { color: var(--muted); }
+.ins.free { background: var(--done); }
+.ins.pre { background: var(--ink); color: var(--surface); }
+.big { height: 58px; border-radius: 14px; font-size: 19px; font-weight: 800; background: #fff; color: var(--ng); margin-top: 6px; box-shadow: 0 3px 0 rgba(0,0,0,.18); }
+.big.ok { background: var(--accent); color: var(--accent-ink); }
+.big:active { transform: translateY(2px); box-shadow: none; }
+.missed, .task { display: flex; justify-content: space-between; align-items: center; gap: 10px; border-radius: 12px; padding: 10px 12px; font-size: 14px; }
+.missed { background: var(--surface); border: 2px solid var(--ng); }
+.missed b, .task b { display: block; font-weight: 800; }
+.missed span, .task span { font-size: 13px; color: var(--muted); }
+.mbtns { display: flex; gap: 6px; flex: 0 0 auto; }
+.mbtns button, .task > button { font-size: 13px; font-weight: 800; padding: 9px 10px; border-radius: 9px; border: 1.5px solid var(--line); background: var(--bg); }
+.mbtns button:first-child { background: var(--done); border-color: var(--done); color: #fff; }
+.task { background: var(--peak); border: 1.5px solid var(--peak-line); }
+.task.urgent { border: 2.5px solid var(--ng); }
+.sec.lg { font-size: 16px; margin-top: 6px; }
+.spot { background: var(--surface); border: 1.5px solid var(--line); border-radius: 14px; overflow: hidden; }
+.spot.pa { border-left: 6px solid var(--accent); }
+.spot.dim { opacity: .55; }
+.spot.open { border-color: var(--leg2); box-shadow: 0 0 0 2px var(--leg2); opacity: 1; }
+.spot-head { width: 100%; display: flex; align-items: center; gap: 10px; text-align: left; padding: 12px; min-height: 60px; }
+.spot-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.spot-main b { font-size: 17px; font-weight: 800; }
+.spot-sub { font-size: 13px; color: var(--muted); font-weight: 700; }
+.chev { color: var(--muted); font-size: 13px; }
+.tags { display: flex; flex-wrap: wrap; gap: 4px; }
+.tags i { font-style: normal; font-size: 12px; font-weight: 800; border-radius: 6px; padding: 1px 7px; }
+.tags .now { background: var(--done); color: #fff; }
+.tags .soon { background: var(--bg); color: var(--leg2); border: 1px solid var(--leg2); }
+.tags .late { background: var(--ng); color: #fff; }
+.tags .mute { background: var(--bg); color: var(--muted); }
+.spot-body { padding: 0 12px 12px; display: flex; flex-direction: column; gap: 8px; }
+.hint { font-size: 14px; background: var(--bg); border-radius: 10px; padding: 8px 10px; }
+.spot-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 2px; }
+.sb { min-height: 58px; border-radius: 12px; font-size: 15px; font-weight: 800; line-height: 1.2; }
+.sb small { font-size: 11px; font-weight: 700; }
+.sb.wait { background: var(--bg); border: 2px solid var(--line) !important; }
+.sb.ok { background: var(--accent); color: var(--accent-ink); }
+.more { min-height: 48px; border-radius: 12px; border: 1.5px dashed var(--line) !important; font-weight: 800; color: var(--muted); }
+.herebar { flex: 0 0 auto; background: var(--surface); border-top: 1px solid var(--line); padding: 8px max(14px, env(safe-area-inset-right, 0px)) 8px max(14px, env(safe-area-inset-left, 0px)); }
+.here-btn { width: 100%; min-height: 52px; display: flex; align-items: center; gap: 10px; border-radius: 12px; background: var(--bg); border: 1.5px solid var(--line) !important; padding: 0 14px; text-align: left; }
+.here-btn span { font-size: 12px; color: var(--muted); font-weight: 800; }
+.here-btn b { flex: 1; font-size: 17px; font-weight: 800; }
+.here-btn .chg { color: var(--leg2); }
+.here-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.here-grid button { min-height: 46px; border-radius: 10px; border: 1.5px solid var(--line) !important; font-size: 13px; font-weight: 800; background: var(--bg); }
+.here-grid button[aria-pressed="true"] { background: var(--ink); color: var(--surface); }
+.evrow { display: grid; grid-template-columns: 54px 1fr; gap: 8px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; font-size: 15px; }
+.evrow .t { font-weight: 800; font-variant-numeric: tabular-nums; }
+.evrow small { display: block; color: var(--muted); font-size: 12px; }
+.evrow.isdone { background: var(--done-bg); color: var(--muted); }
+.row .rbody { padding: 10px 12px; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.row.cur { box-shadow: 0 0 0 3px var(--accent); }
+.row.past:not([aria-checked="true"]) { border: 2px solid var(--ng); }
+.tag.ng { color: var(--ng); }
+.lim { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; display: flex; flex-direction: column; gap: 2px; font-size: 14px; }
+.lim b { font-size: 16px; font-weight: 800; }
+.lim span { color: var(--muted); }
+.lim .hint { margin-top: 4px; color: var(--ink); }
+.lim.isdone { background: var(--done-bg); }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13px; font-weight: 700; }
+.legend i { display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-right: 5px; vertical-align: -1px; }
+.setrow { display: flex; justify-content: space-between; align-items: center; gap: 10px; font-size: 15px; font-weight: 700; }
+.box .setrow + .setrow { margin-top: 10px; }
+.stepper { display: flex; align-items: center; gap: 6px; }
+.stepper button { min-width: 44px; height: 40px; border-radius: 9px; border: 1.5px solid var(--line) !important; background: var(--bg); font-weight: 800; }
+.stepper b { min-width: 46px; text-align: center; font-variant-numeric: tabular-nums; }
+.simtag { background: var(--peak-line); color: #000; border-radius: 5px; padding: 0 6px; font-weight: 800; }
+.group-time small { display: block; font-size: 12px; font-weight: 700; }
 </style>
 </head>
 <body>
@@ -202,33 +288,26 @@ h3 { font-size: 13px; letter-spacing: .06em; color: var(--muted); margin-top: 6p
     <div class="sub" id="topsub"></div>
     <button class="wake" id="wake" aria-pressed="false">画面ON</button>
   </header>
-
   <div class="views">
-    <section class="view" id="v-shoot" data-tab="shoot">
-      <div class="mini" id="mini"></div>
-      <div class="cardwrap" id="cardwrap"></div>
-      <div class="actionbar">
-        <button class="btn-sub" id="btn-prev" aria-label="前の予定"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>前</button>
-        <button class="btn-sub" id="btn-now" aria-label="いまの時刻の予定へ"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/></svg>いま</button>
-        <button class="btn-main" id="btn-ok"></button>
-      </div>
+    <section class="view" id="v-now" data-tab="now">
+      <div class="mini" id="mini2"></div>
+      <div class="nowwrap" id="nowwrap"></div>
+      <div class="herebar" id="herebar"></div>
     </section>
-    <section class="view" id="v-list" data-tab="list" hidden></section>
     <section class="view" id="v-map" data-tab="map" hidden></section>
+    <section class="view" id="v-plan" data-tab="plan" hidden></section>
     <section class="view" id="v-firms" data-tab="firms" hidden></section>
     <section class="view" id="v-prep" data-tab="prep" hidden></section>
   </div>
-
   <nav class="tabbar" id="tabbar">
-    <button data-tab="shoot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2.5"/><path d="M8 7l1.5-3h5L16 7"/><circle cx="12" cy="13.5" r="3.5"/></svg>撮影</button>
+    <button data-tab="now"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2.5"/><path d="M8 7l1.5-3h5L16 7"/><circle cx="12" cy="13.5" r="3.5"/></svg>いま</button>
     <button data-tab="map"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2z"/><path d="M9 4v14M15 6v14"/></svg>地図</button>
-    <button data-tab="list"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 6h11M9 12h11M9 18h11"/><path d="M4 6l1 1 2-2M4 12l1 1 2-2M4 18l1 1 2-2"/></svg>予定</button>
+    <button data-tab="plan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>予定</button>
     <button data-tab="firms"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M4 20V9l5-3v14M9 20V4l7 4v12M16 20v-8l4 2v6M3 20h18"/></svg>全社</button>
     <button data-tab="prep"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/></svg>要点</button>
   </nav>
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
-
 <script>
 (() => {
 'use strict';
@@ -237,69 +316,6 @@ const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(
 const fmt = s => esc(s).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>');
 
 // ================= data =================
-// [time, place, what, note, peak, loc]
-const EVE = [
-  ['12:20', '—', '雨天判断を青年部HP・Instagramで確認', '正午に決定済み。延期なら11/8に読み替え', 0, null],
-  ['12:30', '俯瞰ポイント', '**GoPro設置・タイムラプス開始**：会場全体が入る高い場所に固定（インターバル5秒）', 'モバイルバッテリーで給電、露出とホワイトバランスを固定、水平確認。13:00の設営開始前に回し始める。位置と画角を写真で残す（当日も同じにする）', 1, 'gopro'],
-  ['12:40', 'せせらぎ全域', '空の会場：芝生、ステージ予定地、アーチ予定地、川沿い、道路越しの北庁舎駐車場', '当日と同じ位置・画角で撮る。立ち位置を写真で残す', 0, null],
-  ['12:55', '本部予定地', '青年部に挨拶、撮影の段取り確認（要点タブの「聞くこと」）', '主催カメラとドローン素材の形式を先に合わせる', 0, 'honbu'],
-  ['13:00', '北 飲食', '飲食ブース設営：テント3張をつなげて一体化（原田さん・岡本さん）', '前日で最初の作業。テントが立ち上がる瞬間', 0, 'inshoku'],
-  ['13:30', '北 飲食', 'ポール10本＋コーン8個で仕切り、長机・発電機の確認、動線チェック', '段取りを確認し合う会話を録る', 0, 'inshoku'],
-  ['14:00', '本部', '**青年部メンバー集合、作業開始の指示**', '前日パートの始まり。全体の引き＋指示を出す人の顔', 1, 'honbu'],
-  ['14:15', '中央', 'ステージ・本部・ダンスショースペースの設営', '大人たちの汗と段取り', 0, 'stage'],
-  ['14:45', '南 車両・建設', '区画割り、受付テント、子ども建前の部材搬入（あれば）', '堂元さん・亀井さんへの確認を済ませる', 0, 'kensetsu'],
-  ['15:00', '俯瞰ポイント', 'GoPro点検（バッテリー・カード・画角）', '動いていないか、結露・逆光', 0, 'gopro'],
-  ['15:15', 'アーチ', '足場アーチの組立（山陽の「空中さんぽ」か確認）', '明日のお菓子撒きの場所。時間を空けて数回', 0, 'arch'],
-  ['15:30', '全域', '**トラブル・想定外の対応**（配置変更、資材不足、天候）', '起きた瞬間・相談・解決後の顔の3点。後で「さっきの、どうなりました？」', 1, null],
-  ['16:00', '撮影ポイント', 'ロケハン：当日の動線を歩き各区間の徒歩時間を測る（建前の立ち位置、ステージ袖、アーチ、放水場所、ドローン飛行場、北庁舎へ渡る場所）', '南端→北端、せせらぎ→北庁舎の所要時間を控える', 0, null],
-  ['16:30', '本部', '夕方の打ち合わせ・最終確認', '明日に向けた緊張感', 0, 'honbu'],
-  ['16:50', '全景', '**設営が終わった会場の全景**（〜17:15、日没17:05頃・概算）', '「準備完了」の画。12:40と同じ位置から', 1, null],
-  ['17:15', '俯瞰ポイント', 'GoPro回収（設営完了〜日没まで回してから止める）', '夜間の放置はしない（盗難・夜露）', 0, 'gopro'],
-  ['作業後', '本部', '**振り返りインタビュー**：青年部長＋設営で苦労した人1〜2人', '質問は要点タブ', 1, 'honbu'],
-  ['帰宅後', '—', '素材のバックアップ、バッテリー充電、カードの空き確認', '明日は7:30から', 0, null],
-];
-const DAY = [
-  ['7:15', '俯瞰ポイント', '**GoPro設置・タイムラプス開始**（インターバル5秒）', '7:30の搬入から撤収まで1日回す。前日と同じ位置・画角で前後比較', 1, 'gopro'],
-  ['7:30', 'ステージ前→南', '飲食の全員集合、車両搬入（ラフター・ユンボ・スカイマスター・サンエム）', '芝生は車両進入禁止。指定動線を走る車両', 0, 'stage'],
-  ['7:45', '北庁舎', 'トレーラー2台（八木木材）、大型深ダンプ（ヒョウカン運輸）、大型トラック（秀商）、4tウイング車（谷笹化成）の搬入', 'ウイング車が開く瞬間', 0, 'kShow'],
-  ['8:15', 'せせらぎ 南→北', 'テント・ブース設営、重機の配置', '前日の空の会場と同じ位置から', 0, null],
-  ['9:00', 'せせらぎ 南→北', '全ブースの事業所プレート・のぼり', '会社名カットを確保。北庁舎分は10:45。飲食の仕込みは撮らない', 0, null],
-  ['9:30', 'ステージ前', '全体ミーティング（各出展者1名、10分）、東道路の通行止め開始', '本番前の緊張', 0, 'stage'],
-  ['9:40', '俯瞰ポイント', 'GoPro点検（バッテリー・カード・画角）', '開場前に一度', 0, 'gopro'],
-  ['9:45', '本部・受付', '来場者の列', '', 0, 'honbu'],
-  ['10:00', '本部・受付', 'イベント開始、リストバンド、最初の親子', '開会式があればここ。終わったら道路を渡る', 0, 'honbu'],
-  ['10:05', '北庁舎', '宍粟消防署：ポンプ車・梯子車・子ども防火服', '正午撤収なので最優先', 0, 'kFire'],
-  ['10:15', '北庁舎', '宍粟警察署：パトカー・白バイ・鑑識体験', '午前不在なら15:10の枠と入れ替え', 0, 'kPolice'],
-  ['10:25', '北庁舎', '自衛隊：車両・子ども制服・ミニゲーム', '', 0, 'kSdf'],
-  ['10:32', '北庁舎 ワークショップ', 'フジイ「ミニ本棚」、オサキ「小物かけ」', '先着20名・15名。枠が埋まる前に', 0, 'kWs'],
-  ['10:40', '北庁舎 ワークショップ荷台', '谷笹化成工業所「ビーズスライム」、小寺林業「木材見本市」', 'ケトルの蒸気でビーズが膨らむ画', 0, 'kWing'],
-  ['10:45', '北庁舎', '内海林業・宮辻造林（林業道具・チェーンソーデモ）、車両展示（ヒョウカン運輸・八木木材・秀商・プラシカル・ユーズ）、エアー遊具、一宮精工、北庁舎の事業所プレート', '10:52に道路を渡って南へ', 0, 'kShow'],
-  ['10:55', '南 建設', '**子ども建前①**：元工務店、衣川工務店、室元建築', '山場。11:00開始。安全説明から組み上がりまで通し。合図の声も録る', 1, 'kensetsu'],
-  ['11:30', '南 建設', 'ユンボでタイヤ積み木・ミニショベル（オオタニ）、測量機の宝探し（松本工務店）、セメントアート（ワチャ会）', 'ユンボは建前中は止まるので直後に。ヒザに乗って操作する子', 0, 'kensetsu2'],
-  ['12:05', '南 車両', 'お出かけ前点検（山陽自動車工業）、特装車3台・部品展示、タイヤ展示（竹田タイヤ）、軽展示（昭和自動車）、ラフター大型タイヤ吊り下げ（#20）、ホンダ展示車', '点検は12:00〜14:00のみ', 0, 'sharyo'],
-  ['12:25', '南端', 'サンエム「環境レスキュー隊」', 'ミッション形式。1組を通して撮る', 0, 'sanemu'],
-  ['12:40', '本部', '昼食（15分）', '弁当は11時以降に本部で受取', 0, 'honbu'],
-  ['12:50', '俯瞰ポイント', 'GoPro点検（バッテリー交換・カード残量）', '昼食の後、北へ向かう前に', 0, 'gopro'],
-  ['12:55', '北 ドローン', '藤原板金 小ドローン体験（13:00回）', '操縦する子の手元と顔', 0, 'drone'],
-  ['13:05', '北 飲食', 'しそう麺焼き（のりすけ）、そうめん手巻き寿司（製麺所5社）、ソフトクリーム（だんだか）、ラーメンパック（つばき）', '子どもが作るところだけ。つばきは会社名カットのみ', 0, 'inshoku'],
-  ['13:15', '北 金融', 'みなと銀行（札勘・お買い物ゲーム）、西兵庫信用金庫（札勘・窓口体験）', '伝票に「済」印を押す瞬間', 0, 'kinyu'],
-  ['13:28', '北 ドローン', '藤原板金 大ドローンの離陸（13:30回）', '見上げる子。3分で切り上げる', 0, 'drone'],
-  ['13:32', '北 メディカル', '志水接骨院 テーピング（13:30回）、長田産業 口内チェック、SHI-SOGU 足圧チェック', '飛行場のすぐ隣', 0, 'medical'],
-  ['13:45', '北 特産品', '米の計量チャレンジ（老松酒造・山陽盃酒造）、ラッピング（カタヤマ）、花火玉模型・射的（D-JK）、セノヲ、創作うどん竹内', '「買う」ではなく体験を撮る', 0, 'tokusan'],
-  ['13:55', 'ステージ', '袖の位置取り', '', 0, 'stage'],
-  ['14:00', 'ステージ', '**青年部長挨拶 → キッズダンス（〜14:25）**', '本編は主催カメラ。袖の緊張・客席の保護者・終わった後の顔', 1, 'stage'],
-  ['14:30', 'ステージ', '**宍粟市長・商工会長挨拶**', '話者アップ＋会場の引き', 1, 'stage'],
-  ['14:40', '南 車両', 'スカイマスター（宍粟美建・山陽自動車工業）、タイヤ交換、ホンダセンシング・自動駐車（ホンダカーズ播但中央）', '表彰式は主催カメラ。ヘルメット・安全帯が映るカットのみ', 0, 'sharyo2'],
-  ['15:05', 'ステージ', 'ストレッチパフォーマンス（志水接骨院、〜15:20）', '冒頭だけ。客席が一緒に動く画', 0, 'stage'],
-  ['15:10', '本部→北', 'お絵かき「将来の目標」（イトーオフィスサービス）、カメラマン体験（コーエーカメラ）、地域おこし協力隊、フロンティア', '「将来の目標」の絵は締めに使える', 0, 'north'],
-  ['15:28', '川沿い', '宍粟市消防団 放水体験、女性消防団', '水しぶきに逆光を入れる', 0, 'river'],
-  ['15:36', '本部', 'スタンプラリー福引（15:35〜）', '当たった瞬間', 0, 'honbu'],
-  ['15:42', 'アーチ', '空中さんぽ（山陽）、お菓子撒きの位置取り', '', 0, 'arch'],
-  ['15:50', 'アーチ', '**お菓子撒き**', '会場が一番沸く画', 1, 'arch'],
-  ['16:00', 'ステージ', '**閉会挨拶**', '', 1, 'stage'],
-  ['16:05', '全域', '片付け、青年部インタビュー（前日の質問1と3をもう一度）', '16:15に搬出車両の乗り入れ開始', 0, null],
-  ['17:00', '俯瞰ポイント', 'GoPro回収', '搬出車両の出入りと空に戻る会場まで入れてから止める', 0, 'gopro'],
-];
 // [time, name, what] — attached to the DAY row with the same time
 const FIRMS = [
   ['10:05','宍粟消防署','ポンプ車展示・子ども防火服'],['10:15','宍粟警察署','パトカー・白バイ・鑑識体験'],['10:25','自衛隊 兵庫地方協力本部','車両・子ども制服・ミニゲーム'],
@@ -329,9 +345,9 @@ const LOC = {
   honbu: [258, 320], stage: [254, 268], arch: [226, 224], river: [306, 182], north: [212, 168],
   drone: [168, 48], medical: [222, 82], kinyu: [168, 116], inshoku: [222, 138], tokusan: [168, 168],
   kensetsu: [212, 372], kensetsu2: [214, 446], sharyo: [163, 424], sharyo2: [163, 398], sanemu: [246, 512],
-  gopro: [306, 300], kFire: [30, 236], kPolice: [56, 250], kSdf: [84, 236], kWs: [52, 176], kWing: [82, 160], kShow: [34, 150],
+  gopro: [306, 300], sokuryo: [257, 418], honda: [163, 372], tokusou: [163, 458], kFire: [30, 236], kPolice: [56, 250], kSdf: [84, 236], kWs: [52, 176], kWing: [82, 160], kShow: [34, 150],
 };
-const LOC_NAME = { gopro: 'GoPro', honbu: '本部', stage: 'ステージ', arch: 'アーチ', river: '川沿い（放水）', north: '北エリア', drone: 'ドローン飛行場', medical: 'メディカル', kinyu: '金融', inshoku: '飲食', tokusan: '特産品', kensetsu: '建設（建前）', kensetsu2: '建設', sharyo: '車両', sharyo2: '車両', sanemu: 'サンエム', kFire: '北庁舎', kPolice: '北庁舎', kSdf: '北庁舎', kWs: '北庁舎', kWing: '北庁舎', kShow: '北庁舎' };
+const LOC_NAME = { sokuryo: '南 建設（測量）', honda: '南 車両', tokusou: '南 車両', gopro: 'GoPro', honbu: '本部', stage: 'ステージ', arch: 'アーチ', river: '川沿い（放水）', north: '北エリア', drone: 'ドローン飛行場', medical: 'メディカル', kinyu: '金融', inshoku: '飲食', tokusan: '特産品', kensetsu: '建設（建前）', kensetsu2: '建設', sharyo: '車両', sharyo2: '車両', sanemu: 'サンエム', kFire: '北庁舎', kPolice: '北庁舎', kSdf: '北庁舎', kWs: '北庁舎', kWing: '北庁舎', kShow: '北庁舎' };
 const ZONES = [
   { x: 8, y: 118, w: 94, h: 150, label: '北庁舎駐車場', sub: ['警察・消防・自衛隊', 'ワークショップ・車両展示'], kind: 'lot' },
   { x: 8, y: 330, w: 94, h: 200, label: '市役所', sub: ['来場者P'], kind: 'lot', faint: 1 },
@@ -373,35 +389,87 @@ const SHOTS = {
   'd:17:00': ['止める前に画角を確認', '回収'],
 };
 
-// ================= state (all saved on the phone) =================
-const K = 'jh.v1.';
-const store = {
-  get(k, d) { try { const v = localStorage.getItem(K + k); return v === null ? d : JSON.parse(v); } catch (e) { return d; } },
-  set(k, v) { try { localStorage.setItem(K + k, JSON.stringify(v)); } catch (e) {} },
+// ================= plan =================
+// Must-shoot moments. kind 'fixed' = be at the spot when it starts; 'task' = get it done between from and to.
+// key reuses the earlier row ids so checks made in older versions stay.
+const EV = {
+  eve: [
+    { key: 'e0', kind: 'task', at: '12:20', from: '12:00', to: '12:40', loc: null, title: '雨天判断を確認', note: '青年部HP・Instagram。延期なら11/8に読み替え' },
+    { key: 'e1', kind: 'task', at: '12:30', from: '12:20', to: '13:00', loc: 'gopro', title: 'GoPro設置・タイムラプス開始', note: 'インターバル5秒。モバイルバッテリーで給電、露出とホワイトバランスを固定', shots: 'e:12:30' },
+    { key: 'e2', kind: 'fixed', at: '12:40', from: '12:35', to: '13:00', loc: null, title: '空の会場', note: '設営が始まる前に。当日と同じ位置・画角で', shots: 'e:12:40' },
+    { key: 'e4', kind: 'fixed', at: '13:00', from: '13:00', to: '13:30', loc: 'inshoku', title: '飲食テントの設営（設営の始まり）', note: 'テント3張をつなげて一体化。原田さん・岡本さん', shots: 'e:13:00' },
+    { key: 'e6', kind: 'fixed', at: '14:00', from: '13:55', to: '14:15', loc: 'honbu', title: '青年部メンバー集合・作業開始の指示', note: '前日パートの始まり', shots: 'e:14:00' },
+    { key: 'e9', kind: 'task', at: '15:00', from: '14:45', to: '15:30', loc: 'gopro', title: 'GoPro点検', note: 'バッテリー・カード・画角' },
+    { key: 'e14', kind: 'fixed', at: '16:50', from: '16:45', to: '17:15', loc: null, title: '設営が終わった会場の全景', note: '日没17:05頃（概算）。12:40と同じ位置から', shots: 'e:16:50' },
+    { key: 'e15', kind: 'task', at: '17:15', from: '17:10', to: '17:40', loc: 'gopro', title: 'GoPro回収', note: '夜間の放置はしない（盗難・夜露）', shots: 'e:17:15' },
+    { key: 'e16', kind: 'task', at: '作業後', from: '17:00', to: '19:00', loc: 'honbu', title: '振り返りインタビュー', note: '青年部長＋設営で苦労した人1〜2人', shots: 'e:作業後' },
+  ],
+  day: [
+    { key: 'd0', kind: 'task', at: '7:15', from: '7:05', to: '7:30', loc: 'gopro', title: 'GoPro設置・タイムラプス開始', note: '前日と同じ位置・画角。搬入より前に', shots: 'd:7:15' },
+    { key: 'd1', kind: 'fixed', at: '7:30', from: '7:30', to: '8:15', loc: 'stage', title: '搬入（重機・トレーラーが会場に入る）', note: '芝生は車両進入禁止。指定動線を走る車両', shots: 'd:7:30' },
+    { key: 'd4', kind: 'task', at: '9:00', from: '8:45', to: '9:30', loc: null, title: '全ブースの事業所プレート・のぼり', note: '会社名カットを開場前にまとめて確保（北庁舎の分も）', shots: 'd:9:00' },
+    { key: 'd5', kind: 'fixed', at: '9:30', from: '9:30', to: '9:40', loc: 'stage', title: '全体ミーティング', note: '各出展者1名、10分', shots: 'd:9:30' },
+    { key: 'd6', kind: 'task', at: '9:40', from: '9:40', to: '9:55', loc: 'gopro', title: 'GoPro点検', note: '開場前に一度' },
+    { key: 'd8', kind: 'fixed', at: '10:00', from: '9:55', to: '10:10', loc: 'honbu', title: 'イベント開始・受付', note: '開会式があればここ。最初の親子', shots: 'd:10:00' },
+    { key: 'd15', kind: 'fixed', at: '11:00', from: '10:55', to: '11:30', loc: 'kensetsu', title: '子ども建前①（山場）', note: '安全説明から組み上がりまで通しで。合図の声も録る', shots: 'd:10:55', firms: [15, 16, 17, 18, 19, 20, 21] },
+    { key: 'd20', kind: 'task', at: '12:45', from: '12:15', to: '13:30', loc: 'gopro', title: 'GoPro点検（バッテリー交換・カード残量）', note: '' },
+    { key: 'x-tate2', kind: 'fixed', at: '13:00', from: '12:55', to: '13:30', loc: 'kensetsu', title: '子ども建前②（①の撮り逃し分）', note: '①で撮れなかったカットだけ撮る', shots: 'd:10:55', firms: [15, 16, 17, 18, 19, 20, 21], cond: () => !shotsDone('d:10:55') },
+    { key: 'd28', kind: 'fixed', at: '14:00', from: '13:55', to: '14:25', loc: 'stage', title: '青年部長挨拶 → キッズダンス', note: '本編は主催カメラ。袖の緊張・客席の保護者・終わった後の顔', shots: 'd:14:00' },
+    { key: 'd29', kind: 'fixed', at: '14:30', from: '14:30', to: '14:40', loc: 'stage', title: '宍粟市長・商工会長挨拶', note: '話者アップ＋会場の引き', shots: 'd:14:30' },
+    { key: 'd36', kind: 'fixed', at: '15:50', from: '15:45', to: '16:00', loc: 'arch', title: 'お菓子撒き', note: '会場が一番沸く画', shots: 'd:15:50' },
+    { key: 'd37', kind: 'fixed', at: '16:00', from: '16:00', to: '16:05', loc: 'stage', title: '閉会挨拶', note: '', shots: 'd:16:00' },
+    { key: 'd38', kind: 'fixed', at: '16:05', from: '16:05', to: '16:40', loc: 'honbu', title: '片付け・青年部インタビュー', note: '前日の質問1と3をもう一度', shots: 'd:16:05' },
+    { key: 'd39', kind: 'task', at: '17:00', from: '16:50', to: '17:15', loc: 'gopro', title: 'GoPro回収', note: '搬出の出入りと空に戻る会場まで入れてから止める', shots: 'd:17:00' },
+  ],
 };
-const done = new Set(store.get('checks', []));
-const save = () => store.set('checks', [...done]);
-const S = {
-  tab: store.get('tab', 'shoot'),
-  mode: store.get('mode', null),          // 'eve' | 'day'
-  ptr: store.get('ptr', { eve: 0, day: 0 }),
-  leg: store.get('leg', 0),               // 0 = follow pointer
-  onlyOpen: store.get('onlyOpen', false),
-  listOpen: store.get('listOpen', false),
-  wake: store.get('wake', false),
-  scroll: store.get('scroll', {}),
+
+// Flexible pool: shoot when children are there. win = when it runs; sessions = timed rounds.
+// pri A = closes early, limited, or a key scene; B = normal; C = a name-plate cut is enough.
+const SPOTS = {
+  eve: [
+    { id: 'e3', loc: 'honbu', name: '青年部に挨拶・段取り確認', win: [['12:40', '14:00']], pri: 'A', hint: '顔出しの扱い、主催カメラとドローン素材、GoProの設置場所（要点タブの「聞くこと」）' },
+    { id: 'e5', loc: 'inshoku', name: '飲食ブースの仕切り・発電機', win: [['13:30', '14:15']], pri: 'B', hint: '段取りを確認し合う会話' },
+    { id: 'e7', loc: 'stage', name: 'ステージ・本部・ダンススペースの設営', win: [['14:00', '16:45']], pri: 'B', hint: '大人たちの汗と段取り' },
+    { id: 'e8', loc: 'kensetsu', name: '車両・建設エリアの設営', win: [['14:00', '16:45']], pri: 'B', hint: '区画割り、受付テント、建前の部材。堂元さん・亀井さんに確認も' },
+    { id: 'e10', loc: 'arch', name: '足場アーチの組立', win: [['14:00', '16:45']], pri: 'B', hint: '時間を空けて数回。組み上がっていく過程' },
+    { id: 'e12', loc: null, name: 'ロケハン（当日の動線を歩く）', win: [['15:30', '16:45']], pri: 'A', hint: '徒歩時間を測り、要点タブの「移動の余裕」に反映。GoProの位置を決める', shots: 'e:16:00' },
+    { id: 'e13', loc: 'honbu', name: '夕方の打ち合わせ', win: [['16:15', '16:50']], pri: 'B', hint: '明日に向けた緊張感' },
+  ],
+  day: [
+    { id: 'nsetup', key: 'd2', loc: 'kShow', name: '北庁舎の搬入', win: [['7:30', '9:00']], pri: 'B', hint: 'トレーラー、ウイング車が開く瞬間' },
+    { id: 'setup', key: 'd3', loc: null, name: 'ブース設営・重機の配置', win: [['8:00', '9:30']], pri: 'B', hint: '前日の空の会場と同じ位置から' },
+    { id: 'fire', loc: 'kFire', name: '宍粟消防署', firms: [0], win: [['10:00', '12:00']], pri: 'A', hint: '防火服を着た子の顔。正午で撤収' },
+    { id: 'police', loc: 'kPolice', name: '宍粟警察署', firms: [1], win: [['10:00', '16:00']], pri: 'B', hint: '鑑識体験の手元。午前は不在の可能性あり' },
+    { id: 'sdf', loc: 'kSdf', name: '自衛隊', firms: [2], win: [['10:00', '16:00']], pri: 'B', hint: '制服を着た子、ミニゲーム' },
+    { id: 'ws', loc: 'kWs', name: 'ミニ本棚・小物かけ（先着）', firms: [3, 4], win: [['10:00', '13:00']], pri: 'A', hint: '先着20名・15名で早く埋まる。木を組む手元' },
+    { id: 'slime', loc: 'kWing', name: 'ビーズスライム・木材見本市', firms: [5, 6], win: [['10:00', '16:00']], pri: 'B', hint: 'ケトルの蒸気でビーズが膨らむ瞬間' },
+    { id: 'forest', loc: 'kShow', name: '林業（チェーンソー）', firms: [7, 8], win: [['10:00', '16:00']], pri: 'B', hint: 'チェーンソーで丸太を切るデモ（時刻は要確認）' },
+    { id: 'nshow', loc: 'kShow', name: '北庁舎の車両展示・エアー遊具', firms: [9, 10, 11, 12, 13, 14], win: [['10:00', '16:00']], pri: 'C', hint: '大型車両を見上げる子' },
+    { id: 'yunbo', loc: 'kensetsu2', name: 'ユンボでタイヤ積み木', firms: [22], win: [['10:00', '10:55'], ['11:30', '12:55'], ['13:30', '16:00']], pri: 'A', hint: '担当者のヒザに乗って操作する子。建前の間は止まる' },
+    { id: 'sokuryo', loc: 'sokuryo', name: '測量機の宝探し', firms: [23], win: [['10:00', '16:00']], pri: 'B', hint: 'アラートが鳴って宝を見つける瞬間' },
+    { id: 'wacha', loc: 'kensetsu2', name: 'セメントアート', firms: [24], win: [['10:00', '16:00']], pri: 'B', hint: 'セメントに模様を付ける手元' },
+    { id: 'tire', loc: 'sharyo', name: 'タイヤ交換', firms: [25, 26], win: [['10:00', '12:00'], ['14:00', '15:50']], pri: 'A', hint: '工具を握る子の手元、保護者と一緒の作業' },
+    { id: 'tenken', loc: 'sharyo', name: 'お出かけ前点検', firms: [25], win: [['12:00', '14:00']], pri: 'A', hint: 'チェックシートを持って点検する子' },
+    { id: 'sky', loc: 'sharyo2', name: 'スカイマスター', firms: [53, 25], win: [['10:00', '11:30'], ['12:30', '15:30']], pri: 'A', hint: '上がっていく子の顔。ヘルメット・安全帯が映るカットのみ' },
+    { id: 'honda', loc: 'honda', name: 'ホンダセンシング・自動駐車', firms: [54], win: [['10:00', '12:00'], ['13:00', '15:50']], pri: 'B', hint: '自動ブレーキの瞬間、後部座席の子の表情' },
+    { id: 'sshow', loc: 'tokusou', name: '特装車・ラフター・タイヤ展示', firms: [27, 28, 29, 30, 31], win: [['10:00', '16:00']], pri: 'C', hint: 'ラフターで吊られた大型タイヤ' },
+    { id: 'sanemu', loc: 'sanemu', name: 'サンエム 環境レスキュー隊', firms: [32], win: [['10:00', '16:00']], pri: 'A', hint: 'ミッション形式。1組を通して撮ると物語になる' },
+    { id: 'drone', loc: 'drone', name: 'ドローン（藤原板金）', firms: [33], win: [['10:00', '15:30']], sessions: [['10:00', 25, '小ドローン'], ['10:30', 10, '大ドローン'], ['11:30', 25, '小ドローン'], ['12:00', 10, '大ドローン'], ['13:00', 25, '小ドローン'], ['13:30', 10, '大ドローン'], ['14:30', 25, '小ドローン'], ['15:00', 10, '大ドローン']], pri: 'B', hint: '操縦する子の手元と顔、離陸を見上げる子' },
+    { id: 'food', loc: 'inshoku', name: '飲食の調理体験', firms: [34, 35, 36, 37, 38, 39, 40, 41], win: [['10:00', '14:00']], pri: 'A', hint: '子どもが作るところだけ。売り切れ前に（計370食）' },
+    { id: 'minato', loc: 'kinyu', name: 'みなと銀行', firms: [42], win: [['10:00', '16:00']], sessions: [['10:00', 60, '回'], ['11:30', 60, '回'], ['13:00', 60, '回'], ['14:30', 60, '回']], pri: 'B', hint: 'お札を数える手元、お買い物ゲーム。回の時刻は要確認' },
+    { id: 'nishi', loc: 'kinyu', name: '西兵庫信用金庫', firms: [43], win: [['10:00', '16:00']], pri: 'B', hint: '伝票に「済」印を押す瞬間' },
+    { id: 'medical', loc: 'medical', name: 'メディカル（テーピング・口内・足圧）', firms: [44, 45, 46], win: [['10:00', '16:00']], sessions: [['10:30', 25, 'テーピング'], ['11:30', 25, 'テーピング'], ['12:30', 25, 'テーピング'], ['13:30', 25, 'テーピング']], pri: 'B', hint: 'テーピングを巻く手元、足圧の画面を見る子' },
+    { id: 'tokusan', loc: 'tokusan', name: '特産品（米の計量・ラッピング）', firms: [47, 48, 49, 50, 51, 52], win: [['10:00', '16:00']], pri: 'B', hint: '米がぴったり量れた瞬間。販売は主役にしない' },
+    { id: 'ito', loc: 'honbu', name: 'お絵かき「将来の目標」', firms: [55], win: [['10:00', '16:00']], pri: 'A', hint: '描いた絵と子の顔。番組の締めに使える' },
+    { id: 'kamera', loc: 'north', name: 'カメラマン体験', firms: [56], win: [['10:00', '16:00']], pri: 'B', hint: 'プロに教わってシャッターを押す子' },
+    { id: 'kyoryoku', loc: 'north', name: '地域おこし協力隊・フロンティア', firms: [57, 58], win: [['10:00', '16:00']], pri: 'C', hint: '活動紹介のパネル' },
+    { id: 'hosui', loc: 'river', name: '消防団の放水体験', firms: [59], win: [['10:00', '12:00'], ['13:00', '16:00']], pri: 'A', hint: '団員と一緒に筒先を持つ子。水しぶきに逆光' },
+    { id: 'arch', loc: 'arch', name: '空中さんぽ（足場のアーチ）', firms: [60], win: [['10:00', '15:40']], pri: 'B', hint: 'アーチを渡る子を下から' },
+    { id: 'lunch', key: 'd19', loc: 'honbu', name: '昼食（15分）', win: [['11:30', '13:50']], pri: 'C', hint: '弁当は本部で受取。空き時間に済ませる' },
+    { id: 'stretch', key: 'd31', loc: 'stage', name: 'ストレッチパフォーマンス', firms: [44], win: [['15:05', '15:20']], pri: 'B', hint: '客席が一緒に体を動かす画' },
+    { id: 'fukubiki', key: 'd34', loc: 'honbu', name: 'スタンプラリー福引', win: [['15:35', '16:00']], pri: 'B', hint: '当たった瞬間' },
+  ],
 };
-const persist = () => { ['tab','mode','ptr','leg','onlyOpen','listOpen','wake','scroll'].forEach(k => store.set(k, S[k])); };
-
-function jst() { const n = new Date(Date.now() + 9 * 3600e3); return { y: n.getUTCFullYear(), mo: n.getUTCMonth() + 1, d: n.getUTCDate(), h: n.getUTCHours(), mi: n.getUTCMinutes() }; }
-function today() { const t = jst(); return t.y * 10000 + t.mo * 100 + t.d; }
-if (!S.mode) S.mode = today() >= 20261101 ? 'day' : 'eve';
-
-const rowsOf = m => (m === 'eve' ? EVE : DAY);
-const keyOf = (m, i) => (m === 'eve' ? 'e' : 'd') + i;
-const mins = t => { const m = /^(\d{1,2}):(\d{2})/.exec(t); return m ? +m[1] * 60 + +m[2] : null; };
-const firmsAt = t => FIRMS.map((f, i) => [f, i]).filter(([f]) => f[0] === t);
-
 // ================= map drawing =================
 function baseMap() {
   const z = ZONES.map(o => {
@@ -443,228 +511,307 @@ function pill(x, y, label, color, big) {
   return `<g><rect x="${x - w / 2}" y="${y - h / 2}" width="${w}" height="${h}" rx="${h / 2}" fill="var(--${color})" stroke="var(--surface)" stroke-width="2"/><text x="${x}" y="${y + (big ? 5 : 4)}" font-size="${big ? 13 : 11}" font-weight="800" text-anchor="middle" fill="#fff">${esc(label)}</text></g>`;
 }
 
-// day stops shown on the full map: DAY rows from 10:00 with a location
-const STOPS = DAY.map((r, i) => ({ i, t: r[0], l: r[2].replace(/\*\*/g, ''), loc: r[5], m: mins(r[0]) }))
-  .filter(s => s.loc && s.m >= 600)
-  .map((s, k) => ({ ...s, n: k + 1, leg: s.m < 760 ? 1 : s.m < 835 ? 2 : 3 }));
+// ================= state (saved on the phone) =================
+const K = 'jh.v1.';
+const store = {
+  get(k, d) { try { const v = localStorage.getItem(K + k); return v === null ? d : JSON.parse(v); } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem(K + k, JSON.stringify(v)); } catch (e) {} },
+};
+const done = new Set(store.get('checks', []));
+const save = () => store.set('checks', [...done]);
+const DATE = { eve: 20261031, day: 20261101 };
+function jst() { const n = new Date(Date.now() + 9 * 3600e3); return { y: n.getUTCFullYear(), mo: n.getUTCMonth() + 1, d: n.getUTCDate(), h: n.getUTCHours(), mi: n.getUTCMinutes() }; }
+function today() { const t = jst(); return t.y * 10000 + t.mo * 100 + t.d; }
+const S = {
+  tab: store.get('tab3', 'now'),
+  mode: store.get('mode', today() >= DATE.day ? 'day' : 'eve'),
+  here: store.get('here', null),
+  open: store.get('openSpot', null),
+  snooze: store.get('snooze', {}),
+  skip: store.get('skip', {}),
+  buffer: store.get('buffer', 3),
+  sim: store.get('sim', { on: false, min: 600 }),
+  onlyOpen: store.get('onlyOpen', false),
+  showAll: false,
+  showMissed: false,
+  hereOpen: false,
+  wake: store.get('wake', false),
+  scroll: store.get('scroll3', {}),
+  warned: store.get('warned', {}),
+};
+const persist = () => {
+  [['tab3', 'tab'], ['mode', 'mode'], ['here', 'here'], ['openSpot', 'open'], ['snooze', 'snooze'], ['skip', 'skip'], ['buffer', 'buffer'], ['sim', 'sim'], ['onlyOpen', 'onlyOpen'], ['wake', 'wake'], ['scroll3', 'scroll'], ['warned', 'warned']]
+    .forEach(([k, f]) => store.set(k, S[f]));
+};
+if (!S.sim.on && today() === DATE.day && !store.get('autoDay', false)) { S.mode = 'day'; store.set('autoDay', true); }
 
-function stopsFor(mode) {
-  return rowsOf(mode).map((r, i) => ({ i, t: r[0], l: r[2].replace(/\*\*/g, ''), loc: r[5], m: mins(r[0]) }))
-    .filter(s => s.loc && (mode === 'eve' || s.m >= 600))
-    .map((s, k) => ({ ...s, n: k + 1, leg: mode === 'eve' ? 1 : s.m < 760 ? 1 : s.m < 835 ? 2 : 3 }));
+const mm = t => { const m = /^(\d{1,2}):(\d{2})/.exec(t); return m ? +m[1] * 60 + +m[2] : null; };
+const hhmm = m => `${Math.floor(m / 60)}:${String(m % 60).padStart(2, '0')}`;
+const live = () => S.sim.on || today() === DATE[S.mode];
+const nowMin = () => { if (S.sim.on) return S.sim.min; const t = jst(); return t.h * 60 + t.mi; };
+const shotKeys = id => { const [m, t] = id.split(/:(.*)/); return (SHOTS[id] || []).map((_, k) => `s-${m}-${t}-${k}`); };
+const shotsDone = id => shotKeys(id).every(k => done.has(k));
+const firmDone = fi => CUTS.every(([c]) => done.has(`f${fi}-${c}`));
+const firmCount = fi => CUTS.filter(([c]) => done.has(`f${fi}-${c}`)).length;
+
+// walking: map units are roughly metres; 70 m a minute; crossing the road to the north lot adds 2 minutes
+const XING = l => !!l && l[0] === 'k';
+function walkMin(a, b) {
+  if (!a || !b || !LOC[a] || !LOC[b]) return 0;
+  const p = LOC[a], q = LOC[b], d = Math.hypot(p[0] - q[0], p[1] - q[1]) * 1.1;
+  return Math.ceil(d / 70) + (XING(a) !== XING(b) ? 2 : 0);
 }
-function fullMap(mode, leg) {
-  const all = stopsFor(mode);
-  const ss = leg ? all.filter(s => s.leg === leg) : all;
-  if (!ss.length) return '';
-  const startIdx = leg ? all.indexOf(ss[0]) - 1 : -1;
-  const path = startIdx >= 0 ? [all[startIdx], ...ss] : ss;
-  let lines = '';
-  for (let k = 1; k < path.length; k++) {
-    const a = LOC[path[k - 1].loc], b = LOC[path[k].loc];
-    if (a[0] === b[0] && a[1] === b[1]) continue;
-    lines += seg(a, b, 'leg' + path[k].leg, 3, 'opacity=".9"');
-  }
-  const groups = new Map();
-  ss.forEach(s => { if (!groups.has(s.loc)) groups.set(s.loc, []); groups.get(s.loc).push(s); });
-  const cur = S.ptr[mode];
-  let pins = '';
-  groups.forEach((list, loc) => {
-    const [x, y] = LOC[loc];
-    const label = list.length > 3 ? `${list[0].n}…${list[list.length - 1].n}` : list.map(s => s.n).join('·');
-    const isCur = list.some(s => s.i === cur);
-    const target = list.find(s => !done.has(keyOf(mode, s.i))) || list[0];
-    pins += `<g data-pin="${mode}:${target.i}" style="cursor:pointer">`;
-    if (isCur) pins += `<circle cx="${x}" cy="${y}" r="12" fill="var(--accent)" class="pulse"/>`;
-    pins += `<circle cx="${x}" cy="${y}" r="16" fill="transparent"/>` + pill(x, y, label, isCur ? 'accent' : 'leg' + list[list.length - 1].leg, false) + '</g>';
+const placeName = l => (l ? LOC_NAME[l] : '会場全域');
+const destName = l => (l ? LOC_NAME[l] : '撮影位置');
+
+// ----- spots -----
+const spotKey = s => s.key || (s.id[0] === 'e' && /^e\d+$/.test(s.id) ? s.id : 'p-' + s.id);
+function spotDone(s) {
+  if (done.has(spotKey(s))) return true;
+  const fs = s.firms || [];
+  return fs.length > 0 && fs.every(firmDone) && (!s.shots || shotsDone(s.shots));
+}
+function spotProgress(s) {
+  const fs = s.firms || [];
+  const items = fs.length * 5 + (s.shots ? shotKeys(s.shots).length : 0);
+  const got = fs.reduce((a, fi) => a + firmCount(fi), 0) + (s.shots ? shotKeys(s.shots).filter(k => done.has(k)).length : 0);
+  return { got, items };
+}
+function spotState(s, m) {
+  const wins = s.win.map(([a, b]) => [mm(a), mm(b)]);
+  const cur = wins.find(([a, b]) => a <= m && m < b);
+  const nextWin = wins.find(([a]) => a > m);
+  const lastEnd = Math.max(...wins.map(w => w[1]));
+  let session = null, nextSession = null;
+  (s.sessions || []).forEach(([t, dur, label]) => {
+    const a = mm(t);
+    if (a <= m && m < a + dur) session = { a, end: a + dur, label };
+    else if (a > m && !nextSession) nextSession = { a, label };
   });
-  return `<svg viewBox="0 0 360 540" role="img" aria-label="動線の地図" font-family="-apple-system, Hiragino Sans, sans-serif">${DEFS}${baseMap()}${lines}${pins}</svg>`;
+  return { open: !!cur, closesAt: cur ? cur[1] : null, opensAt: nextWin ? nextWin[0] : null, over: m >= lastEnd, lastEnd, session, nextSession };
 }
 
-// mini map on the shoot screen: zooms to the move from the current stop to the next
-function miniMap(rows, i, w, h) {
-  const curLoc = rows[i] && rows[i][5];
-  let ni = i + 1; while (ni < rows.length && !rows[ni][5]) ni++;
-  const nextLoc = ni < rows.length ? rows[ni][5] : null;
-  let pi = i - 1; while (pi >= 0 && !rows[pi][5]) pi--;
-  const prevLoc = pi >= 0 ? rows[pi][5] : null;
-  const pts = [curLoc, nextLoc].filter(Boolean).map(l => LOC[l]);
-  let vb;
-  if (!pts.length) vb = [0, 0, 360, 540];
-  else {
-    let x0 = Math.min(...pts.map(p => p[0])), x1 = Math.max(...pts.map(p => p[0]));
-    let y0 = Math.min(...pts.map(p => p[1])), y1 = Math.max(...pts.map(p => p[1]));
-    const pad = 70; x0 -= pad; x1 += pad; y0 -= pad; y1 += pad;
-    const ar = w / h; let bw = x1 - x0, bh = y1 - y0;
-    if (bw < 260) { x0 -= (260 - bw) / 2; bw = 260; }
-    if (bh < 260 / ar) { y0 -= (260 / ar - bh) / 2; bh = 260 / ar; }
-    if (bw / bh < ar) { const nw = bh * ar; x0 -= (nw - bw) / 2; bw = nw; } else { const nh = bw / ar; y0 -= (nh - bh) / 2; bh = nh; }
-    vb = [x0, y0, bw, bh];
-  }
-  let g = '';
-  if (prevLoc && curLoc && prevLoc !== curLoc) g += seg(LOC[prevLoc], LOC[curLoc], 'muted', 2.5, 'opacity=".55" stroke-dasharray="4 4"');
-  if (curLoc && nextLoc && curLoc !== nextLoc) g += seg(LOC[curLoc], LOC[nextLoc], 'accent', 4.5);
-  // dots on the exact spots, labels pushed apart so they never cover each other
-  const below = curLoc && nextLoc && LOC[nextLoc][1] >= LOC[curLoc][1];
-  if (nextLoc && nextLoc !== curLoc) { const [x, y] = LOC[nextLoc], dy = below ? 24 : -24; g += `<circle cx="${x}" cy="${y}" r="6" fill="var(--leg2)" stroke="var(--surface)" stroke-width="2"/>` + pill(x, y + dy, '次 ' + rows[ni][0], 'leg2', true); }
-  if (curLoc) { const [x, y] = LOC[curLoc], dy = below ? -24 : 24; g += `<circle cx="${x}" cy="${y}" r="10" fill="var(--accent)" class="pulse"/><circle cx="${x}" cy="${y}" r="7" fill="var(--accent)" stroke="var(--surface)" stroke-width="2"/>` + pill(x, y + dy, 'いま ' + rows[i][0], 'accent', true); }
-  const allNote = !curLoc ? `<text x="180" y="270" font-size="16" font-weight="800" text-anchor="middle" fill="var(--map-ink)">会場全域</text>` : '';
-  return `<svg viewBox="${vb.join(' ')}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="現在地と次の移動先" font-family="-apple-system, Hiragino Sans, sans-serif">${DEFS}${baseMap()}${g}${allNote}</svg>`;
+// ----- the instruction engine -----
+function plan(m) {
+  const evs = EV[S.mode].filter(e => !e.cond || e.cond());
+  const pending = evs.filter(e => !done.has(e.key) && !S.skip[e.key]);
+  const active = pending.find(e => e.kind === 'fixed' && mm(e.from) <= m && m < mm(e.to));
+  const tasks = pending.filter(e => e.kind === 'task' && mm(e.from) <= m && m < mm(e.to));
+  const missed = pending.filter(e => m >= mm(e.to));
+  const next = pending.filter(e => mm(e.from) > m).sort((a, b) => mm(a.from) - mm(b.from));
+  const nextFixed = next.find(e => e.kind === 'fixed') || null;
+  let leaveAt = null, walk = 0, free = null;
+  if (nextFixed) { walk = walkMin(S.here, nextFixed.loc); leaveAt = mm(nextFixed.from) - walk - S.buffer; free = leaveAt - m; }
+  return { active, tasks, missed, nextFixed, next, leaveAt, walk, free };
+}
+
+function suggestions(m, free) {
+  const list = [];
+  SPOTS[S.mode].forEach(s => {
+    if (spotDone(s)) return;
+    const st = spotState(s, m);
+    const soon = st.opensAt !== null && st.opensAt - m <= 15;
+    if (!st.open && !soon) return;
+    const walk = walkMin(S.here, s.loc);
+    const snoozed = S.snooze[s.id] && S.snooze[s.id] > m;
+    const fits = free === null || walk + 5 <= free;
+    let score = { A: 30, B: 15, C: 0 }[s.pri];
+    const toClose = st.open ? st.closesAt - m : null;
+    const finalClose = st.open && st.closesAt === st.lastEnd;
+    if (toClose !== null && toClose <= 60) score += (60 - toClose) * (finalClose ? 1 : 0.5);
+    if (st.session) score += 18;
+    else if (st.nextSession && st.nextSession.a - m <= 15) score += 12;
+    if (!st.open) score -= 20;
+    score -= walk * 5;
+    if (!fits) score -= 40;
+    if (snoozed) score -= 100;
+    const tags = [];
+    if (st.session) tags.push(['now', `${st.session.label}開催中（〜${hhmm(st.session.end)}）`]);
+    else if (st.nextSession && st.nextSession.a - m <= 30) tags.push(['soon', `次の${st.nextSession.label} ${hhmm(st.nextSession.a)}`]);
+    if (!st.open) tags.push(['soon', `${hhmm(st.opensAt)}から`]);
+    else if (finalClose && toClose <= 45) tags.push(['late', `${hhmm(st.closesAt)}で終了 あと${toClose}分`]);
+    else if (toClose !== null && toClose <= 30) tags.push(['soon', `${hhmm(st.closesAt)}でいったん中断`]);
+    if (snoozed) tags.push(['mute', `${hhmm(S.snooze[s.id])}まで保留`]);
+    if (!fits) tags.push(['mute', '次の必須に間に合わない']);
+    list.push({ s, st, walk, score, tags, snoozed, fits });
+  });
+  return list.sort((a, b) => b.score - a.score);
 }
 
 // ================= rendering =================
 const $ = id => document.getElementById(id);
-function toast(msg) { const t = $('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toast.h); toast.h = setTimeout(() => t.classList.remove('show'), 1600); }
-function buzz() { try { navigator.vibrate && navigator.vibrate(15); } catch (e) {} }
-const DATE = { eve: 20261031, day: 20261101 };
-const isToday = mode => today() === DATE[mode];
-const nowMin = () => { const t = jst(); return t.h * 60 + t.mi; };
-const placeOf = r => (r[1] && r[1] !== '—' ? r[1] : '');
-const plain = s => String(s).replace(/\*\*/g, '');
-const shotList = (mode, r) => SHOTS[(mode === 'eve' ? 'e:' : 'd:') + r[0]] || [];
-const shotKey = (mode, t, k) => `s-${mode === 'eve' ? 'e' : 'd'}-${t}-${k}`;
-
-// everything that can be ticked at one stop: its cuts and the five cuts of each company there
-function rowItems(mode, i) {
-  const r = rowsOf(mode)[i];
-  const shots = shotList(mode, r).map((_, k) => shotKey(mode, r[0], k));
-  const firms = mode === 'day' ? firmsAt(r[0]).flatMap(([, fi]) => CUTS.map(([c]) => `f${fi}-${c}`)) : [];
-  return [...shots, ...firms];
+function toast(msg) { const t = $('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toast.h); toast.h = setTimeout(() => t.classList.remove('show'), 1800); }
+function buzz(p = 15) { try { navigator.vibrate && navigator.vibrate(p); } catch (e) {} }
+const chip = (k, label) => `<button class="chip" role="checkbox" aria-checked="${done.has(k)}" data-key="${k}">${label}</button>`;
+const shotBtn = (k, text) => `<button class="shot" role="checkbox" aria-checked="${done.has(k)}" data-key="${k}"><span class="tick">${TICK}</span><span>${esc(text)}</span></button>`;
+function firmCard(fi) {
+  const f = FIRMS[fi], n = firmCount(fi);
+  return `<div class="firm${n === 5 ? ' complete' : ''}"><div class="firm-top"><div class="firm-name">${esc(f[1])}<div class="firm-what">${esc(f[2])}</div></div><span class="count">${n}/5</span></div>
+    <div class="chips">${CUTS.map(([c, l]) => chip(`f${fi}-${c}`, l)).join('')}</div></div>`;
 }
-function nextTimed(rows, i) { for (let k = i + 1; k < rows.length; k++) { const v = mins(rows[k][0]); if (v !== null) return v; } return null; }
-function status(mode, i) {
-  if (!isToday(mode)) return null;
-  const rows = rowsOf(mode), m = mins(rows[i][0]);
-  if (m === null) return null;
-  const now = nowMin(), nm = nextTimed(rows, i);
-  if (now < m) return { cls: 'wait', text: `開始まで あと${m - now}分` };
-  if (nm !== null && now > nm) return { cls: 'late', text: `${now - nm}分 押しています`, tip: '次へ進むか、各社「手元」と「顔」に絞る' };
-  if (nm !== null && now === nm) return { cls: 'late', text: '次の予定の時刻です', tip: '撮れたら次へ' };
-  if (nm !== null) return { cls: 'on', text: `次の予定まで あと${nm - now}分` };
-  return { cls: 'on', text: '進行中' };
-}
-function nowIndex(mode) {
-  const rows = rowsOf(mode), m = nowMin();
-  let idx = 0; rows.forEach((r, i) => { const v = mins(r[0]); if (v !== null && v <= m) idx = i; });
-  return idx;
-}
-function moveText(a, b) {
-  if (!a[5] || !b[5]) return '場所は会場全域';
-  if (a[5] === b[5]) return 'その場で続けて';
-  const cross = (a[5][0] === 'k') !== (b[5][0] === 'k');
-  return `移動：${LOC_NAME[a[5]]} → ${LOC_NAME[b[5]]}${cross ? '（道路を渡る）' : ''}`;
+function shotsBlock(id) {
+  const ks = shotKeys(id); if (!ks.length) return '';
+  const got = ks.filter(k => done.has(k)).length;
+  return `<div class="sec">撮るカット<span>${got}/${ks.length}</span></div><div class="shots">${SHOTS[id].map((t, k) => shotBtn(ks[k], t)).join('')}</div>`;
 }
 
-function firmCard(f, i, withTime) {
-  const n = CUTS.filter(([c]) => done.has(`f${i}-${c}`)).length;
-  return `<div class="firm${n === 5 ? ' complete' : ''}" data-firm="${i}">
-    <div class="firm-top"><div class="firm-name">${withTime ? `<span class="firm-what">${esc(f[0])}　</span>` : ''}${esc(f[1])}<div class="firm-what">${esc(f[2])}</div></div><span class="count">${n}/5</span></div>
-    <div class="chips">${CUTS.map(([c, l]) => `<button class="chip" role="checkbox" aria-checked="${done.has(`f${i}-${c}`)}" data-key="f${i}-${c}">${l}</button>`).join('')}</div>
+function eventBody(e) {
+  return `${e.note ? `<div class="note">${fmt(e.note)}</div>` : ''}
+    ${e.shots ? shotsBlock(e.shots) : ''}
+    ${(e.firms || []).length ? `<div class="sec">この場の会社<span>${e.firms.filter(firmDone).length}/${e.firms.length}社</span></div>${e.firms.map(firmCard).join('')}` : ''}`;
+}
+
+function renderNow() {
+  const m = nowMin(), P = plan(m);
+  let html = '';
+  if (!live()) {
+    html += `<div class="ins pre"><div class="ins-k">本番前</div><div class="ins-t">${S.mode === 'eve' ? '前日 10/31' : '当日 11/1'}になると、時刻に合わせて指示が出ます</div><div class="ins-s">要点タブの「リハーサル」で時刻を指定すると、今のうちに動きを試せます</div></div>`;
+  }
+  if (live() && P.active) {
+    const e = P.active, left = mm(e.to) - m, started = m >= mm(e.at);
+    html += `<div class="ins must"><div class="ins-k">いま必須：ここを撮る</div><div class="ins-t">${esc(e.at)} ${esc(e.title)}</div><div class="ins-s">${esc(placeName(e.loc))}・${started ? `終了まで あと${left}分` : `開始まで あと${mm(e.at) - m}分`}</div>
+      ${eventBody(e)}
+      <button class="big ok" data-done-ev="${e.key}">✓ 撮り終えた</button></div>`;
+  } else if (live() && P.nextFixed && m >= P.leaveAt) {
+    const e = P.nextFixed, startIn = mm(e.from) - m;
+    html += `<div class="ins go"><div class="ins-k">今すぐ移動</div><div class="ins-t">${esc(destName(e.loc))}へ</div><div class="ins-s">${esc(e.at)} ${esc(e.title)}・開始まで あと${startIn}分${S.here ? `（徒歩約${P.walk}分）` : ''}</div>
+      <div class="note">${fmt(e.note || '')}</div>
+      <button class="big" data-arrive="${e.loc || ''}">着いた</button></div>`;
+  } else if (live() && P.nextFixed) {
+    const e = P.nextFixed;
+    html += `<div class="ins free"><div class="ins-k">自由に撮れる時間</div><div class="ins-t">あと${P.free}分</div><div class="ins-s">${hhmm(P.leaveAt)}に${esc(destName(e.loc))}へ移動開始（${esc(e.at)} ${esc(e.title)}）</div></div>`;
+  } else if (live()) {
+    html += `<div class="ins free"><div class="ins-k">必須の撮影は終わり</div><div class="ins-t">残りを埋める時間</div><div class="ins-s">下の候補から撮れていないものを</div></div>`;
+  }
+  // missed must-shoot items: one line, opens on tap
+  if (P.missed.length) {
+    html += `<button class="missbar" data-toggle-missed="1"><b>撮り逃し ${P.missed.length}件</b><span>${S.showMissed ? '閉じる ▲' : '撮れていたらタップして確認 ▼'}</span></button>`;
+    if (S.showMissed) P.missed.forEach(e => {
+      html += `<div class="missed"><div><b>${esc(e.at)} ${esc(e.title)}</b><span>${hhmm(mm(e.to))}で終了</span></div><div class="mbtns"><button data-done-ev="${e.key}">撮れた</button><button data-skip-ev="${e.key}">あきらめる</button></div></div>`;
+    });
+  }
+  // deadline tasks
+  P.tasks.forEach(e => {
+    const left = mm(e.to) - m, urgent = left <= 20;
+    html += `<div class="task${urgent ? ' urgent' : ''}"><div><b>${urgent ? 'まもなく期限' : '期限つき'}：${esc(e.title)}</b><span>${esc(placeName(e.loc))}・${hhmm(mm(e.to))}まで（あと${left}分）</span></div><button data-open-ev="${e.key}">開く</button></div>`;
+    if (S.open === 'ev:' + e.key) html += `<div class="card">${eventBody(e)}<button class="big ok" data-done-ev="${e.key}">✓ 済んだ</button></div>`;
+  });
+  // flexible pool
+  if (live() && !P.active) {
+    const sug = suggestions(m, P.free);
+    const top = S.showAll ? sug : sug.slice(0, 6);
+    html += `<div class="sec lg">いま撮れる候補<span>${sug.length}件</span></div>`;
+    if (!sug.length) html += '<p class="empty">いま開いている候補はありません</p>';
+    top.forEach(x => { html += spotCard(x, m); });
+    if (!S.showAll && sug.length > top.length) html += `<button class="more" data-show-all="1">ほかの候補を表示（${sug.length - top.length}件）</button>`;
+    const left = SPOTS[S.mode].filter(s => !spotDone(s) && spotState(s, m).over);
+    if (left.length) html += `<div class="sec">終了して撮れなかったもの<span>${left.length}件</span></div><p class="lead">${left.map(s => esc(s.name)).join('、')}</p>`;
+  }
+  if (!live()) {
+    html += `<div class="sec lg">${S.mode === 'eve' ? '前日' : '当日'}の必須</div>` + EV[S.mode].map(e => `<div class="evrow${done.has(e.key) ? ' isdone' : ''}"><span class="t">${esc(e.at)}</span><span>${esc(e.title)}<small>${esc(placeName(e.loc))}</small></span></div>`).join('');
+  }
+  $('nowwrap').innerHTML = html;
+  renderHereBar();
+  const mini = $('mini2');
+  if (mini) { mini.innerHTML = miniNow(P, m, mini.clientWidth || 390, mini.clientHeight || 200); }
+}
+
+function spotCard(x, m) {
+  const s = x.s, pr = spotProgress(s), open = S.open === s.id;
+  return `<div class="spot${x.snoozed || !x.fits ? ' dim' : ''}${open ? ' open' : ''}${s.pri === 'A' ? ' pa' : ''}">
+    <button class="spot-head" data-open-spot="${s.id}">
+      <span class="spot-main"><b>${esc(s.name)}</b><span class="spot-sub">${esc(placeName(s.loc))}${S.here && s.loc ? `・徒歩${x.walk}分` : ''}${pr.items ? `・${pr.got}/${pr.items}カット` : ''}</span>
+      ${x.tags.length ? `<span class="tags">${x.tags.map(([c, t]) => `<i class="${c}">${esc(t)}</i>`).join('')}</span>` : ''}</span>
+      <span class="chev">${open ? '▲' : '▼'}</span>
+    </button>
+    ${open ? `<div class="spot-body"><div class="hint">${esc(s.hint)}</div>
+      ${s.shots ? shotsBlock(s.shots) : ''}
+      ${(s.firms || []).map(firmCard).join('')}
+      <div class="spot-btns"><button class="sb wait" data-snooze="${s.id}">子どもがいない<br><small>20分後にまた出す</small></button><button class="sb ok" data-spot-done="${s.id}">✓ 撮り終えた</button></div>
+    </div>` : ''}
   </div>`;
 }
-const shotBtn = (k, text) => `<button class="shot" role="checkbox" aria-checked="${done.has(k)}" data-key="${k}"><span class="tick">${TICK}</span><span>${esc(text)}</span></button>`;
 
-function renderShoot() {
-  const mode = S.mode, rows = rowsOf(mode);
-  const i = Math.min(S.ptr[mode], rows.length - 1), r = rows[i], key = keyOf(mode, i);
-  const isDone = done.has(key);
-  const total = rows.length, ndone = rows.filter((_, k) => done.has(keyOf(mode, k))).length;
-  const next = rows[i + 1];
-  const st = status(mode, i);
-  const items = rowItems(mode, i), left = items.filter(k => !done.has(k)).length;
-  const shots = shotList(mode, r);
-  const shotDone = shots.filter((_, k) => done.has(shotKey(mode, r[0], k))).length;
-  const firms = mode === 'day' ? firmsAt(r[0]) : [];
-  const firmsDone = firms.filter(([, fi]) => CUTS.every(([c]) => done.has(`f${fi}-${c}`))).length;
-  let banner = '';
-  if (isToday(mode)) {
-    const ni = nowIndex(mode);
-    if (ni > i + 1) banner = `<div class="catch"><span>いまの時刻は<br><b>${esc(rows[ni][0])} ${esc(placeOf(rows[ni]))}</b> の予定</span><button data-jump="${ni}">そこへ</button></div>`;
+const HERE_OPTS = ['kShow', 'kensetsu', 'sharyo', 'sanemu', 'honbu', 'stage', 'arch', 'inshoku', 'kinyu', 'drone', 'river', 'gopro'];
+const HERE_LABEL = { kShow: '北庁舎', kensetsu: '南 建設', sharyo: '南 車両', sanemu: '南端', honbu: '本部', stage: 'ステージ', arch: 'アーチ', inshoku: '北 飲食', kinyu: '北 金融', drone: '北 ドローン', river: '川沿い', gopro: 'GoPro' };
+function renderHereBar() {
+  const b = $('herebar'); if (!b) return;
+  b.innerHTML = S.hereOpen
+    ? `<div class="here-grid">${HERE_OPTS.map(l => `<button data-here="${l}" aria-pressed="${S.here === l}">${HERE_LABEL[l]}</button>`).join('')}</div>`
+    : `<button class="here-btn" data-here-toggle="1"><span>いる場所</span><b>${S.here ? HERE_LABEL[S.here] || placeName(S.here) : '未設定（タップして選ぶ）'}</b><span class="chg">変更</span></button>`;
+}
+
+// mini map: where I am, the next must-shoot spot, and open suggestions
+function miniNow(P, m, w, h) {
+  const pts = [];
+  if (S.here && LOC[S.here]) pts.push(LOC[S.here]);
+  const target = P.active || P.nextFixed;
+  if (target && target.loc) pts.push(LOC[target.loc]);
+  let vb = [0, 0, 360, 540];
+  if (pts.length) {
+    let x0 = Math.min(...pts.map(p => p[0])) - 80, x1 = Math.max(...pts.map(p => p[0])) + 80;
+    let y0 = Math.min(...pts.map(p => p[1])) - 80, y1 = Math.max(...pts.map(p => p[1])) + 80;
+    const ar = w / h; let bw = x1 - x0, bh = y1 - y0;
+    if (bw < 280) { x0 -= (280 - bw) / 2; bw = 280; }
+    if (bw / bh < ar) { const nw = bh * ar; x0 -= (nw - bw) / 2; bw = nw; } else { const nh = bw / ar; y0 -= (nh - bh) / 2; bh = nh; }
+    vb = [x0, y0, bw, bh];
   }
-  $('cardwrap').innerHTML = `
-    ${banner}
-    <div class="pos"><span>${mode === 'eve' ? '前日' : '当日'} ${i + 1}/${total}</span><span class="bar"><i style="width:${(ndone / total * 100).toFixed(1)}%"></i></span><span>済 ${ndone}</span></div>
-    ${st ? `<div class="status ${st.cls}"><b>${st.text}</b>${st.tip ? `<span>${st.tip}</span>` : ''}</div>` : ''}
-    <div class="card${r[4] ? ' peak' : ''}${isDone ? ' isdone' : ''}">
-      <div class="card-head"><span class="big-time">${esc(r[0])}</span>${placeOf(r) ? `<span class="pill">${esc(placeOf(r))}</span>` : ''}${r[4] ? '<span class="tag">必ず押さえる</span>' : ''}${isDone ? '<span class="donetag">撮影済み</span>' : ''}</div>
-      <div class="what">${fmt(r[2])}</div>
-      ${r[3] ? `<div class="note">${fmt(r[3])}</div>` : ''}
-      ${isDone ? '<button class="undo" data-undo="1">チェックを外す</button>' : ''}
-    </div>
-    ${shots.length ? `<div class="sec">撮るカット<span>${shotDone}/${shots.length}</span></div><div class="shots">${shots.map((s, k) => shotBtn(shotKey(mode, r[0], k), s)).join('')}</div>` : ''}
-    ${firms.length ? `<div class="sec">この時間の会社<span>${firmsDone}/${firms.length}社</span></div>${firms.map(([f, fi]) => firmCard(f, fi)).join('')}` : ''}
-    ${next ? `<div class="nextbox"><div class="nl">次</div><div><div class="nt">${esc(next[0])}　${esc(placeOf(next))}</div><div class="nw">${esc(plain(next[2]).length > 46 ? plain(next[2]).slice(0, 46) + '…' : plain(next[2]))}</div><div class="nm">${esc(moveText(r, next))}</div></div></div>` : '<div class="nextbox"><div class="nl">完</div><div class="nt">これで最後です</div></div>'}
-    <div class="swipehint">左右にスワイプでも前後の予定へ移れます</div>`;
-  const ok = $('btn-ok');
-  if (isDone) { ok.className = 'btn-main nextonly'; ok.innerHTML = next ? '次へ ▶' : '撮影済み'; }
-  else { ok.className = 'btn-main'; ok.innerHTML = `<span class="lbl">✓ 撮影OK・次へ${left ? `<small>未チェック ${left}カット</small>` : ''}</span>`; }
-  $('btn-prev').disabled = i === 0;
-  const mini = $('mini');
-  const w = mini.clientWidth || 390, h = mini.clientHeight || 260;
-  mini.innerHTML = miniMap(rows, i, w, h) + `<div class="modes"><button data-mode="eve" aria-pressed="${mode === 'eve'}">前日</button><button data-mode="day" aria-pressed="${mode === 'day'}">当日</button></div><button class="full" data-goto="map">全体図</button>`;
+  let g = '';
+  if (live() && !P.active) suggestions(m, P.free).slice(0, 6).forEach(x => { if (x.s.loc && LOC[x.s.loc]) { const [a, b] = LOC[x.s.loc]; g += `<circle cx="${a}" cy="${b}" r="6" fill="var(--leg2)" stroke="var(--surface)" stroke-width="2" opacity="${x.snoozed ? .35 : .9}"/>`; } });
+  if (S.here && target && target.loc && S.here !== target.loc) g += seg(LOC[S.here], LOC[target.loc], P.active ? 'accent' : (m >= P.leaveAt ? 'accent' : 'muted'), 4);
+  if (target && target.loc) { const [x, y] = LOC[target.loc]; g += `<circle cx="${x}" cy="${y}" r="11" fill="var(--accent)" class="pulse"/>` + pill(x, y - 22, `必須 ${target.at}`, 'accent', true); }
+  if (S.here && LOC[S.here]) { const [x, y] = LOC[S.here]; g += `<circle cx="${x}" cy="${y}" r="9" fill="var(--ink)" stroke="var(--surface)" stroke-width="3"/>` + pill(x, y + 22, 'いまここ', 'ink', false); }
+  return `<svg viewBox="${vb.join(' ')}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="現在地と次の必須" font-family="-apple-system, Hiragino Sans, sans-serif">${DEFS}${baseMap()}${g}</svg>
+    <div class="modes"><button data-mode="eve" aria-pressed="${S.mode === 'eve'}">前日</button><button data-mode="day" aria-pressed="${S.mode === 'day'}">当日</button></div><button class="full" data-goto="map">全体図</button>`;
 }
 
-const BLOCKS = {
-  eve: [[0, '昼（設営前）'], [14 * 60, '設営（14:00〜）'], [16 * 60 + 30, '夕方・作業後']],
-  day: [[0, '朝の準備（7:15〜）'], [600, '午前（10:00〜）'], [760, '昼（12:40〜）'], [835, '午後（13:55〜）'], [16 * 60 + 5, '終了後']],
-};
-function blockOf(mode, r, prev) {
-  const m = mins(r[0]); const bs = BLOCKS[mode];
-  if (m === null) return prev ?? bs.length - 1;
-  let b = 0; bs.forEach(([t], k) => { if (m >= t) b = k; }); return b;
-}
-function renderList() {
-  const mode = S.mode, rows = rowsOf(mode), cur = S.ptr[mode];
-  let html = '', last = -1;
-  rows.forEach((r, i) => {
-    const b = blockOf(mode, r, last);
-    const k = keyOf(mode, i), isDone = done.has(k);
-    if (b !== last) { html += `<div class="block"><span>${BLOCKS[mode][b][1]}</span></div>`; last = b; }
-    if (S.listOpen && isDone && i !== cur) return;
-    const items = rowItems(mode, i), got = items.filter(x => done.has(x)).length;
-    html += `<div class="row${r[4] ? ' peak' : ''}${i === cur ? ' cur' : ''}" aria-checked="${isDone}" data-row="${i}">
-      <button class="tickbtn" role="checkbox" aria-checked="${isDone}" data-key="${k}" aria-label="${esc(r[0])} を撮影済みにする"><span class="tick">${TICK}</span></button>
-      <button class="rbody" data-open="${i}"><span class="meta"><span class="t">${esc(r[0])}</span>${placeOf(r) ? `<span class="pill">${esc(placeOf(r))}</span>` : ''}${r[4] ? '<span class="tag">必ず</span>' : ''}${items.length ? `<span class="prog">カット ${got}/${items.length}</span>` : ''}${i === cur ? '<span class="tag">いま</span>' : ''}</span><span class="w">${fmt(r[2])}</span>${r[3] ? `<span class="n">${fmt(r[3])}</span>` : ''}</button>
-    </div>`;
-  });
-  $('v-list').innerHTML = `<div class="stack">
-    <div class="seg" style="grid-template-columns:1fr 1fr"><button data-mode="eve" aria-pressed="${mode === 'eve'}">前日 10/31</button><button data-mode="day" aria-pressed="${mode === 'day'}">当日 11/1</button></div>
-    <div class="toolbar"><span class="lead">左の四角でチェック、右側をタップで撮影画面へ</span><label class="switch"><input type="checkbox" id="list-open" ${S.listOpen ? 'checked' : ''}>未チェックだけ</label></div>
-    ${html}
+function renderPlan() {
+  const m = nowMin();
+  const evs = EV[S.mode].filter(e => !e.cond || e.cond() || done.has(e.key));
+  const limited = SPOTS[S.mode].filter(s => s.sessions || s.win.length > 1 || s.win.some(([a, b]) => mm(a) > 600 || mm(b) < 960));
+  $('v-plan').innerHTML = `<div class="stack">
+    <div class="seg" style="grid-template-columns:1fr 1fr"><button data-mode="eve" aria-pressed="${S.mode === 'eve'}">前日 10/31</button><button data-mode="day" aria-pressed="${S.mode === 'day'}">当日 11/1</button></div>
+    <h2>必須の予定</h2><p class="lead">この時刻にその場にいる（期限つきはその間に済ませる）。左の四角でチェック</p>
+    ${evs.map(e => { const st = live() ? (done.has(e.key) ? '' : m >= mm(e.to) ? 'past' : mm(e.from) <= m ? 'cur' : '') : '';
+      return `<div class="row ${st}" aria-checked="${done.has(e.key)}"><button class="tickbtn" role="checkbox" aria-checked="${done.has(e.key)}" data-key="${e.key}"><span class="tick">${TICK}</span></button>
+      <div class="rbody"><span class="meta"><span class="t">${esc(e.at)}</span><span class="pill">${esc(placeName(e.loc))}</span>${e.kind === 'task' ? `<span class="tag">${esc(e.from)}〜${esc(e.to)}の間に</span>` : ''}${st === 'cur' ? '<span class="tag">いま</span>' : ''}${st === 'past' ? '<span class="tag ng">撮り逃し</span>' : ''}</span><span class="w">${esc(e.title)}</span>${e.note ? `<span class="n">${fmt(e.note)}</span>` : ''}</div></div>`; }).join('')}
+    <h2>時間が限られる体験</h2><p class="lead">この時間を外すと撮れないもの。空き時間に優先して回る</p>
+    ${limited.map(s => `<div class="lim${spotDone(s) ? ' isdone' : ''}"><b>${esc(s.name)}</b><span>${esc(placeName(s.loc))}・${s.win.map(([a, b]) => `${a}〜${b}`).join('、')}</span>${s.sessions ? `<span>回：${s.sessions.map(([t, , l]) => `${t}${l === '回' ? '' : l}`).join('、')}</span>` : ''}<span class="hint">${esc(s.hint)}</span></div>`).join('')}
   </div>`;
 }
 
 function renderMap() {
-  const mode = S.mode;
-  const legBtn = (v, l) => `<button data-leg="${v}" aria-pressed="${S.leg === v}">${l}</button>`;
-  const leg = mode === 'day' ? S.leg : 0;
-  const all = stopsFor(mode), shown = leg ? all.filter(s => s.leg === leg) : all;
-  const cur = S.ptr[mode];
+  const m = nowMin(), P = plan(m);
+  let g = '';
+  SPOTS[S.mode].forEach(s => {
+    if (!s.loc || !LOC[s.loc]) return;
+    const st = spotState(s, m), d = spotDone(s);
+    const col = d ? 'done' : !live() ? 'leg2' : st.open ? 'leg2' : st.over ? 'muted' : 'zone-line';
+    const [x, y] = LOC[s.loc];
+    g += `<g data-pin="${s.id}" style="cursor:pointer"><circle cx="${x}" cy="${y}" r="16" fill="transparent"/><circle cx="${x}" cy="${y}" r="7" fill="var(--${col})" stroke="var(--surface)" stroke-width="2"/></g>`;
+  });
+  EV[S.mode].filter(e => e.loc && !done.has(e.key) && (!e.cond || e.cond())).forEach(e => { const [x, y] = LOC[e.loc]; g += pill(x + 18, y - 14, e.at, live() && m >= mm(e.to) ? 'muted' : 'accent', false); });
+  if (S.here && LOC[S.here]) { const [x, y] = LOC[S.here]; g += `<circle cx="${x}" cy="${y}" r="9" fill="var(--ink)" stroke="var(--surface)" stroke-width="3"/>`; }
+  if (S.here && P.nextFixed && P.nextFixed.loc && S.here !== P.nextFixed.loc) g = seg(LOC[S.here], LOC[P.nextFixed.loc], 'accent', 3.5) + g;
   $('v-map').innerHTML = `<div class="stack">
-    <div class="seg" style="grid-template-columns:1fr 1fr"><button data-mode="eve" aria-pressed="${mode === 'eve'}">前日 10/31</button><button data-mode="day" aria-pressed="${mode === 'day'}">当日 11/1</button></div>
-    ${mode === 'day' ? `<div class="seg" style="grid-template-columns:repeat(4,1fr)">${legBtn(0, '全部')}${legBtn(1, '午前')}${legBtn(2, '昼')}${legBtn(3, '午後')}</div>` : ''}
-    <div class="mapbox">${fullMap(mode, leg)}</div>
-    <p class="lead">会場図をもとにした概略図（北が上、距離は正確ではない）。地図の番号か下の一覧をタップすると、撮影画面でその予定を開きます。</p>
-    <ol class="legs">${shown.map(s => `<li><button data-open-any="${mode}:${s.i}" class="${s.i === cur ? 'cur' : ''}" aria-checked="${done.has(keyOf(mode, s.i))}"><span class="num" style="background:var(--leg${s.leg})">${s.n}</span><span class="lt">${s.t}</span><span>${esc(LOC_NAME[s.loc])}：${esc(s.l.length > 30 ? s.l.slice(0, 30) + '…' : s.l)}</span></button></li>`).join('')}</ol>
+    <div class="seg" style="grid-template-columns:1fr 1fr"><button data-mode="eve" aria-pressed="${S.mode === 'eve'}">前日 10/31</button><button data-mode="day" aria-pressed="${S.mode === 'day'}">当日 11/1</button></div>
+    <div class="mapbox"><svg viewBox="0 0 360 540" role="img" aria-label="会場の地図" font-family="-apple-system, Hiragino Sans, sans-serif">${DEFS}${baseMap()}${g}</svg></div>
+    <div class="legend"><span><i style="background:var(--accent)"></i>必須（時刻）</span><span><i style="background:var(--leg2)"></i>いま撮れる</span><span><i style="background:var(--done)"></i>撮影済み</span><span><i style="background:var(--muted)"></i>終了</span><span><i style="background:var(--ink)"></i>いる場所</span></div>
+    <p class="lead">点をタップすると、その体験を「いま」の画面で開きます。会場図をもとにした概略図（距離は正確ではない）。</p>
   </div>`;
 }
 
 function renderFirms() {
-  let last = '', html = '';
-  const curT = S.mode === 'day' ? DAY[S.ptr.day][0] : null;
-  FIRMS.forEach((f, i) => {
-    const n = CUTS.filter(([c]) => done.has(`f${i}-${c}`)).length;
-    if (S.onlyOpen && n === 5) return;
-    if (f[0] !== last) { html += `<div class="group-time" id="ft-${f[0].replace(':', '')}">${esc(f[0])}${f[0] === curT ? '　<span class="tag">撮影中</span>' : ''}</div>`; last = f[0]; }
-    html += firmCard(f, i);
+  const m = nowMin(); let html = '';
+  SPOTS.day.filter(s => (s.firms || []).length).forEach(s => {
+    const fs = s.firms.filter(fi => !(S.onlyOpen && firmDone(fi)));
+    if (!fs.length) return;
+    const st = spotState(s, m);
+    html += `<div class="group-time">${esc(s.name)}<small>${esc(placeName(s.loc))}・${s.win.map(([a, b]) => `${a}〜${b}`).join('、')}${today() === DATE.day || S.sim.on ? (st.over ? '（終了）' : st.open ? '（開催中）' : '') : ''}</small></div>` + fs.map(firmCard).join('');
   });
-  const comp = FIRMS.filter((_, i) => CUTS.every(([c]) => done.has(`f${i}-${c}`))).length;
-  $('v-firms').innerHTML = `<div class="stack">
-    <h2>全社チェック</h2>
-    <div class="toolbar"><span class="lead">完了 ${comp}/${FIRMS.length}社</span><label class="switch"><input type="checkbox" id="only-open" ${S.onlyOpen ? 'checked' : ''}>未完了だけ</label></div>
-    ${curT && firmsAt(curT).length ? '<button class="undo" data-scroll-firm="1">撮影中の会社へ移動</button>' : ''}
-    ${html || '<p class="empty">全社そろいました。</p>'}
-  </div>`;
+  const comp = FIRMS.filter((_, i) => firmDone(i)).length;
+  $('v-firms').innerHTML = `<div class="stack"><h2>全社チェック</h2>
+    <div class="toolbar"><span class="lead">完了 ${comp}/${FIRMS.length}社</span><label class="switch"><input type="checkbox" id="only-open" ${S.onlyOpen ? 'checked' : ''}>未完了だけ</label></div>${html || '<p class="empty">全社そろいました。</p>'}</div>`;
 }
 
 function itemBtn(k, text) { return `<button class="item" role="checkbox" aria-checked="${done.has(k)}" data-key="${k}"><span class="tick">${TICK}</span><span>${fmt(text)}</span></button>`; }
@@ -672,111 +819,105 @@ function renderPrep() {
   const standalone = window.navigator.standalone || matchMedia('(display-mode: standalone)').matches;
   $('v-prep').innerHTML = `<div class="stack">
     ${standalone ? '' : `<div class="install"><b>全画面で使うには</b>：Safariの共有ボタン（四角に上向き矢印）→「ホーム画面に追加」。ホーム画面のアイコンから開くと全画面になり、閉じても同じ画面に戻ります。</div>`}
+    <h2>使い方</h2>
+    <div class="box"><ul>
+      <li><b>赤「今すぐ移動」</b>が出たら、表示された場所へ。着いたら「着いた」</li>
+      <li><b>橙「いま必須」</b>はその場で撮る。撮れたら「撮り終えた」</li>
+      <li><b>緑「自由に撮れる時間」</b>は、下の候補から子どもがいるところを撮る。候補は終了が近い順・近い場所順に並ぶ</li>
+      <li>子どもがいなければ<b>「子どもがいない」</b>で20分保留して次へ</li>
+      <li>移動したら下の<b>「いる場所」</b>を変えると、徒歩時間と移動開始の時刻が正確になる（候補でチェックするとその場所に自動で変わる）</li>
+    </ul></div>
+    <h3>設定</h3>
+    <div class="box setrow"><span>移動の余裕</span><span class="stepper"><button data-buffer="-1">−</button><b>${S.buffer}分</b><button data-buffer="1">＋</button></span></div>
+    <div class="box"><div class="setrow"><span>リハーサル（時刻を指定して試す）</span><label class="switch"><input type="checkbox" id="sim-on" ${S.sim.on ? 'checked' : ''}>使う</label></div>
+      ${S.sim.on ? `<div class="setrow"><span>${S.mode === 'eve' ? '前日' : '当日'} <b>${hhmm(S.sim.min)}</b></span><span class="stepper"><button data-sim="-15">−15</button><button data-sim="-5">−5</button><button data-sim="5">＋5</button><button data-sim="15">＋15</button></span></div>` : ''}
+      <p class="lead">リハーサル中のチェックも保存されます。試した後は、予定タブで外してください。</p></div>
     <h2>要点</h2>
     <p class="lead">当日 11/1（日）10:00〜16:00。主催 宍粟市商工会青年部、事務局 <span class="contact">0790-62-2365</span></p>
-    <div class="keys">
-      <div class="key"><div class="kt">11:00</div><div class="kd">子ども建前①（山場）南・建設</div></div>
-      <div class="key"><div class="kt">14:00</div><div class="kd">青年部長挨拶→キッズダンス。14:30 市長・商工会長</div></div>
-      <div class="key"><div class="kt">15:50</div><div class="kd">お菓子撒き。場所はアーチ</div></div>
-      <div class="key"><div class="kt">正午</div><div class="kd">消防署が撤収。北庁舎は10:05から</div></div>
-    </div>
-    <h3>使い方</h3>
-    <div class="box"><ul><li>撮影タブで、いまの予定の「撮るカット」と会社の5カットをタップ</li><li>撮れたら下の「撮影OK・次へ」。次の場所と移動が地図に出る</li><li>予定より押すと赤く表示。「そこへ」で今の時刻の予定に飛べる</li><li>左右スワイプで前後の予定。チェックはこのiPhoneに保存</li></ul></div>
     <h3>必ず押さえるシーン</h3>${MUST.map((t, i) => itemBtn('m' + i, t)).join('')}
     <h3>撮らない（NG）</h3><div class="box"><ul class="ng">${NG.map(t => `<li>${esc(t)}</li>`).join('')}</ul></div>
     <h3>1社の撮り方（3〜5分）</h3><div class="box">会社名（プレート・のぼり・業務服）→ 手元（社員が教える）→ 顔（挑戦する子）→ 笑顔（できた瞬間）→ 一問（社員に「子どもに何を伝えたいか」）。ステージ本編は主催カメラ、自分は袖・客席・表情。</div>
-    <h3>GoPro タイムラプス（俯瞰）</h3><div class="box"><ul><li>会場全体が入る高い場所に固定。前日と当日で同じ位置・画角にする</li><li>インターバル5秒（8時間で約3分の素材）、広角、露出とホワイトバランスを固定</li><li>モバイルバッテリーで給電。点検は前日15:00、当日9:40・12:50。回収は前日17:15、当日17:00</li><li>点検では画角のずれ、カード残量、結露・直射日光を見る</li></ul></div>
+    <h3>GoPro タイムラプス（俯瞰）</h3><div class="box"><ul><li>会場全体が入る高い場所に固定。前日と当日で同じ位置・画角</li><li>インターバル5秒（8時間で約3分の素材）、広角、露出とホワイトバランスを固定</li><li>モバイルバッテリーで給電。点検・回収は「必須の予定」に入っている</li></ul></div>
     <h3>設営中に聞くこと</h3>${ASK.map((t, i) => itemBtn('k' + i, t)).join('')}
     <h3>振り返りインタビュー</h3>${QUESTIONS.map((t, i) => itemBtn('q' + i, t)).join('')}
-    <p class="lead">当日の終了直後に、1と3をもう一度聞く。</p>
     <h3>持ち物</h3>${GEAR.map((t, i) => itemBtn('g' + i, t)).join('')}
   </div>`;
 }
 
 function renderTop() {
-  const t = jst();
-  $('clock').textContent = `${t.h}:${String(t.mi).padStart(2, '0')}`;
-  const mode = S.mode, rows = rowsOf(mode), i = S.ptr[mode];
-  const ndone = rows.filter((_, k) => done.has(keyOf(mode, k))).length;
-  const firmsDone = FIRMS.filter((_, k) => CUTS.every(([c]) => done.has(`f${k}-${c}`))).length;
-  const next = rows[i + 1];
-  let nextLine = next ? `次 <b>${esc(next[0])}</b> ${esc(placeOf(next))}` : '最後の予定';
-  if (next && isToday(mode) && mins(next[0]) !== null) { const d = mins(next[0]) - nowMin(); nextLine += d >= 0 ? `（あと${d}分）` : `（${-d}分押し）`; }
-  $('topsub').innerHTML = `${mode === 'eve' ? '前日' : '当日'} <b>${ndone}/${rows.length}</b>済・全社 <b>${firmsDone}/${FIRMS.length}</b><br>${nextLine}`;
+  const m = nowMin();
+  $('clock').textContent = hhmm(m);
+  const P = plan(m);
+  let line = '';
+  if (!live()) line = `${S.mode === 'eve' ? '前日' : '当日'}の本番前`;
+  else if (P.active) line = `撮影中：<b>${esc(P.active.title)}</b>`;
+  else if (P.nextFixed) { const d = mm(P.nextFixed.from) - m; line = `次の必須 <b>${esc(P.nextFixed.at)}</b> ${esc(placeName(P.nextFixed.loc))}（あと${d}分）`; }
+  else line = '必須はすべて終了';
+  const comp = FIRMS.filter((_, i) => firmDone(i)).length;
+  $('topsub').innerHTML = `${line}<br>全社 <b>${comp}/${FIRMS.length}</b>${S.sim.on ? '　<span class="simtag">リハーサル中</span>' : ''}`;
   $('wake').setAttribute('aria-pressed', S.wake);
 }
 
-const RENDER = { shoot: renderShoot, list: renderList, map: renderMap, firms: renderFirms, prep: renderPrep };
+const RENDER = { now: renderNow, plan: renderPlan, map: renderMap, firms: renderFirms, prep: renderPrep };
 function render() {
   renderTop();
   RENDER[S.tab]();
   document.querySelectorAll('.view').forEach(v => v.hidden = v.dataset.tab !== S.tab);
   document.querySelectorAll('#tabbar button').forEach(b => b.dataset.tab === S.tab ? b.setAttribute('aria-current', 'page') : b.removeAttribute('aria-current'));
+  alertCheck();
 }
-function scroller(tab) { return tab === 'shoot' ? $('cardwrap') : $('v-' + tab); }
+function scroller(tab) { return tab === 'now' ? $('nowwrap') : $('v-' + tab); }
 function rememberScroll() { const el = scroller(S.tab); if (el) { S.scroll[S.tab] = el.scrollTop; persist(); } }
 function restoreScroll() { const el = scroller(S.tab); if (el) el.scrollTop = S.scroll[S.tab] || 0; }
 function keepScroll(fn) { const el = scroller(S.tab), y = el ? el.scrollTop : 0; fn(); const el2 = scroller(S.tab); if (el2) el2.scrollTop = y; }
 
-// ================= actions =================
-function setTab(tab) {
-  rememberScroll(); S.tab = tab; persist(); render(); restoreScroll();
-  if (tab === 'list') { const c = document.querySelector('#v-list .row.cur'); if (c) c.scrollIntoView({ block: 'center' }); }
-}
-function toggle(k) { if (done.has(k)) done.delete(k); else done.add(k); save(); buzz(); }
-function openRow(mode, i) { S.mode = mode; S.ptr[mode] = i; S.scroll.shoot = 0; setTab('shoot'); $('cardwrap').scrollTop = 0; }
-function step(d, check) {
-  const rows = rowsOf(S.mode), i = S.ptr[S.mode], k = keyOf(S.mode, i);
-  if (check && !done.has(k)) {
-    done.add(k); save(); buzz();
-    const left = rowItems(S.mode, i).filter(x => !done.has(x)).length;
-    toast(left ? `${rows[i][0]} 撮影済み（未チェック${left}カットあり）` : `${rows[i][0]} 撮影済み`);
+// one buzz + toast when it is time to move
+function alertCheck() {
+  if (!live()) return;
+  const m = nowMin(), P = plan(m);
+  if (P.nextFixed && m >= P.leaveAt) {
+    const k = S.mode + P.nextFixed.key;
+    if (!S.warned[k]) { S.warned[k] = 1; persist(); buzz([200, 100, 200]); toast(`移動の時間：${destName(P.nextFixed.loc)}へ（${P.nextFixed.at} ${P.nextFixed.title}）`); }
   }
-  const n = Math.max(0, Math.min(rows.length - 1, i + d));
-  if (n === i && d > 0 && !check) toast('これで最後です');
-  S.ptr[S.mode] = n; S.scroll.shoot = 0; persist(); render(); $('cardwrap').scrollTop = 0;
 }
+
+// ================= actions =================
+function setTab(tab) { rememberScroll(); S.tab = tab; persist(); render(); restoreScroll(); }
+function toggle(k) { if (done.has(k)) done.delete(k); else done.add(k); save(); buzz(); }
+const spotById = id => SPOTS[S.mode].find(s => s.id === id) || SPOTS.day.find(s => s.id === id) || SPOTS.eve.find(s => s.id === id);
 
 document.addEventListener('click', e => {
   const pin = e.target.closest('[data-pin]');
-  if (pin) { const [m, i] = pin.dataset.pin.split(':'); return openRow(m, +i); }
+  if (pin) { S.open = pin.dataset.pin; S.showAll = true; persist(); setTab('now'); const el = document.querySelector('.spot.open'); if (el) el.scrollIntoView({ block: 'center' }); return; }
   const t = e.target.closest('button, input');
   if (!t) return;
-  if (t.closest('#tabbar')) return setTab(t.dataset.tab);
-  if (t.dataset.goto) return setTab(t.dataset.goto);
-  if (t.dataset.mode) { S.mode = t.dataset.mode; persist(); render(); if (S.tab === 'list') setTab('list'); return; }
-  if (t.dataset.leg !== undefined) { S.leg = +t.dataset.leg; persist(); render(); return; }
-  if (t.dataset.key) { toggle(t.dataset.key); keepScroll(render); return; }
-  if (t.dataset.open !== undefined) return openRow(S.mode, +t.dataset.open);
-  if (t.dataset.openAny) { const [m, i] = t.dataset.openAny.split(':'); return openRow(m, +i); }
-  if (t.dataset.jump !== undefined) { S.ptr[S.mode] = +t.dataset.jump; persist(); render(); $('cardwrap').scrollTop = 0; toast('いまの時刻の予定に移りました'); return; }
-  if (t.dataset.undo) { done.delete(keyOf(S.mode, S.ptr[S.mode])); save(); buzz(); toast('チェックを外しました'); keepScroll(render); return; }
-  if (t.dataset.scrollFirm) { const el = document.getElementById('ft-' + DAY[S.ptr.day][0].replace(':', '')); if (el) el.scrollIntoView({ block: 'start', behavior: 'smooth' }); return; }
-  if (t.id === 'only-open') { S.onlyOpen = t.checked; persist(); render(); return; }
-  if (t.id === 'list-open') { S.listOpen = t.checked; persist(); render(); return; }
-  if (t.id === 'btn-ok') return step(1, true);
-  if (t.id === 'btn-prev') return step(-1, false);
-  if (t.id === 'btn-now') {
-    const d = today();
-    if (d === DATE.eve) S.mode = 'eve'; else if (d === DATE.day) S.mode = 'day';
-    if (isToday(S.mode)) { S.ptr[S.mode] = nowIndex(S.mode); toast(`いまの予定：${rowsOf(S.mode)[S.ptr[S.mode]][0]}`); }
-    else toast('本番の日に、時刻に合わせて移動します');
-    persist(); render(); $('cardwrap').scrollTop = 0; return;
+  const d = t.dataset;
+  if (t.closest('#tabbar')) return setTab(d.tab);
+  if (d.goto) return setTab(d.goto);
+  if (d.mode) { S.mode = d.mode; S.open = null; persist(); render(); return; }
+  if (d.key) {
+    toggle(d.key);
+    // ticking a cut at a spot means I am there
+    const sp = t.closest('.spot'); if (sp && S.open) { const s = spotById(S.open); if (s && s.loc) S.here = s.loc; }
+    persist(); keepScroll(render); return;
   }
+  if (d.openSpot) { S.open = S.open === d.openSpot ? null : d.openSpot; persist(); keepScroll(render); return; }
+  if (d.openEv) { S.open = S.open === 'ev:' + d.openEv ? null : 'ev:' + d.openEv; persist(); keepScroll(render); return; }
+  if (d.snooze) { S.snooze[d.snooze] = nowMin() + 20; S.open = null; persist(); buzz(); toast('20分後にまた候補に出します'); keepScroll(render); return; }
+  if (d.spotDone) { const s = spotById(d.spotDone); done.add(spotKey(s)); if (s.loc) S.here = s.loc; S.open = null; save(); persist(); buzz(); toast(`${s.name}：撮影済み`); keepScroll(render); return; }
+  if (d.doneEv) { done.add(d.doneEv); const ev = EV[S.mode].find(x => x.key === d.doneEv); if (ev && ev.loc) S.here = ev.loc; save(); persist(); buzz(); toast('撮影済みにしました'); keepScroll(render); return; }
+  if (d.skipEv) { S.skip[d.skipEv] = 1; persist(); toast('あきらめた項目は予定タブで確認できます'); keepScroll(render); return; }
+  if (d.arrive !== undefined) { if (d.arrive) S.here = d.arrive; persist(); buzz(); toast('到着しました'); keepScroll(render); return; }
+  if (d.hereToggle) { S.hereOpen = true; renderHereBar(); return; }
+  if (d.here) { S.here = d.here; S.hereOpen = false; persist(); keepScroll(render); return; }
+  if (d.toggleMissed) { S.showMissed = !S.showMissed; keepScroll(render); return; }
+  if (d.showAll) { S.showAll = true; keepScroll(render); return; }
+  if (d.buffer) { S.buffer = Math.max(0, Math.min(15, S.buffer + +d.buffer)); persist(); keepScroll(render); return; }
+  if (d.sim) { S.sim.min = Math.max(6 * 60, Math.min(19 * 60, S.sim.min + +d.sim)); persist(); keepScroll(render); return; }
+  if (t.id === 'sim-on') { S.sim.on = t.checked; if (S.sim.on && !S.sim.min) S.sim.min = 600; persist(); keepScroll(render); return; }
+  if (t.id === 'only-open') { S.onlyOpen = t.checked; persist(); render(); return; }
   if (t.id === 'wake') { S.wake = !S.wake; persist(); applyWake(); renderTop(); toast(S.wake ? '画面を消さない' : '画面は自動で消える'); }
 });
-
-// swipe left / right on the card area to move between stops (no check)
-(() => {
-  let x0 = 0, y0 = 0, on = false;
-  const el = $('cardwrap');
-  el.addEventListener('touchstart', e => { const p = e.touches[0]; x0 = p.clientX; y0 = p.clientY; on = true; }, { passive: true });
-  el.addEventListener('touchend', e => {
-    if (!on) return; on = false;
-    const p = e.changedTouches[0], dx = p.clientX - x0, dy = p.clientY - y0;
-    if (Math.abs(dx) > 70 && Math.abs(dy) < 45) { step(dx < 0 ? 1 : -1, false); toast(dx < 0 ? '次の予定へ（チェックなし）' : '前の予定へ'); }
-  }, { passive: true });
-})();
 
 // keep the screen on while shooting (where the browser allows it)
 let lock = null;
@@ -787,21 +928,17 @@ async function applyWake() {
   } catch (e) { lock = null; }
 }
 
-// on the morning of 11/1, open the day schedule at the current time once
-if (today() === DATE.day && !store.get('autoDay', false)) { S.mode = 'day'; S.ptr.day = nowIndex('day'); store.set('autoDay', true); persist(); }
-
-// save the exact screen whenever the app goes to the background
 ['visibilitychange', 'pagehide'].forEach(ev => window.addEventListener(ev, () => {
   if (document.visibilityState === 'hidden' || ev === 'pagehide') { rememberScroll(); persist(); save(); }
   else { keepScroll(render); applyWake(); }
 }));
 let scrollT;
 document.addEventListener('scroll', () => { clearTimeout(scrollT); scrollT = setTimeout(rememberScroll, 300); }, true);
-window.addEventListener('resize', () => { if (S.tab === 'shoot') keepScroll(renderShoot); });
-setInterval(() => { renderTop(); if (S.tab === 'shoot') keepScroll(renderShoot); }, 30000);
+window.addEventListener('resize', () => { if (S.tab === 'now') keepScroll(renderNow); });
+setInterval(() => { renderTop(); alertCheck(); if (S.tab === 'now') keepScroll(renderNow); }, 20000);
 
 render();
-requestAnimationFrame(() => { if (S.tab === 'shoot') renderShoot(); restoreScroll(); });
+requestAnimationFrame(() => { if (S.tab === 'now') renderNow(); restoreScroll(); });
 applyWake();
 if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {});
 })();

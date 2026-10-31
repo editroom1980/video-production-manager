@@ -1,5 +1,5 @@
 // Keeps the app usable at the venue with weak or no signal.
-const CACHE = 'jh-v2';
+const CACHE = 'jh-v3';
 const FILES = ['./', './index.html', './manifest.json', './apple-touch-icon.png', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', e => {

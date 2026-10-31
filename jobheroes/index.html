@@ -279,6 +279,20 @@ h3 { font-size: 13px; letter-spacing: .06em; color: var(--muted); margin-top: 6p
 .stepper b { min-width: 46px; text-align: center; font-variant-numeric: tabular-nums; }
 .simtag { background: var(--peak-line); color: #000; border-radius: 5px; padding: 0 6px; font-weight: 800; }
 .group-time small { display: block; font-size: 12px; font-weight: 700; }
+.mustlist { background: var(--surface); border: 2px solid var(--accent); border-radius: 14px; padding: 10px; display: flex; flex-direction: column; gap: 6px; }
+.mh { display: flex; justify-content: space-between; align-items: baseline; padding: 0 2px; }
+.mh b { font-size: 15px; font-weight: 800; color: var(--accent); }
+.mh span { font-size: 13px; font-weight: 800; color: var(--muted); }
+.mrow { display: grid; grid-template-columns: 50px 1fr auto; gap: 8px; align-items: center; text-align: left; min-height: 48px; padding: 6px 8px; border-radius: 10px; background: var(--bg); }
+.mrow.hot { background: var(--peak); }
+.mt { font-weight: 800; font-variant-numeric: tabular-nums; font-size: 16px; }
+.mb { font-size: 14px; font-weight: 700; line-height: 1.3; min-width: 0; }
+.mb small { display: block; font-size: 12px; color: var(--muted); font-weight: 700; }
+.mrow i { font-style: normal; font-size: 12px; font-weight: 800; color: var(--muted); white-space: nowrap; }
+.mrow i.late { color: var(--ng); }
+.updbar { position: fixed; left: 0; right: 0; top: 0; z-index: 30; padding: calc(env(safe-area-inset-top, 0px) + 6px) 12px 6px; }
+.updbar[hidden] { display: none; }
+.updbar button { width: 100%; min-height: 48px; border-radius: 12px; background: var(--leg2); color: #fff; font-weight: 800; font-size: 15px; box-shadow: 0 4px 12px rgba(0,0,0,.25); }
 </style>
 </head>
 <body>
@@ -307,10 +321,12 @@ h3 { font-size: 13px; letter-spacing: .06em; color: var(--muted); margin-top: 6p
     <button data-tab="prep"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/></svg>要点</button>
   </nav>
 </div>
+<div class="updbar" id="updbar" hidden></div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <script>
 (() => {
 'use strict';
+const VERSION = '3.2（11/1 2:40更新）';
 const TICK = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3.2 3L13 4.5" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 const fmt = s => esc(s).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>');
@@ -533,6 +549,7 @@ const S = {
   sim: store.get('sim', { on: false, min: 600 }),
   onlyOpen: store.get('onlyOpen', false),
   showAll: false,
+  showMust: false,
   showMissed: false,
   hereOpen: false,
   wake: store.get('wake', false),
@@ -664,24 +681,46 @@ function eventBody(e) {
 function renderNow() {
   const m = nowMin(), P = plan(m);
   let html = '';
+  const firstFrom = Math.min(...EV[S.mode].map(e => mm(e.from)).filter(x => x !== null));
+  const early = live() && m < firstFrom - 30;
+  if (early) {
+    const f = EV[S.mode].slice().sort((a, b) => mm(a.from) - mm(b.from))[0];
+    html += `<div class="ins pre"><div class="ins-k">開始前</div><div class="ins-t">最初は ${esc(f.at)} ${esc(f.title)}</div><div class="ins-s">${esc(placeName(f.loc))}・${esc(f.from)}から。その30分前から指示を出します</div></div>`;
+  }
   if (!live()) {
     html += `<div class="ins pre"><div class="ins-k">本番前</div><div class="ins-t">${S.mode === 'eve' ? '前日 10/31' : '当日 11/1'}になると、時刻に合わせて指示が出ます</div><div class="ins-s">要点タブの「リハーサル」で時刻を指定すると、今のうちに動きを試せます</div></div>`;
   }
-  if (live() && P.active) {
+  if (live() && !early && P.active) {
     const e = P.active, left = mm(e.to) - m, started = m >= mm(e.at);
     html += `<div class="ins must"><div class="ins-k">いま必須：ここを撮る</div><div class="ins-t">${esc(e.at)} ${esc(e.title)}</div><div class="ins-s">${esc(placeName(e.loc))}・${started ? `終了まで あと${left}分` : `開始まで あと${mm(e.at) - m}分`}</div>
       ${eventBody(e)}
       <button class="big ok" data-done-ev="${e.key}">✓ 撮り終えた</button></div>`;
-  } else if (live() && P.nextFixed && m >= P.leaveAt) {
+  } else if (live() && !early && P.nextFixed && m >= P.leaveAt) {
     const e = P.nextFixed, startIn = mm(e.from) - m;
     html += `<div class="ins go"><div class="ins-k">今すぐ移動</div><div class="ins-t">${esc(destName(e.loc))}へ</div><div class="ins-s">${esc(e.at)} ${esc(e.title)}・開始まで あと${startIn}分${S.here ? `（徒歩約${P.walk}分）` : ''}</div>
       <div class="note">${fmt(e.note || '')}</div>
       <button class="big" data-arrive="${e.loc || ''}">着いた</button></div>`;
-  } else if (live() && P.nextFixed) {
+  } else if (live() && !early && P.nextFixed) {
     const e = P.nextFixed;
     html += `<div class="ins free"><div class="ins-k">自由に撮れる時間</div><div class="ins-t">あと${P.free}分</div><div class="ins-s">${hhmm(P.leaveAt)}に${esc(destName(e.loc))}へ移動開始（${esc(e.at)} ${esc(e.title)}）</div></div>`;
-  } else if (live()) {
+  } else if (live() && !early) {
     html += `<div class="ins free"><div class="ins-k">必須の撮影は終わり</div><div class="ins-t">残りを埋める時間</div><div class="ins-s">下の候補から撮れていないものを</div></div>`;
+  }
+  // the rest of today's must-shoot items, always visible
+  {
+    const evs = EV[S.mode].filter(e => !e.cond || e.cond() || done.has(e.key));
+    const nDone = evs.filter(e => done.has(e.key)).length;
+    const upcoming = evs.filter(e => !done.has(e.key) && !S.skip[e.key] && (!live() || mm(e.to) > m) && e !== P.active);
+    html += `<div class="mustlist"><div class="mh"><b>必須</b><span>${nDone}/${evs.length} 済</span></div>` +
+      upcoming.slice(0, S.showMust ? 99 : 4).map(e => {
+        const inWin = live() && mm(e.from) <= m;
+        const d = mm(e.from) - m;
+        const when = !live() ? '' : inWin ? `<i class="late">${e.kind === 'task' ? `${hhmm(mm(e.to))}まで` : 'いま'}</i>` : `<i>あと${d >= 60 ? `${Math.floor(d / 60)}時間${d % 60}分` : `${d}分`}</i>`;
+        return `<button class="mrow${inWin ? ' hot' : ''}" data-open-must="${e.key}"><span class="mt">${esc(e.at)}</span><span class="mb">${esc(e.title)}<small>${esc(placeName(e.loc))}${e.kind === 'task' ? `・${esc(e.from)}〜${esc(e.to)}の間に` : ''}</small></span>${when}</button>` +
+          (S.open === 'must:' + e.key ? `<div class="card">${eventBody(e)}<button class="big ok" data-done-ev="${e.key}">✓ 撮り終えた</button></div>` : '');
+      }).join('') +
+      (upcoming.length > 4 ? `<button class="more" data-toggle-must="1">${S.showMust ? '閉じる' : `残りの必須をすべて表示（あと${upcoming.length - 4}件）`}</button>` : '') +
+      (!upcoming.length ? '<p class="lead">残りの必須はありません</p>' : '') + '</div>';
   }
   // missed must-shoot items: one line, opens on tap
   if (P.missed.length) {
@@ -697,7 +736,7 @@ function renderNow() {
     if (S.open === 'ev:' + e.key) html += `<div class="card">${eventBody(e)}<button class="big ok" data-done-ev="${e.key}">✓ 済んだ</button></div>`;
   });
   // flexible pool
-  if (live() && !P.active) {
+  if (live() && !early && !P.active) {
     const sug = suggestions(m, P.free);
     const top = S.showAll ? sug : sug.slice(0, 6);
     html += `<div class="sec lg">いま撮れる候補<span>${sug.length}件</span></div>`;
@@ -819,6 +858,7 @@ function renderPrep() {
   const standalone = window.navigator.standalone || matchMedia('(display-mode: standalone)').matches;
   $('v-prep').innerHTML = `<div class="stack">
     ${standalone ? '' : `<div class="install"><b>全画面で使うには</b>：Safariの共有ボタン（四角に上向き矢印）→「ホーム画面に追加」。ホーム画面のアイコンから開くと全画面になり、閉じても同じ画面に戻ります。</div>`}
+    <div class="box setrow"><span>アプリの版</span><b>${VERSION}</b></div>
     <h2>使い方</h2>
     <div class="box"><ul>
       <li><b>赤「今すぐ移動」</b>が出たら、表示された場所へ。着いたら「着いた」</li>
@@ -834,7 +874,9 @@ function renderPrep() {
       <p class="lead">リハーサル中のチェックも保存されます。試した後は、予定タブで外してください。</p></div>
     <h2>要点</h2>
     <p class="lead">当日 11/1（日）10:00〜16:00。主催 宍粟市商工会青年部、事務局 <span class="contact">0790-62-2365</span></p>
-    <h3>必ず押さえるシーン</h3>${MUST.map((t, i) => itemBtn('m' + i, t)).join('')}
+    <h3>必ず押さえるシーン（前日）</h3>${EV.eve.map(e => itemBtn(e.key, `${e.at} ${e.title}`)).join('')}
+    <h3>必ず押さえるシーン（当日）</h3>${EV.day.filter(e => !e.cond || e.cond() || done.has(e.key)).map(e => itemBtn(e.key, `${e.at} ${e.title}`)).join('')}
+    <p class="lead">ここのチェックは「いま」画面・予定タブと同じものです。</p>
     <h3>撮らない（NG）</h3><div class="box"><ul class="ng">${NG.map(t => `<li>${esc(t)}</li>`).join('')}</ul></div>
     <h3>1社の撮り方（3〜5分）</h3><div class="box">会社名（プレート・のぼり・業務服）→ 手元（社員が教える）→ 顔（挑戦する子）→ 笑顔（できた瞬間）→ 一問（社員に「子どもに何を伝えたいか」）。ステージ本編は主催カメラ、自分は袖・客席・表情。</div>
     <h3>GoPro タイムラプス（俯瞰）</h3><div class="box"><ul><li>会場全体が入る高い場所に固定。前日と当日で同じ位置・画角</li><li>インターバル5秒（8時間で約3分の素材）、広角、露出とホワイトバランスを固定</li><li>モバイルバッテリーで給電。点検・回収は「必須の予定」に入っている</li></ul></div>
@@ -910,6 +952,9 @@ document.addEventListener('click', e => {
   if (d.arrive !== undefined) { if (d.arrive) S.here = d.arrive; persist(); buzz(); toast('到着しました'); keepScroll(render); return; }
   if (d.hereToggle) { S.hereOpen = true; renderHereBar(); return; }
   if (d.here) { S.here = d.here; S.hereOpen = false; persist(); keepScroll(render); return; }
+  if (d.toggleMust) { S.showMust = !S.showMust; keepScroll(render); return; }
+  if (d.openMust) { S.open = S.open === 'must:' + d.openMust ? null : 'must:' + d.openMust; persist(); keepScroll(render); return; }
+  if (d.reload) { location.reload(); return; }
   if (d.toggleMissed) { S.showMissed = !S.showMissed; keepScroll(render); return; }
   if (d.showAll) { S.showAll = true; keepScroll(render); return; }
   if (d.buffer) { S.buffer = Math.max(0, Math.min(15, S.buffer + +d.buffer)); persist(); keepScroll(render); return; }
@@ -937,6 +982,20 @@ document.addEventListener('scroll', () => { clearTimeout(scrollT); scrollT = set
 window.addEventListener('resize', () => { if (S.tab === 'now') keepScroll(renderNow); });
 setInterval(() => { renderTop(); alertCheck(); if (S.tab === 'now') keepScroll(renderNow); }, 20000);
 
+
+// tell the user when a newer version is on the server
+async function checkUpdate() {
+  if (location.protocol !== 'https:') return;
+  try {
+    const t = await (await fetch('index.html', { cache: 'no-store' })).text();
+    const v = (/const VERSION = '([^']+)'/.exec(t) || [])[1];
+    const bar = $('updbar');
+    if (v && v !== VERSION) { bar.hidden = false; bar.innerHTML = `<button data-reload="1">新しい版（${esc(v)}）があります。タップで更新</button>`; }
+  } catch (e) {}
+}
+checkUpdate();
+setInterval(checkUpdate, 10 * 60 * 1000);
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') checkUpdate(); });
 render();
 requestAnimationFrame(() => { if (S.tab === 'now') renderNow(); restoreScroll(); });
 applyWake();

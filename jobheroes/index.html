@@ -1,0 +1,659 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="JH撮影">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#121a21" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<title>JH撮影</title>
+<style>
+/* One-handed field app: map up top (look), card in the middle (read), controls in the bottom third (thumb). */
+:root {
+  --bg: #eef1f3; --surface: #ffffff; --ink: #121c25; --muted: #56636f; --line: #d3dae0;
+  --accent: #d9480f; --accent-ink: #ffffff; --done: #24784a; --done-bg: #e1f1e7;
+  --peak: #fff0c7; --peak-line: #e0ac3a; --ng: #a51d1d;
+  --leg1: #d9480f; --leg2: #1c64b0; --leg3: #7b3fb5;
+  --grass: #e2eede; --water: #cde2f2; --road: #dfe2e5; --zone: #ffffff; --zone-line: #9cb09f; --lot: #eaedf0; --map-ink: #2a3832;
+  --font: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Yu Gothic", sans-serif;
+  --tabbar: 58px; --actionbar: 76px;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0b1116; --surface: #151e26; --ink: #e8eef3; --muted: #9aa9b5; --line: #26333e;
+    --accent: #ff7a3d; --accent-ink: #1a0b03; --done: #63cf93; --done-bg: #14301f;
+    --peak: #362c10; --peak-line: #a17d28; --ng: #ff8d8d;
+    --leg1: #ff7a3d; --leg2: #5aa6ee; --leg3: #b98af0;
+    --grass: #182820; --water: #142d45; --road: #262c33; --zone: #1b252e; --zone-line: #485e50; --lot: #1f272e; --map-ink: #d3e0d8;
+    color-scheme: dark;
+  }
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font); font-size: 16px; line-height: 1.5; overscroll-behavior: none; -webkit-text-size-adjust: 100%; }
+button { font: inherit; color: inherit; border: 0; background: none; cursor: pointer; touch-action: manipulation; }
+button:focus-visible, a:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+b { font-weight: 800; }
+
+#app { display: flex; flex-direction: column; height: 100%; }
+.top { flex: 0 0 auto; background: var(--surface); border-bottom: 1px solid var(--line);
+  padding: calc(env(safe-area-inset-top, 0px) + 6px) max(14px, env(safe-area-inset-right, 0px)) 6px max(14px, env(safe-area-inset-left, 0px));
+  display: flex; align-items: center; gap: 10px; }
+.clock { font-size: 22px; font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: 0.01em; }
+.top .sub { font-size: 12px; color: var(--muted); line-height: 1.3; min-width: 0; flex: 1; }
+.top .sub b { color: var(--ink); }
+.wake { font-size: 12px; font-weight: 700; border: 1.5px solid var(--line); border-radius: 999px; padding: 5px 10px; color: var(--muted); white-space: nowrap; }
+.wake[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); }
+
+.views { flex: 1 1 auto; min-height: 0; position: relative; }
+.view { position: absolute; inset: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain;
+  padding: 12px max(14px, env(safe-area-inset-right, 0px)) 24px max(14px, env(safe-area-inset-left, 0px)); }
+.view[hidden], #v-shoot[hidden] { display: none; }
+.stack { display: flex; flex-direction: column; gap: 12px; }
+
+/* tab bar (bottom, thumb) */
+.tabbar { flex: 0 0 auto; display: grid; grid-template-columns: repeat(5, 1fr); background: var(--surface); border-top: 1px solid var(--line);
+  padding: 0 env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px); }
+.tabbar button { height: var(--tabbar); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font-size: 12px; font-weight: 700; color: var(--muted); }
+.tabbar svg { width: 24px; height: 24px; }
+.tabbar button[aria-current="page"] { color: var(--accent); }
+
+/* shoot view */
+#v-shoot { padding: 0; display: flex; flex-direction: column; overflow: hidden; }
+.mini { flex: 0 0 auto; height: min(34vh, 270px); background: var(--grass); border-bottom: 1px solid var(--line); position: relative; }
+.mini svg { width: 100%; height: 100%; display: block; }
+.mini .modes { position: absolute; left: 10px; top: 10px; display: flex; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 3px; box-shadow: 0 2px 8px rgba(0,0,0,.12); }
+.mini .modes button { font-size: 13px; font-weight: 800; padding: 6px 12px; border-radius: 7px; color: var(--muted); }
+.mini .modes button[aria-pressed="true"] { background: var(--ink); color: var(--surface); }
+.mini .full { position: absolute; right: 10px; top: 10px; font-size: 12px; font-weight: 800; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 7px 10px; box-shadow: 0 2px 8px rgba(0,0,0,.12); }
+.cardwrap { flex: 1 1 auto; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 12px max(14px, env(safe-area-inset-right, 0px)) 16px max(14px, env(safe-area-inset-left, 0px)); display: flex; flex-direction: column; gap: 10px; }
+.pos { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: 13px; color: var(--muted); font-weight: 700; }
+.pos .bar { flex: 1; height: 6px; background: var(--line); border-radius: 3px; overflow: hidden; align-self: center; }
+.pos .bar i { display: block; height: 100%; background: var(--done); }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 14px; display: flex; flex-direction: column; gap: 6px; }
+.card.peak { background: var(--peak); border-color: var(--peak-line); }
+.card.isdone { background: var(--done-bg); border-color: transparent; }
+.card-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.big-time { font-size: 34px; font-weight: 800; line-height: 1.05; font-variant-numeric: tabular-nums; }
+.pill { font-size: 13px; font-weight: 800; border-radius: 999px; padding: 2px 10px; background: var(--bg); border: 1px solid var(--line); }
+.tag { font-size: 12px; font-weight: 800; color: var(--accent); }
+.donetag { font-size: 12px; font-weight: 800; color: var(--done); }
+.rel { font-size: 13px; font-weight: 700; color: var(--muted); }
+.what { font-size: 19px; font-weight: 700; line-height: 1.45; }
+.note { font-size: 15px; color: var(--muted); }
+.next { font-size: 14px; color: var(--muted); display: flex; gap: 8px; align-items: baseline; padding: 0 2px; }
+.next b { color: var(--ink); }
+.firm { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; }
+.firm.complete { background: var(--done-bg); border-color: transparent; }
+.firm-top { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+.firm-name { font-weight: 800; font-size: 16px; min-width: 0; }
+.firm-what { font-size: 13px; color: var(--muted); font-weight: 400; }
+.count { font-size: 13px; font-weight: 800; color: var(--muted); font-variant-numeric: tabular-nums; }
+.firm.complete .count { color: var(--done); }
+.chips { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+.chip { min-height: 48px; font-size: 14px; font-weight: 800; border-radius: 10px; border: 2px solid var(--line); background: var(--bg); }
+.chip[aria-checked="true"] { background: var(--done); border-color: var(--done); color: var(--surface); }
+
+.actionbar { flex: 0 0 auto; display: grid; grid-template-columns: 58px 58px 1fr; gap: 8px; padding: 8px max(14px, env(safe-area-inset-right, 0px)) 8px max(14px, env(safe-area-inset-left, 0px)); background: var(--surface); border-top: 1px solid var(--line); }
+.actionbar button { height: 60px; border-radius: 14px; font-weight: 800; }
+.btn-sub { background: var(--bg); border: 1.5px solid var(--line) !important; font-size: 13px; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.15; }
+.btn-sub svg { width: 22px; height: 22px; }
+.btn-main { background: var(--accent); color: var(--accent-ink); font-size: 19px; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 3px 0 rgba(0,0,0,.18); }
+.btn-main:active { transform: translateY(2px); box-shadow: none; }
+.btn-main.nextonly { background: var(--ink); color: var(--surface); }
+
+/* lists */
+.seg { display: grid; gap: 4px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 4px; }
+.seg button { font-size: 15px; font-weight: 800; padding: 10px 2px; border-radius: 9px; color: var(--muted); }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--surface); }
+h2 { font-size: 22px; font-weight: 800; }
+h3 { font-size: 13px; letter-spacing: .06em; color: var(--muted); margin-top: 6px; }
+.lead { color: var(--muted); font-size: 14px; }
+.row { display: grid; grid-template-columns: 52px 1fr; align-items: stretch; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; text-align: left; width: 100%; }
+.row.peak { background: var(--peak); border-color: var(--peak-line); }
+.row.cur { box-shadow: 0 0 0 3px var(--accent); }
+.row[aria-checked="true"] { background: var(--done-bg); border-color: transparent; }
+.row .tickbtn { display: grid; place-items: center; border-right: 1px solid var(--line); }
+.row[aria-checked="true"] .tickbtn { border-color: transparent; }
+.tick { width: 28px; height: 28px; border-radius: 8px; border: 2.5px solid var(--muted); display: grid; place-items: center; }
+.tick svg { width: 18px; height: 18px; opacity: 0; }
+[aria-checked="true"] > .tickbtn .tick, .item[aria-checked="true"] .tick { background: var(--done); border-color: var(--done); }
+[aria-checked="true"] > .tickbtn .tick svg, .item[aria-checked="true"] .tick svg { opacity: 1; }
+.row .rbody { padding: 10px 12px; display: flex; flex-direction: column; gap: 2px; min-width: 0; text-align: left; }
+.row .meta { display: flex; gap: 6px; align-items: baseline; flex-wrap: wrap; }
+.row .t { font-size: 18px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.row .w { font-size: 15px; }
+.row[aria-checked="true"] .w { color: var(--muted); }
+.row .n { font-size: 13px; color: var(--muted); }
+.item { display: grid; grid-template-columns: 34px 1fr; gap: 10px; align-items: start; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px; text-align: left; width: 100%; font-size: 15px; }
+.item[aria-checked="true"] { background: var(--done-bg); border-color: transparent; color: var(--muted); }
+.box { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; font-size: 15px; }
+.box ul { padding-left: 18px; display: flex; flex-direction: column; gap: 4px; }
+.ng li { color: var(--ng); }
+.keys { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.key { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; }
+.key .kt { font-size: 24px; font-weight: 800; color: var(--accent); line-height: 1.2; font-variant-numeric: tabular-nums; }
+.key .kd { font-size: 13px; }
+.toolbar { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.switch { display: inline-flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 800; }
+.switch input { width: 22px; height: 22px; accent-color: var(--accent); }
+.group-time { font-size: 15px; font-weight: 800; color: var(--muted); margin-top: 6px; }
+.empty { text-align: center; color: var(--muted); padding: 16px; }
+.contact { user-select: all; -webkit-user-select: all; font-weight: 800; font-variant-numeric: tabular-nums; }
+
+/* full map */
+.mapbox { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 4px; }
+.mapbox svg { width: 100%; height: auto; display: block; }
+.legs { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+.legs button { display: grid; grid-template-columns: 32px 50px 1fr; gap: 8px; align-items: center; width: 100%; text-align: left; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 10px; font-size: 15px; }
+.legs button.cur { box-shadow: 0 0 0 3px var(--accent); }
+.legs button[aria-checked="true"] { background: var(--done-bg); border-color: transparent; color: var(--muted); }
+.legs .num { display: inline-grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; color: #fff; font-weight: 800; font-size: 13px; }
+.legs .lt { font-weight: 800; font-variant-numeric: tabular-nums; }
+
+.toast { position: fixed; left: 50%; bottom: calc(var(--tabbar) + var(--actionbar) + env(safe-area-inset-bottom, 0px) + 14px); transform: translateX(-50%); background: var(--ink); color: var(--surface); font-weight: 800; font-size: 15px; padding: 10px 16px; border-radius: 999px; opacity: 0; pointer-events: none; transition: opacity .2s; white-space: nowrap; }
+.toast.show { opacity: 1; }
+.install { background: var(--peak); border: 1px solid var(--peak-line); border-radius: 12px; padding: 12px 14px; font-size: 14px; }
+.install b { font-weight: 800; }
+@keyframes pulse { 0% { r: 12; opacity: .55; } 100% { r: 28; opacity: 0; } }
+.pulse { animation: pulse 1.6s ease-out infinite; }
+@media (prefers-reduced-motion: reduce) { .pulse { animation: none; } .toast, .btn-main { transition: none; } }
+</style>
+</head>
+<body>
+<div id="app">
+  <header class="top">
+    <div class="clock" id="clock">--:--</div>
+    <div class="sub" id="topsub"></div>
+    <button class="wake" id="wake" aria-pressed="false">画面ON</button>
+  </header>
+
+  <div class="views">
+    <section class="view" id="v-shoot" data-tab="shoot">
+      <div class="mini" id="mini"></div>
+      <div class="cardwrap" id="cardwrap"></div>
+      <div class="actionbar">
+        <button class="btn-sub" id="btn-prev" aria-label="前の予定"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>前</button>
+        <button class="btn-sub" id="btn-now" aria-label="いまの時刻の予定へ"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/></svg>いま</button>
+        <button class="btn-main" id="btn-ok"></button>
+      </div>
+    </section>
+    <section class="view" id="v-list" data-tab="list" hidden></section>
+    <section class="view" id="v-map" data-tab="map" hidden></section>
+    <section class="view" id="v-firms" data-tab="firms" hidden></section>
+    <section class="view" id="v-prep" data-tab="prep" hidden></section>
+  </div>
+
+  <nav class="tabbar" id="tabbar">
+    <button data-tab="shoot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2.5"/><path d="M8 7l1.5-3h5L16 7"/><circle cx="12" cy="13.5" r="3.5"/></svg>撮影</button>
+    <button data-tab="map"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2z"/><path d="M9 4v14M15 6v14"/></svg>地図</button>
+    <button data-tab="list"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 6h11M9 12h11M9 18h11"/><path d="M4 6l1 1 2-2M4 12l1 1 2-2M4 18l1 1 2-2"/></svg>予定</button>
+    <button data-tab="firms"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M4 20V9l5-3v14M9 20V4l7 4v12M16 20v-8l4 2v6M3 20h18"/></svg>全社</button>
+    <button data-tab="prep"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/></svg>要点</button>
+  </nav>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(() => {
+'use strict';
+const TICK = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3.2 3L13 4.5" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+const fmt = s => esc(s).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>');
+
+// ================= data =================
+// [time, place, what, note, peak, loc]
+const EVE = [
+  ['12:20', '—', '雨天判断を青年部HP・Instagramで確認', '正午に決定済み。延期なら11/8に読み替え', 0, null],
+  ['12:30', '俯瞰ポイント', '**GoPro設置・タイムラプス開始**：会場全体が入る高い場所に固定（インターバル5秒）', 'USB給電、露出・WBロック、水平確認。13:00の設営開始前に回し始める。位置と画角を写真で残す（当日も同じにする）', 1, 'gopro'],
+  ['12:40', 'せせらぎ全域', '空の会場：芝生、ステージ予定地、アーチ予定地、川沿い、道路越しの北庁舎駐車場', '当日と同じ位置・画角で撮る。立ち位置を写真で残す', 0, null],
+  ['12:55', '本部予定地', '青年部に挨拶、撮影の段取り確認（要点タブの「聞くこと」）', '主催カメラとドローン素材の形式を先に合わせる', 0, 'honbu'],
+  ['13:00', '北 飲食', '飲食ブース設営：テント3張をつなげて一体化（原田さん・岡本さん）', '前日で最初の作業。テントが立ち上がる瞬間', 0, 'inshoku'],
+  ['13:30', '北 飲食', 'ポール10本＋コーン8個で仕切り、長机・発電機の確認、動線チェック', '段取りを確認し合う会話を録る', 0, 'inshoku'],
+  ['14:00', '本部', '**青年部メンバー集合、作業開始の指示**', '前日パートの始まり。全体の引き＋指示を出す人の顔', 1, 'honbu'],
+  ['14:15', '中央', 'ステージ・本部・ダンスショースペースの設営', '大人たちの汗と段取り', 0, 'stage'],
+  ['14:45', '南 車両・建設', '区画割り、受付テント、子ども建前の部材搬入（あれば）', '堂元さん・亀井さんへの確認を済ませる', 0, 'kensetsu'],
+  ['15:00', '俯瞰ポイント', 'GoPro点検（バッテリー・カード・画角）', '動いていないか、結露・逆光', 0, 'gopro'],
+  ['15:15', 'アーチ', '足場アーチの組立（山陽の「空中さんぽ」か確認）', '明日のお菓子撒きの場所。時間を空けて数回', 0, 'arch'],
+  ['15:30', '全域', '**トラブル・想定外の対応**（配置変更、資材不足、天候）', '起きた瞬間・相談・解決後の顔の3点。後で「さっきの、どうなりました？」', 1, null],
+  ['16:00', '撮影ポイント', 'ロケハン：当日の動線を歩き各区間の徒歩時間を測る（建前の立ち位置、ステージ袖、アーチ、放水場所、ドローン飛行場、北庁舎へ渡る場所）', '南端→北端、せせらぎ→北庁舎の所要時間を控える', 0, null],
+  ['16:30', '本部', '夕方の打ち合わせ・最終確認', '明日に向けた緊張感', 0, 'honbu'],
+  ['16:50', '全景', '**設営が終わった会場の全景**（〜17:15、日没17:05頃・概算）', '「準備完了」の画。12:40と同じ位置から', 1, null],
+  ['17:15', '俯瞰ポイント', 'GoPro回収（設営完了〜日没まで回してから止める）', '夜間の放置はしない（盗難・夜露）', 0, 'gopro'],
+  ['作業後', '本部', '**振り返りインタビュー**：青年部長＋設営で苦労した人1〜2人', '質問は要点タブ', 1, 'honbu'],
+  ['帰宅後', '—', '素材のバックアップ、バッテリー充電、カードの空き確認', '明日は7:30から', 0, null],
+];
+const DAY = [
+  ['7:15', '俯瞰ポイント', '**GoPro設置・タイムラプス開始**（インターバル5秒）', '7:30の搬入から撤収まで1日回す。前日と同じ位置・画角で前後比較', 1, 'gopro'],
+  ['7:30', 'ステージ前→南', '飲食の全員集合、車両搬入（ラフター・ユンボ・スカイマスター・サンエム）', '芝生は車両進入禁止。指定動線を走る車両', 0, 'stage'],
+  ['7:45', '北庁舎', 'トレーラー2台（八木木材）、大型深ダンプ（ヒョウカン運輸）、大型トラック（秀商）、4tウイング車（谷笹化成）の搬入', 'ウイング車が開く瞬間', 0, 'kShow'],
+  ['8:15', 'せせらぎ 南→北', 'テント・ブース設営、重機の配置', '前日の空の会場と同じ位置から', 0, null],
+  ['9:00', 'せせらぎ 南→北', '全ブースの事業所プレート・のぼり', '会社名カットを確保。北庁舎分は10:45。飲食の仕込みは撮らない', 0, null],
+  ['9:30', 'ステージ前', '全体ミーティング（各出展者1名、10分）、東道路の通行止め開始', '本番前の緊張', 0, 'stage'],
+  ['9:40', '俯瞰ポイント', 'GoPro点検（バッテリー・カード・画角）', '開場前に一度', 0, 'gopro'],
+  ['9:45', '本部・受付', '来場者の列', '', 0, 'honbu'],
+  ['10:00', '本部・受付', 'イベント開始、リストバンド、最初の親子', '開会式があればここ。終わったら道路を渡る', 0, 'honbu'],
+  ['10:05', '北庁舎', '宍粟消防署：ポンプ車・梯子車・子ども防火服', '正午撤収なので最優先', 0, 'kFire'],
+  ['10:15', '北庁舎', '宍粟警察署：パトカー・白バイ・鑑識体験', '午前不在なら15:10の枠と入れ替え', 0, 'kPolice'],
+  ['10:25', '北庁舎', '自衛隊：車両・子ども制服・ミニゲーム', '', 0, 'kSdf'],
+  ['10:32', '北庁舎 WS', 'フジイ「ミニ本棚」、オサキ「小物かけ」', '先着20名・15名。枠が埋まる前に', 0, 'kWs'],
+  ['10:40', '北庁舎 WS荷台', '谷笹化成工業所「ビーズスライム」、小寺林業「木材見本市」', 'ケトルの蒸気でビーズが膨らむ画', 0, 'kWing'],
+  ['10:45', '北庁舎', '内海林業・宮辻造林（林業道具・チェーンソーデモ）、車両展示（ヒョウカン運輸・八木木材・秀商・プラシカル・ユーズ）、エアー遊具、一宮精工、北庁舎の事業所プレート', '10:52に道路を渡って南へ', 0, 'kShow'],
+  ['10:55', '南 建設', '**子ども建前①**：元工務店、衣川工務店、室元建築', '山場。11:00開始。安全説明から組み上がりまで通し。合図の声も録る', 1, 'kensetsu'],
+  ['11:30', '南 建設', 'ユンボでタイヤ積み木・ミニショベル（オオタニ）、測量機の宝探し（松本工務店）、セメントアート（ワチャ会）', 'ユンボは建前中は止まるので直後に。ヒザに乗って操作する子', 0, 'kensetsu2'],
+  ['12:05', '南 車両', 'お出かけ前点検（山陽自動車工業）、特装車3台・部品展示、タイヤ展示（竹田タイヤ）、軽展示（昭和自動車）、ラフター大型タイヤ吊り下げ（#20）、ホンダ展示車', '点検は12:00〜14:00のみ', 0, 'sharyo'],
+  ['12:25', '南端', 'サンエム「環境レスキュー隊」', 'ミッション形式。1組を通して撮る', 0, 'sanemu'],
+  ['12:40', '本部', '昼食（15分）', '弁当は11時以降に本部で受取', 0, 'honbu'],
+  ['12:50', '俯瞰ポイント', 'GoPro点検（バッテリー交換・カード残量）', '昼食の後、北へ向かう前に', 0, 'gopro'],
+  ['12:55', '北 ドローン', '藤原板金 小ドローン体験（13:00回）', '操縦する子の手元と顔', 0, 'drone'],
+  ['13:05', '北 飲食', 'しそう麺焼き（のりすけ）、そうめん手巻き寿司（製麺所5社）、ソフトクリーム（だんだか）、ラーメンパック（つばき）', '子どもが作るところだけ。つばきは会社名カットのみ', 0, 'inshoku'],
+  ['13:15', '北 金融', 'みなと銀行（札勘・お買い物ゲーム）、西兵庫信用金庫（札勘・窓口体験）', '伝票に「済」印を押す瞬間', 0, 'kinyu'],
+  ['13:28', '北 ドローン', '藤原板金 大ドローンの離陸（13:30回）', '見上げる子。3分で切り上げる', 0, 'drone'],
+  ['13:32', '北 メディカル', '志水接骨院 テーピング（13:30回）、長田産業 口内チェック、SHI-SOGU 足圧チェック', '飛行場のすぐ隣', 0, 'medical'],
+  ['13:45', '北 特産品', '米の計量チャレンジ（老松酒造・山陽盃酒造）、ラッピング（カタヤマ）、花火玉模型・射的（D-JK）、セノヲ、創作うどん竹内', '「買う」ではなく体験を撮る', 0, 'tokusan'],
+  ['13:55', 'ステージ', '袖の位置取り', '', 0, 'stage'],
+  ['14:00', 'ステージ', '**青年部長挨拶 → キッズダンス（〜14:25）**', '本編は主催カメラ。袖の緊張・客席の保護者・終わった後の顔', 1, 'stage'],
+  ['14:30', 'ステージ', '**宍粟市長・商工会長挨拶**', '話者アップ＋会場の引き', 1, 'stage'],
+  ['14:40', '南 車両', 'スカイマスター（宍粟美建・山陽自動車工業）、タイヤ交換、ホンダセンシング・自動駐車（ホンダカーズ播但中央）', '表彰式は主催カメラ。ヘルメット・安全帯が映るカットのみ', 0, 'sharyo2'],
+  ['15:05', 'ステージ', 'ストレッチパフォーマンス（志水接骨院、〜15:20）', '冒頭だけ。客席が一緒に動く画', 0, 'stage'],
+  ['15:10', '本部→北', 'お絵かき「将来の目標」（イトーオフィスサービス）、カメラマン体験（コーエーカメラ）、地域おこし協力隊、フロンティア', '「将来の目標」の絵は締めに使える', 0, 'north'],
+  ['15:28', '川沿い', '宍粟市消防団 放水体験、女性消防団', '水しぶきに逆光を入れる', 0, 'river'],
+  ['15:36', '本部', 'スタンプラリー福引（15:35〜）', '当たった瞬間', 0, 'honbu'],
+  ['15:42', 'アーチ', '空中さんぽ（山陽）、お菓子撒きの位置取り', '', 0, 'arch'],
+  ['15:50', 'アーチ', '**お菓子撒き**', '会場が一番沸く画', 1, 'arch'],
+  ['16:00', 'ステージ', '**閉会挨拶**', '', 1, 'stage'],
+  ['16:05', '全域', '片付け、青年部インタビュー（前日の質問1と3をもう一度）', '16:15に搬出車両の乗り入れ開始', 0, null],
+  ['17:00', '俯瞰ポイント', 'GoPro回収', '搬出車両の出入りと空に戻る会場まで入れてから止める', 0, 'gopro'],
+];
+// [time, name, what] — attached to the DAY row with the same time
+const FIRMS = [
+  ['10:05','宍粟消防署','ポンプ車展示・子ども防火服'],['10:15','宍粟警察署','パトカー・白バイ・鑑識体験'],['10:25','自衛隊 兵庫地方協力本部','車両・子ども制服・ミニゲーム'],
+  ['10:32','(株)フジイ','ミニ本棚づくり'],['10:32','(株)オサキ','KOZAIで小物かけづくり'],['10:40','(株)谷笹化成工業所','ビーズスライム、4tウイング車'],['10:40','小寺林業(株)','木材見本市'],
+  ['10:45','内海林業(株)','林業道具・チェーンソー丸太カット'],['10:45','(株)宮辻造林','ドローン・ウッドチッパー展示'],['10:45','ヒョウカン運輸(株)','10tアームロール車・大型深ダンプ'],['10:45','(株)八木木材','トレーラー2台'],['10:45','(株)秀商','大型トラック'],['10:45','(有)プラシカル・ユーズ','車両展示（北庁舎・せせらぎ）'],['10:45','プライベートグレイド(株)','エアー遊具'],['10:45','一宮精工(株)','出展サポート'],
+  ['10:55','(株)元工務店','子ども建前'],['10:55','衣川工務店','子ども建前'],['10:55','(株)室元建築','子ども建前'],['10:55','(株)ジュウケン','建設の出展サポート'],['10:55','中坪興業','建設の出展サポート'],['10:55','山陽設備(株)','建設の出展サポート'],['10:55','西播緑化土木(株)','建設の出展サポート'],
+  ['11:30','(有)オオタニ','ミニショベル（タイヤ積み木）'],['11:30','(株)松本工務店','測量機の宝探し'],['11:30','ワチャ会','セメントアート'],
+  ['12:05','山陽自動車工業(株)','お出かけ前点検（14:40 タイヤ交換・スカイマスター）'],['12:05','竹田タイヤ','タイヤ展示'],['12:05','昭和自動車(株)','軽自動車展示'],['12:05','#20（社名要確認）','ラフタークレーン・大型タイヤ吊り下げ'],['12:05','山崎タイヤ','車両の出展サポート'],['12:05','(株)岸本サービス','車両の出展サポート'],['12:05','#30〜32の3社（社名要確認）','車両の出展サポート'],
+  ['12:25','(株)サンエム','環境レスキュー隊'],['12:55','(有)藤原板金','小ドローン体験、13:28 大ドローン空撮'],
+  ['13:05','鉄板居酒屋のりすけ','しそう麺焼き調理体験'],['13:05','(有)岡本製麺所','そうめん手巻き寿司'],['13:05','志水製麺所','そうめん手巻き寿司'],['13:05','与太呂','そうめん手巻き寿司'],['13:05','八木淳平製麺所','そうめん手巻き寿司'],['13:05','#1のラーメン店（社名要確認）','そうめん手巻き寿司'],['13:05','たこやき酒場だんだか','ソフトクリーム作り体験'],['13:05','豚骨らーめんつばき','ラーメンパック（販売のみ）'],
+  ['13:15','みなと銀行 山崎支店','札勘・お買い物ゲーム'],['13:15','西兵庫信用金庫','札勘・窓口業務体験'],
+  ['13:32','志水接骨院','テーピング・包帯、15:05 ストレッチ'],['13:32','長田産業(株)','口内コンディションチェック'],['13:32','(株)SHI-SOGU','足圧・姿勢チェック、インソール'],
+  ['13:45','老松酒造(有)','米の計量チャレンジ'],['13:45','山陽盃酒造(株)','米の計量チャレンジ'],['13:45','カタヤマ','ラッピング体験'],['13:45','D-JK(株)','花火玉の模型・射的'],['13:45','セノヲ(株)','特産品販売（会社名のみ）'],['13:45','創作うどん竹内','だし醤油販売（会社名のみ）'],
+  ['14:40','(有)宍粟美建','スカイマスター乗車体験'],['14:40','(株)ホンダカーズ播但中央','ホンダセンシング・自動駐車試乗'],
+  ['15:10','(株)イトーオフィスサービス','お絵かき「将来の目標」'],['15:10','(有)コーエーカメラ','カメラマン体験'],['15:10','宍粟市地域おこし協力隊','活動紹介'],['15:10','(株)フロンティア','内容未定'],
+  ['15:28','宍粟市消防団','ポンプ車放水体験'],['15:42','(株)山陽','空中さんぽ（足場のアーチ）'],
+];
+const CUTS = [['name','会社名'],['hand','手元'],['face','顔'],['smile','笑顔'],['q','一問']];
+const MUST = ['7:15〜17:00 GoPro 俯瞰タイムラプス（前日は12:30〜17:15）','7:30 搬入（トレーラー・重機が会場に入る画）','9:30 全体ミーティング','11:00 **子ども建前**（安全説明〜組み上がり、見上げる子、合図の声）','14:00 **青年部長挨拶**（話者アップ＋会場の引き）','14:00〜14:25 **キッズダンス6組**（袖・客席の保護者・終わった後の顔）','14:30 **宍粟市長・商工会長挨拶**','15:50 **お菓子撒き**（アーチ）','16:00 **閉会挨拶**','16:05 青年部の終了直後インタビュー','前日 振り返りインタビュー（10/31 作業終了後）'];
+const ASK = ['本部：GoProの設置場所と許可（全体が見渡せる高所：市役所の上階・堤防・本部テントのポールなど）','本部：10:00の開会式の有無、子どもの顔出し（撮影告知）、警察・消防・自衛隊の撮影可否、自分の弁当','本部：主催カメラとドローン素材の受け取り方法・形式。空撮は藤原板金か','堂元さん（建設）：子ども建前でクレーンを使うか、安全に撮れる立ち位置、サポート4社の配置、アーチは山陽の空中さんぽか','亀井さん（車両）：スカイマスター午後の開始（12:30か13:00か）、サポート5社の配置','原田さん・岡本さん（飲食）：子どもが調理するのはどの工程か、スタッフの調理が映らない立ち位置','谷笹さん（北庁舎）：チェーンソーデモの時刻、警察署の「正午から」の意味','みなと銀行：各回の開始時刻（90分ごと全4回）','社名の確認：#1ラーメン店、#20ラフターの会社、#30〜32の自動車関係3社'];
+const QUESTIONS = ['今日の設営で一番大変だったことは？','想定外だったことと、どう乗り切ったか','明日、子どもたちにどんな顔をしてほしいか','（青年部長に）なぜ始めたのか。第1回で「10年続けたい」と考える理由'];
+const GEAR = ['GoPro・予備バッテリー・USBケーブル・モバイルバッテリー（20000mAh程度）','GoProの固定具（クランプ・ミニ三脚・結束バンド・養生テープ）、雨よけ','GoPro用SDカード（128GB以上、前日用と当日用で分ける）','予備バッテリー・カード（当日は約9時間）','ピンマイクと風防（川沿いは風が強い）','会場配置図の写し'];
+const NG = ['9:00〜の飲食の仕込み（スタッフの調理）。撮るのは子どもが作るところだけ','販売シーンを主役にすること。特産品・キッチンカーは背景まで','ヘルメットなしで高所作業車に乗る大人（映り込みも使わない）'];
+
+// map points (schematic 360x540, north up, from the organizer's site plans)
+const LOC = {
+  honbu: [258, 320], stage: [254, 268], arch: [226, 224], river: [306, 182], north: [212, 168],
+  drone: [168, 48], medical: [222, 82], kinyu: [168, 116], inshoku: [222, 138], tokusan: [168, 168],
+  kensetsu: [212, 372], kensetsu2: [214, 446], sharyo: [163, 424], sharyo2: [163, 398], sanemu: [246, 512],
+  gopro: [306, 300], kFire: [30, 236], kPolice: [56, 250], kSdf: [84, 236], kWs: [52, 176], kWing: [82, 160], kShow: [34, 150],
+};
+const LOC_NAME = { gopro: 'GoPro', honbu: '本部', stage: 'ステージ', arch: 'アーチ', river: '川沿い（放水）', north: '北エリア', drone: 'ドローン飛行場', medical: 'メディカル', kinyu: '金融', inshoku: '飲食', tokusan: '特産品', kensetsu: '建設（建前）', kensetsu2: '建設', sharyo: '車両', sharyo2: '車両', sanemu: 'サンエム', kFire: '北庁舎', kPolice: '北庁舎', kSdf: '北庁舎', kWs: '北庁舎', kWing: '北庁舎', kShow: '北庁舎' };
+const ZONES = [
+  { x: 8, y: 118, w: 94, h: 150, label: '北庁舎駐車場', sub: ['警察・消防・自衛隊', 'WS・車両展示'], kind: 'lot' },
+  { x: 8, y: 330, w: 94, h: 200, label: '市役所', sub: ['来場者P'], kind: 'lot', faint: 1 },
+  { x: 138, y: 26, w: 112, h: 180, label: '販売・サービス・飲食', kind: 'zone', at: 'bottom' },
+  { x: 258, y: 26, w: 22, h: 176, label: 'キッチンカー', kind: 'zone', vertical: 1, faint: 1 },
+  { x: 288, y: 150, w: 36, h: 64, label: '放水', kind: 'zone' },
+  { x: 148, y: 246, w: 70, h: 54, label: 'ダンス', kind: 'zone' },
+  { x: 238, y: 236, w: 34, h: 64, label: 'ステージ', kind: 'zone', vertical: 1, out: 1 },
+  { x: 230, y: 306, w: 56, h: 28, label: '本部', kind: 'zone', out: 1 },
+  { x: 138, y: 346, w: 138, h: 140, label: '', kind: 'zone' },
+  { x: 286, y: 346, w: 36, h: 140, label: '出展者テント', kind: 'zone', vertical: 1, faint: 1 },
+  { x: 148, y: 494, w: 118, h: 36, label: 'サンエム', kind: 'zone' },
+];
+const SUBCOLS = [{ x: 141, w: 44, label: '車両' }, { x: 189, w: 48, label: '建設' }, { x: 241, w: 32, label: '測量' }];
+
+// ================= state (all saved on the phone) =================
+const K = 'jh.v1.';
+const store = {
+  get(k, d) { try { const v = localStorage.getItem(K + k); return v === null ? d : JSON.parse(v); } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem(K + k, JSON.stringify(v)); } catch (e) {} },
+};
+const done = new Set(store.get('checks', []));
+const save = () => store.set('checks', [...done]);
+const S = {
+  tab: store.get('tab', 'shoot'),
+  mode: store.get('mode', null),          // 'eve' | 'day'
+  ptr: store.get('ptr', { eve: 0, day: 0 }),
+  leg: store.get('leg', 0),               // 0 = follow pointer
+  onlyOpen: store.get('onlyOpen', false),
+  wake: store.get('wake', false),
+  scroll: store.get('scroll', {}),
+};
+const persist = () => { ['tab','mode','ptr','leg','onlyOpen','wake','scroll'].forEach(k => store.set(k, S[k])); };
+
+function jst() { const n = new Date(Date.now() + 9 * 3600e3); return { y: n.getUTCFullYear(), mo: n.getUTCMonth() + 1, d: n.getUTCDate(), h: n.getUTCHours(), mi: n.getUTCMinutes() }; }
+function today() { const t = jst(); return t.y * 10000 + t.mo * 100 + t.d; }
+if (!S.mode) S.mode = today() >= 20261101 ? 'day' : 'eve';
+
+const rowsOf = m => (m === 'eve' ? EVE : DAY);
+const keyOf = (m, i) => (m === 'eve' ? 'e' : 'd') + i;
+const mins = t => { const m = /^(\d{1,2}):(\d{2})/.exec(t); return m ? +m[1] * 60 + +m[2] : null; };
+const firmsAt = t => FIRMS.map((f, i) => [f, i]).filter(([f]) => f[0] === t);
+
+// ================= map drawing =================
+function baseMap() {
+  const z = ZONES.map(o => {
+    const fill = o.kind === 'lot' ? 'var(--lot)' : 'var(--zone)';
+    let t = '';
+    if (o.label) {
+      if (o.out && o.vertical) t = `<text x="${o.x + o.w + 18}" y="${o.y + o.h / 2}" font-size="10" font-weight="700" text-anchor="middle" dominant-baseline="middle" fill="var(--map-ink)" style="writing-mode:vertical-rl;letter-spacing:1px">${o.label}</text>`;
+      else if (o.out) t = `<text x="${o.x + o.w + 5}" y="${o.y + o.h / 2 + 4}" font-size="10.5" font-weight="700" fill="var(--map-ink)">${o.label}</text>`;
+      else if (o.vertical) t = `<text x="${o.x + o.w / 2}" y="${o.y + o.h / 2}" font-size="10" text-anchor="middle" dominant-baseline="middle" fill="var(--map-ink)" style="writing-mode:vertical-rl;letter-spacing:1px">${o.label}</text>`;
+      else {
+        const ly = o.at === 'bottom' ? o.y + o.h - 8 : o.y + 14;
+        t = `<text x="${o.x + o.w / 2}" y="${ly}" font-size="10.5" font-weight="700" text-anchor="middle" fill="var(--map-ink)">${o.label}</text>`;
+        (o.sub || []).forEach((s, i) => { t += `<text x="${o.x + o.w / 2}" y="${ly + 14 + i * 12}" font-size="8.5" text-anchor="middle" fill="var(--map-ink)" opacity=".75">${s}</text>`; });
+      }
+    }
+    return `<g${o.faint ? ' opacity=".7"' : ''}><rect x="${o.x}" y="${o.y}" width="${o.w}" height="${o.h}" rx="5" fill="${fill}" stroke="var(--zone-line)"/>${t}</g>`;
+  }).join('');
+  const cols = SUBCOLS.map(c => `<rect x="${c.x}" y="349" width="${c.w}" height="134" rx="3" fill="none" stroke="var(--zone-line)" stroke-dasharray="3 2"/><text x="${c.x + c.w / 2}" y="478" font-size="9.5" font-weight="700" text-anchor="middle" fill="var(--map-ink)">${c.label}</text>`).join('');
+  return `
+    <rect x="-400" y="-400" width="1160" height="1340" fill="var(--surface)"/>
+    <rect x="128" y="10" width="200" height="526" rx="10" fill="var(--grass)"/>
+    <rect x="330" y="-400" width="430" height="1340" fill="var(--water)"/>
+    <text x="345" y="270" font-size="10" text-anchor="middle" fill="var(--map-ink)" style="writing-mode:vertical-rl;letter-spacing:3px">揖保川</text>
+    <rect x="108" y="-400" width="16" height="1340" fill="var(--road)"/>
+    <text x="116" y="420" font-size="8.5" text-anchor="middle" fill="var(--map-ink)" style="writing-mode:vertical-rl">市役所東道路 9:30〜16:30 歩行者天国</text>
+    ${z}${cols}
+    <path d="M204 236 Q226 214 248 236" fill="none" stroke="var(--zone-line)" stroke-width="5" stroke-linecap="round"/><text x="196" y="232" font-size="9.5" text-anchor="end" fill="var(--map-ink)">アーチ</text>
+    <g transform="translate(306 300)"><rect x="-11" y="-8" width="22" height="16" rx="3" fill="var(--map-ink)"/><circle r="4.5" fill="var(--surface)"/><text x="0" y="21" font-size="9" font-weight="700" text-anchor="middle" fill="var(--map-ink)">GoPro</text><text x="0" y="31" font-size="7.5" text-anchor="middle" fill="var(--map-ink)" opacity=".75">場所は前日決定</text></g>
+    <g transform="translate(26 30)"><path d="M0 14 L6 -2 L12 14 L6 9 Z" fill="var(--map-ink)"/><text x="6" y="28" font-size="9" text-anchor="middle" fill="var(--map-ink)">北</text></g>`;
+}
+const ARW = c => `<marker id="arw-${c}" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0 L10 5 L0 10 Z" fill="var(--${c})"/></marker>`;
+const DEFS = `<defs>${['leg1','leg2','leg3','accent','muted'].map(ARW).join('')}</defs>`;
+function seg(a, b, color, w = 3, extra = '') {
+  const mx = (a[0] + b[0]) / 2, my = (a[1] + b[1]) / 2;
+  return `<path d="M${a[0]} ${a[1]} L${mx} ${my} L${b[0]} ${b[1]}" fill="none" stroke="var(--${color})" stroke-width="${w}" stroke-linecap="round" marker-mid="url(#arw-${color})" ${extra}/>`;
+}
+function pill(x, y, label, color, big) {
+  const h = big ? 26 : 20, w = Math.max(h, 10 + String(label).length * (big ? 8 : 6.4));
+  return `<g><rect x="${x - w / 2}" y="${y - h / 2}" width="${w}" height="${h}" rx="${h / 2}" fill="var(--${color})" stroke="var(--surface)" stroke-width="2"/><text x="${x}" y="${y + (big ? 5 : 4)}" font-size="${big ? 13 : 11}" font-weight="800" text-anchor="middle" fill="#fff">${esc(label)}</text></g>`;
+}
+
+// day stops shown on the full map: DAY rows from 10:00 with a location
+const STOPS = DAY.map((r, i) => ({ i, t: r[0], l: r[2].replace(/\*\*/g, ''), loc: r[5], m: mins(r[0]) }))
+  .filter(s => s.loc && s.m >= 600)
+  .map((s, k) => ({ ...s, n: k + 1, leg: s.m < 760 ? 1 : s.m < 835 ? 2 : 3 }));
+
+function fullMap(leg) {
+  const ss = leg ? STOPS.filter(s => s.leg === leg) : STOPS;
+  const startIdx = leg ? STOPS.indexOf(ss[0]) - 1 : -1;
+  const path = (startIdx >= 0 ? [STOPS[startIdx], ...ss] : ss);
+  let lines = '';
+  for (let k = 1; k < path.length; k++) {
+    const a = LOC[path[k - 1].loc], b = LOC[path[k].loc];
+    if (a[0] === b[0] && a[1] === b[1]) continue;
+    lines += seg(a, b, 'leg' + path[k].leg, 3, 'opacity=".9"');
+  }
+  const groups = new Map();
+  ss.forEach(s => { const k = s.loc; if (!groups.has(k)) groups.set(k, []); groups.get(k).push(s); });
+  const cur = S.mode === 'day' ? S.ptr.day : -1;
+  let pins = '';
+  groups.forEach((list, loc) => {
+    const [x, y] = LOC[loc];
+    const label = list.length > 3 ? `${list[0].n}…${list[list.length - 1].n}` : list.map(s => s.n).join('·');
+    const isCur = list.some(s => s.i === cur);
+    if (isCur) pins += `<circle cx="${x}" cy="${y}" r="12" fill="var(--accent)" class="pulse"/>`;
+    pins += pill(x, y, label, isCur ? 'accent' : 'leg' + list[list.length - 1].leg, false);
+  });
+  return `<svg viewBox="0 0 360 540" role="img" aria-label="当日の動線" font-family="-apple-system, Hiragino Sans, sans-serif">${DEFS}${baseMap()}${lines}${pins}</svg>`;
+}
+
+// mini map on the shoot screen: zooms to the move from the current stop to the next
+function miniMap(rows, i, w, h) {
+  const curLoc = rows[i] && rows[i][5];
+  let ni = i + 1; while (ni < rows.length && !rows[ni][5]) ni++;
+  const nextLoc = ni < rows.length ? rows[ni][5] : null;
+  let pi = i - 1; while (pi >= 0 && !rows[pi][5]) pi--;
+  const prevLoc = pi >= 0 ? rows[pi][5] : null;
+  const pts = [curLoc, nextLoc].filter(Boolean).map(l => LOC[l]);
+  let vb;
+  if (!pts.length) vb = [0, 0, 360, 540];
+  else {
+    let x0 = Math.min(...pts.map(p => p[0])), x1 = Math.max(...pts.map(p => p[0]));
+    let y0 = Math.min(...pts.map(p => p[1])), y1 = Math.max(...pts.map(p => p[1]));
+    const pad = 70; x0 -= pad; x1 += pad; y0 -= pad; y1 += pad;
+    const ar = w / h; let bw = x1 - x0, bh = y1 - y0;
+    if (bw < 260) { x0 -= (260 - bw) / 2; bw = 260; }
+    if (bh < 260 / ar) { y0 -= (260 / ar - bh) / 2; bh = 260 / ar; }
+    if (bw / bh < ar) { const nw = bh * ar; x0 -= (nw - bw) / 2; bw = nw; } else { const nh = bw / ar; y0 -= (nh - bh) / 2; bh = nh; }
+    vb = [x0, y0, bw, bh];
+  }
+  let g = '';
+  if (prevLoc && curLoc && prevLoc !== curLoc) g += seg(LOC[prevLoc], LOC[curLoc], 'muted', 2.5, 'opacity=".55" stroke-dasharray="4 4"');
+  if (curLoc && nextLoc && curLoc !== nextLoc) g += seg(LOC[curLoc], LOC[nextLoc], 'accent', 4.5);
+  // dots on the exact spots, labels pushed apart so they never cover each other
+  const below = curLoc && nextLoc && LOC[nextLoc][1] >= LOC[curLoc][1];
+  if (nextLoc && nextLoc !== curLoc) { const [x, y] = LOC[nextLoc], dy = below ? 24 : -24; g += `<circle cx="${x}" cy="${y}" r="6" fill="var(--leg2)" stroke="var(--surface)" stroke-width="2"/>` + pill(x, y + dy, '次 ' + rows[ni][0], 'leg2', true); }
+  if (curLoc) { const [x, y] = LOC[curLoc], dy = below ? -24 : 24; g += `<circle cx="${x}" cy="${y}" r="10" fill="var(--accent)" class="pulse"/><circle cx="${x}" cy="${y}" r="7" fill="var(--accent)" stroke="var(--surface)" stroke-width="2"/>` + pill(x, y + dy, 'いま ' + rows[i][0], 'accent', true); }
+  const allNote = !curLoc ? `<text x="180" y="270" font-size="16" font-weight="800" text-anchor="middle" fill="var(--map-ink)">会場全域</text>` : '';
+  return `<svg viewBox="${vb.join(' ')}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="現在地と次の移動先" font-family="-apple-system, Hiragino Sans, sans-serif">${DEFS}${baseMap()}${g}${allNote}</svg>`;
+}
+
+// ================= rendering =================
+const $ = id => document.getElementById(id);
+function toast(msg) { const t = $('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toast.h); toast.h = setTimeout(() => t.classList.remove('show'), 1400); }
+function buzz() { try { navigator.vibrate && navigator.vibrate(15); } catch (e) {} }
+
+function relText(t, mode) {
+  const m = mins(t); if (m === null) return '';
+  const day = mode === 'eve' ? 20261031 : 20261101;
+  if (today() !== day) return '';
+  const now = jst(); const d = m - (now.h * 60 + now.mi);
+  if (d > 0) return `開始まで${d}分`;
+  if (d === 0) return 'いま開始';
+  return `開始から${-d}分`;
+}
+
+function firmCard(f, i) {
+  const n = CUTS.filter(([c]) => done.has(`f${i}-${c}`)).length;
+  return `<div class="firm${n === 5 ? ' complete' : ''}" data-firm="${i}">
+    <div class="firm-top"><div class="firm-name">${esc(f[1])}<div class="firm-what">${esc(f[2])}</div></div><span class="count">${n}/5</span></div>
+    <div class="chips">${CUTS.map(([c, l]) => `<button class="chip" role="checkbox" aria-checked="${done.has(`f${i}-${c}`)}" data-key="f${i}-${c}">${l}</button>`).join('')}</div>
+  </div>`;
+}
+
+function renderShoot() {
+  const rows = rowsOf(S.mode), i = Math.min(S.ptr[S.mode], rows.length - 1), r = rows[i], key = keyOf(S.mode, i);
+  const isDone = done.has(key);
+  const total = rows.length, ndone = rows.filter((_, k) => done.has(keyOf(S.mode, k))).length;
+  let ni = i + 1;
+  const next = rows[ni];
+  const firms = S.mode === 'day' ? firmsAt(r[0]) : [];
+  $('cardwrap').innerHTML = `
+    <div class="pos"><span>${S.mode === 'eve' ? '前日' : '当日'} ${i + 1}/${total}</span><span class="bar"><i style="width:${(ndone / total * 100).toFixed(1)}%"></i></span><span>済 ${ndone}</span></div>
+    <div class="card${r[4] ? ' peak' : ''}${isDone ? ' isdone' : ''}">
+      <div class="card-head"><span class="big-time">${esc(r[0])}</span>${r[1] && r[1] !== '—' ? `<span class="pill">${esc(r[1])}</span>` : ''}${r[4] ? '<span class="tag">必ず押さえる</span>' : ''}${isDone ? '<span class="donetag">撮影済み</span>' : ''}</div>
+      ${relText(r[0], S.mode) ? `<div class="rel">${relText(r[0], S.mode)}</div>` : ''}
+      <div class="what">${fmt(r[2])}</div>
+      ${r[3] ? `<div class="note">${fmt(r[3])}</div>` : ''}
+    </div>
+    ${firms.map(([f, fi]) => firmCard(f, fi)).join('')}
+    ${next ? `<div class="next"><span>次</span><b>${esc(next[0])}</b><span>${esc(next[1] !== '—' ? next[1] : '')}</span></div>` : '<div class="next">これで最後です</div>'}`;
+  const ok = $('btn-ok');
+  if (isDone) { ok.className = 'btn-main nextonly'; ok.innerHTML = next ? '次へ ▶' : '撮影済み'; }
+  else { ok.className = 'btn-main'; ok.innerHTML = '✓ 撮影OK・次へ'; }
+  $('btn-prev').disabled = i === 0;
+  const mini = $('mini');
+  const w = mini.clientWidth || 390, h = mini.clientHeight || 260;
+  mini.innerHTML = miniMap(rows, i, w, h) + `<div class="modes"><button data-mode="eve" aria-pressed="${S.mode === 'eve'}">前日</button><button data-mode="day" aria-pressed="${S.mode === 'day'}">当日</button></div><button class="full" data-goto="map">全体図</button>`;
+}
+
+function renderList() {
+  const rows = rowsOf(S.mode), cur = S.ptr[S.mode];
+  $('v-list').innerHTML = `<div class="stack">
+    <div class="seg" style="grid-template-columns:1fr 1fr"><button data-mode="eve" aria-pressed="${S.mode === 'eve'}">前日 10/31</button><button data-mode="day" aria-pressed="${S.mode === 'day'}">当日 11/1</button></div>
+    <p class="lead">左の四角でチェック。右側をタップすると撮影画面でその予定を開く。</p>
+    ${rows.map((r, i) => {
+      const k = keyOf(S.mode, i);
+      return `<div class="row${r[4] ? ' peak' : ''}${i === cur ? ' cur' : ''}" aria-checked="${done.has(k)}">
+        <button class="tickbtn" role="checkbox" aria-checked="${done.has(k)}" data-key="${k}" aria-label="${esc(r[0])} を撮影済みにする"><span class="tick">${TICK}</span></button>
+        <button class="rbody" data-open="${i}"><span class="meta"><span class="t">${esc(r[0])}</span>${r[1] !== '—' ? `<span class="pill">${esc(r[1])}</span>` : ''}${r[4] ? '<span class="tag">必ず</span>' : ''}</span><span class="w">${fmt(r[2])}</span>${r[3] ? `<span class="n">${fmt(r[3])}</span>` : ''}</button>
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+
+function renderMap() {
+  const legBtn = (v, l) => `<button data-leg="${v}" aria-pressed="${S.leg === v}">${l}</button>`;
+  const shown = S.leg ? STOPS.filter(s => s.leg === S.leg) : STOPS;
+  const cur = S.mode === 'day' ? S.ptr.day : -1;
+  $('v-map').innerHTML = `<div class="stack">
+    <div class="seg" style="grid-template-columns:repeat(4,1fr)">${legBtn(0, '全部')}${legBtn(1, '午前')}${legBtn(2, '昼')}${legBtn(3, '午後')}</div>
+    <div class="mapbox">${fullMap(S.leg)}</div>
+    <p class="lead">会場図をもとにした概略図（北が上、距離は正確ではない）。番号をタップすると撮影画面でその予定を開く。</p>
+    <ol class="legs">${shown.map(s => `<li><button data-open-day="${s.i}" class="${s.i === cur ? 'cur' : ''}" aria-checked="${done.has('d' + s.i)}"><span class="num" style="background:var(--leg${s.leg})">${s.n}</span><span class="lt">${s.t}</span><span>${esc(LOC_NAME[s.loc])}：${esc(s.l.length > 34 ? s.l.slice(0, 34) + '…' : s.l)}</span></button></li>`).join('')}</ol>
+  </div>`;
+}
+
+function renderFirms() {
+  let last = '', html = '', visible = 0;
+  FIRMS.forEach((f, i) => {
+    const n = CUTS.filter(([c]) => done.has(`f${i}-${c}`)).length;
+    if (S.onlyOpen && n === 5) return;
+    if (f[0] !== last) { html += `<div class="group-time">${esc(f[0])}</div>`; last = f[0]; }
+    html += firmCard(f, i); visible++;
+  });
+  const all = FIRMS.length, comp = FIRMS.filter((_, i) => CUTS.every(([c]) => done.has(`f${i}-${c}`))).length;
+  $('v-firms').innerHTML = `<div class="stack">
+    <h2>全社チェック</h2>
+    <div class="toolbar"><span class="lead">完了 ${comp}/${all}社</span><label class="switch"><input type="checkbox" id="only-open" ${S.onlyOpen ? 'checked' : ''}>未完了だけ</label></div>
+    ${html || '<p class="empty">全社そろいました。</p>'}
+  </div>`;
+}
+
+function itemBtn(k, text) { return `<button class="item" role="checkbox" aria-checked="${done.has(k)}" data-key="${k}"><span class="tick">${TICK}</span><span>${fmt(text)}</span></button>`; }
+function renderPrep() {
+  const standalone = window.navigator.standalone || matchMedia('(display-mode: standalone)').matches;
+  $('v-prep').innerHTML = `<div class="stack">
+    ${standalone ? '' : `<div class="install"><b>全画面で使うには</b>：Safariの共有ボタン（□↑）→「ホーム画面に追加」。ホーム画面のアイコンから開くと全画面になり、閉じても同じ画面に戻ります。</div>`}
+    <h2>要点</h2>
+    <p class="lead">当日 11/1（日）10:00〜16:00。主催 宍粟市商工会青年部、事務局 <span class="contact">0790-62-2365</span></p>
+    <div class="keys">
+      <div class="key"><div class="kt">11:00</div><div class="kd">子ども建前①（山場）南・建設</div></div>
+      <div class="key"><div class="kt">14:00</div><div class="kd">青年部長挨拶→キッズダンス。14:30 市長・商工会長</div></div>
+      <div class="key"><div class="kt">15:50</div><div class="kd">お菓子撒き。場所はアーチ</div></div>
+      <div class="key"><div class="kt">正午</div><div class="kd">消防署が撤収。北庁舎は10:05から</div></div>
+    </div>
+    <h3>必ず押さえるシーン</h3>${MUST.map((t, i) => itemBtn('m' + i, t)).join('')}
+    <h3>撮らない（NG）</h3><div class="box"><ul class="ng">${NG.map(t => `<li>${esc(t)}</li>`).join('')}</ul></div>
+    <h3>1社の撮り方（3〜5分）</h3><div class="box">会社名（プレート・のぼり・業務服）→ 手元（社員が教える）→ 顔（挑戦する子）→ 笑顔（できた瞬間）→ 一問（社員に「子どもに何を伝えたいか」）。ステージ本編は主催カメラ、自分は袖・客席・表情。</div>
+    <h3>GoPro タイムラプス（俯瞰）</h3><div class="box"><ul><li>会場全体が入る高い場所に固定。前日と当日で同じ位置・画角にする</li><li>インターバル5秒（8時間で約3分の素材）、広角、露出・ホワイトバランスをロック</li><li>モバイルバッテリーでUSB給電。点検は前日15:00、当日9:40・12:50に予定として入れてある。回収は前日17:15、当日17:00</li><li>点検では画角のずれ、カード残量、結露・直射日光を見る</li></ul></div>
+    <h3>設営中に聞くこと</h3>${ASK.map((t, i) => itemBtn('k' + i, t)).join('')}
+    <h3>振り返りインタビュー</h3>${QUESTIONS.map((t, i) => itemBtn('q' + i, t)).join('')}
+    <p class="lead">当日の終了直後に、1と3をもう一度聞く。</p>
+    <h3>持ち物</h3>${GEAR.map((t, i) => itemBtn('g' + i, t)).join('')}
+    <h3>データ</h3>
+    <div class="box">チェックはこのiPhoneの中に保存されます。ホーム画面のアイコンとSafariは保存場所が別なので、使う方を決めてください。</div>
+  </div>`;
+}
+
+function renderTop() {
+  const t = jst();
+  $('clock').textContent = `${t.h}:${String(t.mi).padStart(2, '0')}`;
+  const rows = rowsOf(S.mode), i = S.ptr[S.mode];
+  const ndone = rows.filter((_, k) => done.has(keyOf(S.mode, k))).length;
+  const firmsDone = FIRMS.filter((_, k) => CUTS.every(([c]) => done.has(`f${k}-${c}`))).length;
+  $('topsub').innerHTML = `${S.mode === 'eve' ? '前日' : '当日'} <b>${ndone}/${rows.length}</b> 済・全社 <b>${firmsDone}/${FIRMS.length}</b><br>いま：${esc(rows[i][0])} ${esc(rows[i][1] !== '—' ? rows[i][1] : '')}`;
+  $('wake').setAttribute('aria-pressed', S.wake);
+}
+
+const RENDER = { shoot: renderShoot, list: renderList, map: renderMap, firms: renderFirms, prep: renderPrep };
+function render() {
+  renderTop();
+  RENDER[S.tab]();
+  document.querySelectorAll('.view').forEach(v => v.hidden = v.dataset.tab !== S.tab);
+  document.querySelectorAll('#tabbar button').forEach(b => b.dataset.tab === S.tab ? b.setAttribute('aria-current', 'page') : b.removeAttribute('aria-current'));
+}
+function scroller(tab) { return tab === 'shoot' ? $('cardwrap') : $('v-' + tab); }
+function rememberScroll() { const el = scroller(S.tab); if (el) { S.scroll[S.tab] = el.scrollTop; persist(); } }
+function restoreScroll() { const el = scroller(S.tab); if (el) el.scrollTop = S.scroll[S.tab] || 0; }
+
+// ================= actions =================
+function setTab(tab) { rememberScroll(); S.tab = tab; persist(); render(); restoreScroll(); }
+function toggle(k) { if (done.has(k)) done.delete(k); else done.add(k); save(); buzz(); }
+function nowIndex(mode) {
+  const rows = rowsOf(mode), t = jst(), m = t.h * 60 + t.mi;
+  let idx = 0; rows.forEach((r, i) => { const v = mins(r[0]); if (v !== null && v <= m) idx = i; });
+  return idx;
+}
+
+document.addEventListener('click', e => {
+  const t = e.target.closest('button, input');
+  if (!t) return;
+  if (t.closest('#tabbar')) return setTab(t.dataset.tab);
+  if (t.dataset.goto) return setTab(t.dataset.goto);
+  if (t.dataset.mode) { S.mode = t.dataset.mode; persist(); render(); return; }
+  if (t.dataset.leg !== undefined) { S.leg = +t.dataset.leg; persist(); render(); return; }
+  if (t.dataset.key) { toggle(t.dataset.key); const y = scroller(S.tab).scrollTop; render(); scroller(S.tab).scrollTop = y; return; }
+  if (t.dataset.open !== undefined) { S.ptr[S.mode] = +t.dataset.open; S.scroll.shoot = 0; setTab('shoot'); return; }
+  if (t.dataset.openDay !== undefined) { S.mode = 'day'; S.ptr.day = +t.dataset.openDay; S.scroll.shoot = 0; setTab('shoot'); return; }
+  if (t.id === 'only-open') { S.onlyOpen = t.checked; persist(); render(); return; }
+  if (t.id === 'btn-ok') {
+    const rows = rowsOf(S.mode), i = S.ptr[S.mode], k = keyOf(S.mode, i);
+    if (!done.has(k)) { done.add(k); save(); buzz(); toast(`${rows[i][0]} 撮影済み`); }
+    if (i < rows.length - 1) S.ptr[S.mode] = i + 1;
+    S.scroll.shoot = 0; persist(); render(); $('cardwrap').scrollTop = 0; return;
+  }
+  if (t.id === 'btn-prev') { S.ptr[S.mode] = Math.max(0, S.ptr[S.mode] - 1); S.scroll.shoot = 0; persist(); render(); $('cardwrap').scrollTop = 0; return; }
+  if (t.id === 'btn-now') {
+    const d = today();
+    if (d === 20261031) S.mode = 'eve'; else if (d === 20261101) S.mode = 'day';
+    S.ptr[S.mode] = nowIndex(S.mode); persist(); render(); $('cardwrap').scrollTop = 0;
+    toast(d === 20261031 || d === 20261101 ? `いまの予定：${rowsOf(S.mode)[S.ptr[S.mode]][0]}` : '本番の日に時刻で合わせます');
+    return;
+  }
+  if (t.id === 'wake') { S.wake = !S.wake; persist(); applyWake(); renderTop(); toast(S.wake ? '画面を消さない' : '画面は自動で消える'); }
+});
+// the card on the shoot screen can be tapped to undo a check
+$('cardwrap').addEventListener('click', e => {
+  if (e.target.closest('button')) return;
+  const card = e.target.closest('.card'); if (!card) return;
+  const k = keyOf(S.mode, S.ptr[S.mode]);
+  if (done.has(k)) { done.delete(k); save(); buzz(); toast('チェックを外しました'); render(); }
+});
+
+// keep the screen on while shooting (where the browser allows it)
+let lock = null;
+async function applyWake() {
+  try {
+    if (S.wake && 'wakeLock' in navigator && document.visibilityState === 'visible') { if (!lock) { lock = await navigator.wakeLock.request('screen'); lock.addEventListener('release', () => { lock = null; }); } }
+    else if (lock) { await lock.release(); lock = null; }
+  } catch (e) { lock = null; }
+}
+
+// save the exact screen whenever the app goes to the background
+['visibilitychange', 'pagehide'].forEach(ev => window.addEventListener(ev, () => {
+  if (document.visibilityState === 'hidden' || ev === 'pagehide') { rememberScroll(); persist(); save(); }
+  else { render(); restoreScroll(); applyWake(); }
+}));
+let scrollT;
+document.addEventListener('scroll', () => { clearTimeout(scrollT); scrollT = setTimeout(rememberScroll, 300); }, true);
+window.addEventListener('resize', () => { if (S.tab === 'shoot') renderShoot(); });
+setInterval(() => { renderTop(); if (S.tab === 'shoot') { const y = $('cardwrap').scrollTop; renderShoot(); $('cardwrap').scrollTop = y; } }, 30000);
+
+render();
+requestAnimationFrame(() => { if (S.tab === 'shoot') renderShoot(); restoreScroll(); });
+applyWake();
+if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {});
+})();
+</script>
+</body>
+</html>

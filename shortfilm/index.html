@@ -162,6 +162,9 @@ table.mx { border-collapse: collapse; font-size: 13px; min-width: 100%; }
 .cutpill.ok { border-color: var(--ok); background: var(--ok-bg); color: var(--ok); }
 .cutpill.tried { border-color: var(--keep); color: var(--keep); }
 .donebtn { margin-left: auto; }
+.cutlist { display: flex; flex-direction: column; gap: 5px; }
+.cutrowv { display: grid; grid-template-columns: auto 1fr; gap: 8px; align-items: start; font-size: 14px; }
+.cutrowv .cutpill { min-width: 46px; text-align: center; }
 .donebtn[aria-pressed="true"] { background: var(--ok); border-color: var(--ok); color: var(--surface); }
 
 /* take rows */
@@ -231,6 +234,16 @@ pre.doc { white-space: pre-wrap; word-break: break-word; font-family: var(--font
 .cutrow input { min-height: 40px; border: 1.5px solid var(--line); border-radius: 9px; background: var(--surface); padding: 6px 8px; font-size: 15px; width: 100%; min-width: 0; }
 @media (max-width: 420px) { .cutrow { grid-template-columns: 52px 84px 1fr 36px; } }
 
+.thumbs { display: flex; gap: 6px; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 2px; }
+.thumb { flex: 0 0 auto; padding: 0; border-radius: 8px; overflow: hidden; border: 1px solid var(--line); background: #fff; }
+.thumb img { display: block; height: 64px; width: auto; }
+.thumbs.big .thumb img { height: 110px; }
+.tw { position: relative; flex: 0 0 auto; display: inline-block; }
+.tx { position: absolute; top: 2px; right: 2px; width: 28px !important; height: 28px !important; font-size: 15px !important; background: var(--surface); }
+.pickgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px; }
+.pk { display: flex; flex-direction: column; gap: 4px; border: 2px solid var(--line); border-radius: 10px; padding: 4px; background: var(--surface); text-align: center; font-size: 12px; font-weight: 700; }
+.pk img { width: 100%; height: 120px; object-fit: contain; background: #fff; border-radius: 6px; }
+.pk[aria-pressed="true"] { border-color: var(--ok); background: var(--ok-bg); color: var(--ok); }
 #toast { position: fixed; left: 50%; bottom: calc(var(--tabbar) + env(safe-area-inset-bottom, 0px) + 14px); transform: translateX(-50%) translateY(20px); background: var(--sel); color: var(--sel-ink); font-weight: 800; font-size: 14px; padding: 10px 16px; border-radius: 12px; opacity: 0; pointer-events: none; transition: .2s; z-index: 60; max-width: calc(100% - 32px); text-align: center; }
 #toast.show { opacity: 1; transform: translateX(-50%); }
 #busy { position: fixed; inset: 0; background: rgba(0,0,0,.35); z-index: 70; display: grid; place-items: center; }
@@ -260,6 +273,10 @@ pre.doc { white-space: pre-wrap; word-break: break-word; font-family: var(--font
   #print .gear { margin-top: 4mm; columns: 2; }
   #print .gear div { break-inside: avoid; }
   #print .foot { margin-top: 3mm; font-size: 8pt; color: #444; }
+  #print .dir { font-size: 8pt; color: #333; margin-top: 1mm; }
+  #print .pm td { font-size: 8pt; color: #222; }
+  #print .rules { margin-top: 3mm; font-size: 9pt; }
+  #print .rules ul { margin-left: 5mm; }
 }
 </style>
 </head>
@@ -285,11 +302,12 @@ pre.doc { white-space: pre-wrap; word-break: break-word; font-family: var(--font
 <div id="print"></div>
 <input type="file" id="file" multiple hidden accept=".txt,.text,.md,.fountain,.csv,.tsv,.xlsx,.xls,.xlsm,.ods,.docx,.pdf,.json,text/plain,text/csv,application/pdf">
 <input type="file" id="restore" hidden accept=".json,application/json">
+<input type="file" id="imgfile" hidden multiple accept="image/*">
 
 <script>
 (() => {
 'use strict';
-const VERSION = '1.0（11/3 初版）';
+const VERSION = '1.1（11/3 縦書きPDF・参考画像・編集素材リスト）';
 
 /* ───────── 基本 ───────── */
 const $ = id => document.getElementById(id);
@@ -311,7 +329,7 @@ function natCmp(a, b) { return String(a).localeCompare(String(b), 'ja', { numeri
 
 /* ───────── 保存 ───────── */
 const KEY = 'satsueicho.v1.project', UIKEY = 'satsueicho.v1.ui';
-function blank() { return { v: 1, title: '', director: '', memo: '', chars: [], days: [], scenes: [], events: [], takes: [], checks: {}, docs: [], gear: [], updated: 0 }; }
+function blank() { return { v: 1, title: '', draft: '', director: '', memo: '', chars: [], credits: [], rules: [], imgs: [], days: [], scenes: [], slots: [], events: [], takes: [], checks: {}, docs: [], gear: [], updated: 0 }; }
 function load() { try { const j = JSON.parse(localStorage.getItem(KEY)); if (j && j.v) return Object.assign(blank(), j); } catch (e) {} return blank(); }
 let P = load();
 const S = Object.assign({ tab: 'docs', planView: 'script', logOrder: 'script', logFilter: 'all', day: null, sheets: [], run: null, last: null, recCut: {}, wake: false, scroll: {} },
@@ -326,6 +344,48 @@ function save(now) {
 }
 function persist() { try { localStorage.setItem(UIKEY, JSON.stringify(S)); } catch (e) {} }
 
+/* ───────── 画像（端末の IndexedDB に保存） ───────── */
+const IMG = {};
+const IDB = {
+  db: null,
+  open() { return this.db ? Promise.resolve(this.db) : new Promise((res, rej) => { const r = indexedDB.open('satsueicho', 1); r.onupgradeneeded = () => r.result.createObjectStore('img'); r.onsuccess = () => res(this.db = r.result); r.onerror = () => rej(r.error); }); },
+  async tx(mode, fn) { const db = await this.open(); return new Promise((res, rej) => { const t = db.transaction('img', mode); const out = fn(t.objectStore('img')); t.oncomplete = () => res(out && out.result !== undefined ? out.result : out); t.onerror = () => rej(t.error); }); },
+  put(k, v) { return this.tx('readwrite', st => { st.put(v, k); }); },
+  del(k) { return this.tx('readwrite', st => { st.delete(k); }); },
+  clear() { return this.tx('readwrite', st => { st.clear(); }); },
+  async all() { const db = await this.open(); return new Promise((res, rej) => { const out = {}; const t = db.transaction('img', 'readonly'); const c = t.objectStore('img').openCursor(); c.onsuccess = () => { const cur = c.result; if (cur) { out[cur.key] = cur.value; cur.continue(); } }; t.oncomplete = () => res(out); t.onerror = () => rej(t.error); }); },
+};
+async function addImage(data, name, doc) { const id = uid(); IMG[id] = data; try { await IDB.put(id, data); } catch (e) { toast('画像を保存できませんでした'); } P.imgs.push({ id, name, doc: doc || '' }); return id; }
+function imgUsed(id) { return P.scenes.some(sc => (sc.refs || []).includes(id)) || P.docs.some(d => (d.pages || []).includes(id)); }
+async function dropImage(id) { if (imgUsed(id)) return; P.imgs = P.imgs.filter(m => m.id !== id); delete IMG[id]; try { await IDB.del(id); } catch (e) {} }
+async function fileToJpeg(file, max = 1600) {
+  const url = URL.createObjectURL(file);
+  try {
+    const img = await new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = url; });
+    const k = Math.min(1, max / Math.max(img.width, img.height)), c = document.createElement('canvas');
+    c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
+    c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+    return c.toDataURL('image/jpeg', 0.8);
+  } finally { URL.revokeObjectURL(url); }
+}
+async function pdfPages(buf, name) {
+  await need('pdf');
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'lib/pdf.worker.min.js';
+  const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(buf.slice(0)), cMapUrl: 'lib/cmaps/', cMapPacked: true }).promise;
+  const ids = [];
+  for (let p = 1; p <= Math.min(pdf.numPages, 60); p++) {
+    busy(true, `ページを画像にしています（${p}/${pdf.numPages}）`);
+    const page = await pdf.getPage(p), v0 = page.getViewport({ scale: 1 });
+    const vp = page.getViewport({ scale: Math.min(3, 1400 / Math.max(v0.width, v0.height)) });
+    const c = document.createElement('canvas'); c.width = Math.round(vp.width); c.height = Math.round(vp.height);
+    const ctx = c.getContext('2d'); ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, c.width, c.height);
+    await page.render({ canvasContext: ctx, viewport: vp }).promise;
+    ids.push(await addImage(c.toDataURL('image/jpeg', 0.75), `${name.replace(/\.pdf$/i, '')} ${p}ページ`, name));
+  }
+  return ids;
+}
+const thumbs = (ids, list) => (ids || []).filter(id => IMG[id]).map((id, i) => `<button class="thumb" data-a="viewImg" data-id="${id}" data-list="${esc((list || ids).join(','))}"><img src="${IMG[id]}" alt="${esc((P.imgs.find(m => m.id === id) || {}).name || '参考画像')}" loading="lazy"></button>`).join('');
+
 /* ───────── データの道具 ───────── */
 const sceneById = id => P.scenes.find(s => s.id === id);
 const dayById = id => P.days.find(d => d.id === id);
@@ -338,11 +398,16 @@ function cmpScene(a, b) { return natCmp(a.no, b.no) || (a.seq ?? 1e9) - (b.seq ?
 function scriptOrder() { return P.scenes.slice().sort(cmpScene); }
 function findScene(no) { no = normNo(no); return P.scenes.find(s => s.no === no); }
 function newScene(no) {
-  const sc = { id: uid(), no: no ? normNo(no) : String(nextSceneNo()), place: '', tod: '', io: '', loc: '', summary: '', cast: [], extras: '', props: [], costume: '', makeup: '', notes: '', day: '', start: '', mins: 0, order: 0, lines: [], secs: 0, cuts: [], cont: '', edit: '', done: false };
+  const sc = { id: uid(), no: no ? normNo(no) : String(nextSceneNo()), place: '', tod: '', io: '', loc: '', summary: '', dir: '', cast: [], extras: '', props: [], costume: '', makeup: '', notes: '', day: '', start: '', mins: 0, order: 0, lines: [], secs: 0, cuts: [], refs: [], cont: '', edit: '', done: false, noshoot: false };
   P.scenes.push(sc); return sc;
 }
 function nextSceneNo() { return P.scenes.reduce((m, s) => Math.max(m, parseInt(s.no, 10) || 0), 0) + 1; }
-function sameName(a, b) { return a === b || (a.length >= 2 && b.length >= 2 && (a.endsWith(b) || b.endsWith(a))); }
+function sameName(a, b) {
+  if (a === b) return true;
+  if (a.length < 2 || b.length < 2) return false;
+  const [l, sh] = a.length >= b.length ? [a, b] : [b, a];
+  return l.endsWith(sh) || (l.length - sh.length >= 2 && l.startsWith(sh));
+}
 function unionNames(base, add) {
   const out = (base || []).slice();
   for (const n of add || []) { if (n && !out.some(o => sameName(o, n))) out.push(n); }
@@ -385,9 +450,12 @@ function dayLabel(d) { if (!d) return '日程未定'; return d.label || (d.date 
 function timeline(dayId) {
   const items = P.scenes.filter(s => (s.day || '') === (dayId || '')).map(s => ({ t: 'sc', o: s }));
   if (dayId) P.events.filter(e => e.day === dayId).forEach(e => items.push({ t: 'ev', o: e }));
+  if (dayId) (P.slots || []).filter(x => x.day === dayId && sceneById(x.sc)).forEach(x => items.push({ t: 'sl', o: x }));
   items.sort((a, b) => (a.o.order || 0) - (b.o.order || 0) || (hm2min(a.o.start) ?? 1e4) - (hm2min(b.o.start) ?? 1e4) || (a.t === 'sc' && b.t === 'sc' ? cmpScene(a.o, b.o) : 0));
   return items;
 }
+const itemScene = it => (it.t === 'sc' ? it.o : it.t === 'sl' ? sceneById(it.o.sc) : null);
+const dayScenes = dayId => uniq(timeline(dayId).map(itemScene));
 function nextOrder(dayId) { return timeline(dayId).reduce((m, it) => Math.max(m, it.o.order || 0), 0) + 10; }
 
 /* テイク */
@@ -407,7 +475,28 @@ function sceneProgress(sc) {
   return { ok: sceneOk(sc) ? 1 : 0, all: 1 };
 }
 function sceneDone(sc) { return sc.done || (P.takes.some(t => t.sc === sc.id) && sceneOk(sc)); }
-function missingCuts(sc) { if (sc.cuts.length) return sc.cuts.filter(c => !cutState(sc, c.id).ok); return sceneOk(sc) ? [] : [null]; }
+function missingCuts(sc) { if (sc.noshoot) return []; return missingCuts0(sc); }
+function missingCuts0(sc) { if (sc.cuts.length) return sc.cuts.filter(c => !cutState(sc, c.id).ok); return sceneOk(sc) ? [] : [null]; }
+function postItems(sc) {
+  const out = [];
+  for (const l of sc.lines || []) {
+    if (l.k === 'd') {
+      const w = l.who;
+      if (/^(字幕|テロップ|スーパー)$/.test(w)) out.push({ k: '字幕', t: l.text });
+      else if (/^(タイトル|サブタイトル)$/.test(w)) out.push({ k: 'タイトル', t: l.text });
+      else if (/(唄声|歌声)$/.test(w)) out.push({ k: '唄', t: (l.p ? `（${l.p}）` : '') + l.text });
+      else if (/(Ｎ|ナレーション|ナレ)$/.test(w) || /[^\x00-\x7F]N$/.test(w) || /^(Ｎ|N)$/.test(w)) out.push({ k: 'N', t: `${speakerBase(w)}：${(l.p ? `（${l.p}）` : '') + l.text}` });
+      continue;
+    }
+    const star = /^[※＊*]/.test(l.text), t = l.text.replace(/^[※＊*]\s*/, '');
+    if (/^(ＳＥ|SE|効果音)\s*[:：]/i.test(t)) out.push({ k: 'SE', t: t.replace(/^(ＳＥ|SE|効果音)\s*[:：]\s*/i, '') });
+    else if (/^(ＢＧＭ|BGM|音楽)\s*[:：]/i.test(t)) out.push({ k: '音楽', t: t.replace(/^[^:：]+[:：]\s*/, '') });
+    else if (/^インサート\s*[:：]/.test(t)) out.push({ k: 'インサート', t: t.replace(/^インサート\s*[:：]\s*/, '') });
+    else if (star || /^(写真|ＣＧ映像|CG映像|ＣＧ|CG|動画|映像)\s*[0-9０-９]/i.test(t)) out.push({ k: /^(写真|絵葉書)/.test(t) ? '写真' : /^(ＣＧ|CG)/i.test(t) ? 'CG' : /^(動画|映像)/.test(t) ? '動画' : '素材', t });
+  }
+  return out;
+}
+const POST_ORDER = ['写真', 'CG', '動画', '素材', 'インサート', 'タイトル', '字幕', 'N', '唄', 'SE', '音楽'];
 function todLine(sc) { return [sc.tod, sc.io].filter(Boolean).join('・'); }
 function sceneTitle(sc) { return `S#${sc.no}` + (sc.place ? ' ' + sc.place : '') + (todLine(sc) ? `（${todLine(sc)}）` : ''); }
 function estText(secs) { if (!secs) return ''; const m = Math.floor(secs / 60), s = secs % 60; return '約' + (m ? m + '分' : '') + (s ? s + '秒' : ''); }
@@ -451,10 +540,13 @@ const HEAD_RES = [
   /^(?:S|Ｓ)\s*([0-9０-９]{1,3}[A-Za-zＡ-Ｚ]?)(?=[\s　.．:：、])(.*)$/,
   /^[#＃]\s*([0-9０-９]{1,3}[A-Za-zＡ-Ｚａ-ｚ]?)(.*)$/,
   /^(?:シーン|ｼｰﾝ|scene|場面)\s*([0-9０-９]{1,3}[A-Za-zＡ-Ｚａ-ｚ]?)(.*)$/i,
+  /^(?:([0-9０-９]{1,3}[A-Za-zＡ-Ｚ]?)[\s　.．、:：)）]+)?((?:現在|過去|当時|回想|夢|戦前|戦後)の(?:昼間|昼|日中|夜|朝|夕方|夕|深夜|早朝|夜明け|明け方)[\s　].*)$/,
 ];
 const NUM_HEAD = /^([0-9０-９]{1,3}[A-Za-zＡ-Ｚ]?)[\s　.．、:：)）]+(.{1,40})$/;
 function splitHead(rest) {
   let s = rest.replace(/^[\s　.．:：、)）\-－]+/, '').trim(), tod = '', io = '', m;
+  m = /^(?:(?:現在|過去|当時|回想|夢|戦前|戦後)の)?(昼間|昼|日中|夜|朝|夕方|夕|深夜|早朝|夜明け|明け方)[\s　]+(.+)$/.exec(s);
+  if (m) { tod = normTod(m[1]); s = m[2].trim(); }
   m = /^(INT\.?\/EXT|EXT\.?\/INT|I\/E|INT|EXT)\.?\s+(.*)$/i.exec(s);
   if (m) { io = /^EXT/i.test(m[1]) ? '外' : '内'; s = m[2]; }
   for (let k = 0; k < 3; k++) {
@@ -491,14 +583,25 @@ function sceneHead(raw) {
 const DLG = /^([^\s　「」『』()（）。、！？!?…]{1,15})[\s　]*((?:（[^）]*）|\([^)]*\))?)[\s　]*([「『])(.*)$/;
 const PARTICLE_END = /[にをがはでへもとのや]$/;
 const VOICE_SUFFIX = /(の声|ＯＦＦ|OFF|Ｏ\.Ｓ\.?|O\.S\.?|ＯＳ|OS|Ｖ\.Ｏ\.?|V\.O\.?|ＶＯ|VO|Ｍ|声)$/i;
-function speakerBase(n) { const b = n.replace(VOICE_SUFFIX, ''); return b.length ? b : n; }
+const NONCAST = /^(字幕|テロップ|スーパー|タイトル|サブタイトル|ＳＥ|SE|ＢＧＭ|BGM|Ｍ|M|Ｎ|N|ナレーション|ナレ|.*(唄声|歌声|アナウンス|ラジオ|テレビ|ＴＶ|TV))$/i;
+function speakerBase(n) { const b = n.replace(/Ｎ$|(?<=[^\x00-\x7F])N$/, '').replace(VOICE_SUFFIX, ''); return b.length ? b : n; }
+const isCast = n => !NONCAST.test(n) && !NONCAST.test(speakerBase(n));
 function parseScript(text) {
-  const lines = String(text || '').replace(/\r\n?/g, '\n').split('\n').map(l => l.replace(/\t/g, '　').replace(/\s+$/, ''));
+  let lines = String(text || '').replace(/\r\n?/g, '\n').split('\n').map(l => l.replace(/\t/g, '　').replace(/\s+$/, ''));
+  // 「字　幕「…」」のように一字ずつ空けた話し手は詰める
+  lines = lines.map(l => l.replace(/^([\s　]*)([^\s　「」『』（）()]([\s　][^\s　「」『』（）()]){1,4})(?=[\s　]*(?:（[^）]*）|\([^)]*\))?[\s　]*[「『])/, (m0, ind, name) => ind + name.replace(/[\s　]/g, '')));
+  // 縦書きで行の終わりまで届いて折り返したト書きは、次の行とつなぐ
   const heads = lines.map(sceneHead);
   const strong = heads.filter(h => h && !h.weak).length, weak = heads.filter(h => h && h.weak).length;
-  const isHead = i => heads[i] && (!heads[i].weak || (strong === 0 && weak >= 2));
+  const okHead = []; let lastNo = 0;
+  heads.forEach((h, i) => {
+    if (!h) return;
+    const n = parseInt(h.no, 10);
+    if (!h.weak || (strong === 0 && weak >= 2) || (n && n === lastNo + 1)) { okHead[i] = true; if (n) lastNo = n; }
+  });
+  const isHead = i => !!okHead[i];
   const firstHead = lines.findIndex((l, i) => isHead(i));
-  const res = { title: '', chars: [], scenes: [], lines: 0, dialogs: 0 };
+  const res = { title: '', draft: '', chars: [], credits: [], scenes: [], lines: 0, dialogs: 0 };
   if (firstHead < 0) return res;
   // 表紙と登場人物
   const pre = lines.slice(0, firstHead);
@@ -509,6 +612,15 @@ function parseScript(text) {
     if (inChars) {
       const m = /^([^\s　（(・:：…\-－]+)[\s　]*(?:[（(]([^）)]*)[）)])?[\s　:：…\-－]*(.*)$/.exec(t);
       if (m && m[1].length <= 12) res.chars.push({ name: m[1], note: [m[2] ? m[2] + '歳' : '', m[3]].filter(Boolean).join(' ').replace(/^(\d+)歳歳/, '$1歳') });
+      continue;
+    }
+    const tm = /『([^』]+)』(.*)$/.exec(t);
+    if (!res.title && tm) { res.title = tm[1]; const dm = /第\s*[0-9０-９一二三四五六七八九十]+\s*稿|決定稿|準備稿|初稿/.exec(tm[2]); if (dm) res.draft = dm[0]; continue; }
+    const cm = /^([^：:「」]{1,20})[：:]\s*(.+)$/.exec(t);
+    if (cm) {
+      const role = cm[1].trim(), who = cm[2].trim();
+      if (/(監督|撮影|脚本|制作|製作|記録|監修|音楽|録音|照明|編集|美術|演出|原作|プロデュー|ＣＧ|CG|協力|企画|助手|スタッフ|整音|衣装|メイク)/.test(role)) res.credits.push({ role, name: who });
+      else { res.chars.push({ name: role, note: who }); res.credits.push({ role: `出演（${role}）`, name: half(who.split(/[、,，]/)[0]) }); }
       continue;
     }
     if (!res.title && t.length <= 30 && !/^(作|脚本|監督|原作|第.稿|\d)/.test(t)) res.title = t.replace(/^[『「]|[』」]$/g, '');
@@ -527,10 +639,11 @@ function parseScript(text) {
   const push = (k, o) => { if (cur) { o.k = k; cur.lines.push(o); } };
   for (let i = 0; i < body.length; i++) {
     const raw = body[i], gi = firstHead + i;
-    if (open) { // 台詞の続き
+    if (open) { // 台詞の続き（ページの変わり目の空行はとばす）
       const t = raw.trim();
-      open.text += (open.text ? '\n' : '') + t;
-      if (/[」』]/.test(t) || !t) open = null;
+      if (!t) { if (++open.blank > 2) open = null; continue; }
+      open.text += t; open.n++;
+      if (t.includes(open.close) || open.n > 12 || isHead(gi)) open = null;
       continue;
     }
     if (isHead(gi)) {
@@ -546,11 +659,11 @@ function parseScript(text) {
     const ind = /^[\s　]*/.exec(raw)[0].length;
     const m = DLG.exec(t);
     if (m && (!zeroIndent || ind <= 1) && okName(m[1])) {
-      let txt = m[4]; const closed = /[」』]/.test(txt);
-      const d = { who: m[1], p: (m[2] || '').replace(/^[（(]|[）)]$/g, ''), text: txt.replace(/[」』]\s*$/, '') };
+      let txt = m[4]; const close = m[3] === '『' ? '』' : '」', closed = txt.includes(close);
+      const d = { who: m[1], p: (m[2] || '').replace(/^[（(]|[）)]$/g, ''), text: txt.replace(close === '」' ? /」\s*$/ : /』\s*$/, '') };
       push('d', d); res.dialogs++;
-      if (!closed) open = { get text() { return d.text; }, set text(v) { d.text = v.replace(/[」』]\s*$/, ''); } };
-      cur.cast = unionNames(cur.cast, [speakerBase(m[1])]);
+      if (!closed) open = { close, blank: 0, n: 0, get text() { return d.text; }, set text(v) { d.text = v.replace(/[」』]\s*$/, ''); } };
+      if (isCast(m[1])) cur.cast = unionNames(cur.cast, [speakerBase(m[1])]);
       continue;
     }
     if (english && /^[A-Z][A-Z0-9 .'\-]{1,24}(\s*\(.*\))?$/.test(t) && body[i + 1] && body[i + 1].trim()) {
@@ -613,13 +726,14 @@ function hdrField(cell) {
   return '';
 }
 const NOT_MARK = /^(×|x|X|-|－|ー|―|なし|無|0|✕)$/;
-function isMark(v) { v = String(v || '').trim(); return !!v && v.length <= 4 && !NOT_MARK.test(v); }
+const MARK = /^([○◯〇●◎✓✔☑vVｖＶ1１＊*・◇◆□■☆★OoＯｏ]|声|ＯＦＦ|OFF|ＯＳ|OS|Ｍ|M|N|Ｎ|ナレ|ボイス|吹替|吹き替え|写真|影|後ろ姿|手元|足元|代役)+$/;
+function isMark(v) { v = String(v || '').trim(); return !!v && v.length <= 4 && !NOT_MARK.test(v) && MARK.test(v); }
 function isPersonCol(rows, hi, c) {
   const h = String(rows[hi][c] || '').trim();
   if (!h || h.length > 12 || /^[\d\s.:：\/]+$/.test(half(h))) return false;
   const vals = rows.slice(hi + 1).map(r => String(r[c] ?? '').trim()).filter(Boolean);
   if (!vals.length) return false;
-  return vals.every(v => v.length <= 4 && !/[2-9０-９:：]/.test(half(v).replace(/^1$/, '')));
+  return vals.every(v => NOT_MARK.test(v) || isMark(v)) && vals.some(isMark);
 }
 function findHeader(rows) {
   let best = -1, bs = 0;
@@ -637,23 +751,40 @@ function guessMap(rows, hi) {
     if (f && used.has(f) && f !== 'notes') f = '';
     if (f) { used.add(f); return f; }
     return isPersonCol(rows, hi, c) ? 'person' : '';
+  }).map((f, c, arr) => {
+    // 見出しのない列でも、中身がほとんど時刻なら開始時刻とみなす
+    if (f || arr.includes('start')) return f;
+    const vals = rows.slice(hi + 1).map(r => String(r[c] ?? '').trim()).filter(Boolean);
+    return vals.length >= 3 && vals.filter(v => normTime(v) && half(v).length <= 13).length >= vals.length * 0.6 ? 'start' : f;
   });
 }
 const DAY_RE = /(\d{1,4}[\/\-年.]\d{1,2}([\/\-月.]\d{1,2})?|\d+日目|DAY\s*\d+|第\d+日|[月火水木金土日]曜|[(（][月火水木金土日][)）])/i;
+const DAY_ONLY = /^\s*((?:\d{4}[\/\-年.])?\d{1,2}[\/\-月.]\d{1,2}日?\s*(?:[(（][月火水木金土日祝・]+[)）])?|\d+日目|DAY\s*\d+|第\d+日)/i;
+const DASH = /^[―—\-－ー‐]+$/;
+const PURE_TIME = /^[\d:：時分〜~\-－\s]+$/;
 const EVENT_RE = /(集合|準備|移動|昼食|夕食|朝食|休憩|食事|撤収|解散|撮了|セッティング|リハ|メイク|着替|ロケハン|待機|片付|バラシ|搬入|搬出|開始|終了|弁当|ランチ|入り|仕込み)/;
 function parseTable(rows, hi, map) {
   const hdr = rows[hi] || [];
-  const out = { recs: [], events: [], cuts: [], days: [], persons: [] };
+  const out = { recs: [], events: [], cuts: [], days: [], persons: [], dayInfo: {}, gear: [] };
+  let inGear = false;
   map.forEach((f, c) => { if (f === 'person') out.persons.push(String(hdr[c]).trim()); });
   let curDay = '', last = null, order = 0;
   const addDay = d => { if (d && !out.days.includes(d)) out.days.push(d); };
   for (let r = hi + 1; r < rows.length; r++) {
-    const cells = (rows[r] || []).map(x => String(x ?? '').trim());
+    const cells = (rows[r] || []).map(x => String(x ?? '').trim()).map(v => (DASH.test(v) ? '' : v));
     if (!cells.some(Boolean)) continue;
     const g = k => uniq(cells.filter((v, c) => map[c] === k && v)).join(' / ');
     const filled = cells.filter(Boolean);
     if (filled.filter(v => hdrField(v) || out.persons.includes(v)).length >= Math.max(2, filled.length - 1)) continue; // 見出しのくり返し
     const noText = g('no'), dayText = g('day');
+    // 「11/05(木)　13時00分　温泉大階段　現地集合」のような日の区切り（撮影日の列がない表）
+    const dm = !map.includes('day') && DAY_ONLY.exec(half(filled[0]));
+    if (dm) {
+      curDay = dm[1].trim(); addDay(curDay);
+      const rest = half(filled.join(' ')).slice(dm[0].length).trim();
+      out.dayInfo[curDay] = { call: normTime(rest), meet: rest.replace(/\d{1,2}\s*[:：時]\s*\d{0,2}\s*分?/, '').trim() };
+      continue;
+    }
     if (!noText && !g('cut') && filled.length <= 2 && filled.every(v => DAY_RE.test(half(v)))) { curDay = filled.find(v => DAY_RE.test(half(v))); addDay(curDay); continue; }
     if (dayText) { curDay = dayText; addDay(curDay); }
     order = (+half(g('order')).replace(/[^\d.]/g, '') * 10) || order + 10;
@@ -662,8 +793,11 @@ function parseTable(rows, hi, map) {
     const nos = splitNos(noText);
     if (!nos.length) {
       if (g('cut') && last) { out.cuts.push({ no: last, cut: normCut(g('cut')), size: g('size'), desc: g('summary') || g('notes') }); continue; }
-      const label = g('summary') || g('place') || g('loc') || g('notes') || filled.filter(v => v !== dayText && !normTime(v)).join(' ');
-      if (label && (st || EVENT_RE.test(label))) out.events.push({ day: curDay, start: st, end, label, order });
+      const label = uniq(filled.filter(v => v !== dayText && !PURE_TIME.test(half(v)))).join(' ');
+      if (/^[【\[［]\s*(準備物|持ち物|持参物|持参品|機材|用意するもの)\s*[】\]］]/.test(label)) { inGear = true; continue; }
+      if (inGear && /^[・\-－*□■☐●]/.test(label)) { out.gear.push(label.replace(/^[・\-－*□■☐●]\s*/, '')); continue; }
+      inGear = false;
+      if (label && (st || EVENT_RE.test(label))) out.events.push({ day: curDay, start: st || filled.map(v => normTime(v)).find(Boolean) || '', end, label, order });
       continue;
     }
     if (g('cut')) { for (const no of nos) out.cuts.push({ no, cut: normCut(g('cut')), size: g('size'), desc: g('summary') || g('notes') }); last = nos[0]; continue; }
@@ -738,48 +872,150 @@ function fromHtml(name, html) {
   }
   return { name, text: out.join('\n'), tables };
 }
-function horizLines(items) {
+const median = a => { const b = a.slice().sort((x, y) => x - y); return b.length ? b[b.length >> 1] : 0; };
+// 横書きのページ：行ごとにまとめ、離れた文字は別のマスにする
+function horizRows(items) {
   const rows = [];
-  for (const i of items) {
-    const x = i.transform[4], y = i.transform[5], h = Math.abs(i.transform[3]) || Math.hypot(i.transform[2], i.transform[3]) || 10;
-    let r = rows.find(r => Math.abs(r.y - y) < h * 0.5);
-    if (!r) { r = { y, h, it: [] }; rows.push(r); }
-    r.it.push({ x, w: i.width, s: i.str });
+  for (const i of items.slice().sort((a, b) => a.y - b.y)) {
+    let r = rows.find(r => Math.abs(r.y - i.y) < Math.min(r.h, i.h) * 0.5);
+    if (!r) { r = { y: i.y, h: i.h, it: [] }; rows.push(r); }
+    r.it.push(i);
   }
-  rows.sort((a, b) => b.y - a.y);
-  const minX = Math.min(...rows.map(r => Math.min(...r.it.map(i => i.x))));
-  return rows.map(r => {
+  rows.sort((a, b) => a.y - b.y);
+  for (const r of rows) {
     r.it.sort((a, b) => a.x - b.x);
-    const ind = Math.round((r.it[0].x - minX) / r.h);
+    r.cells = [];
+    for (const i of r.it) {
+      const c = r.cells[r.cells.length - 1];
+      if (c && i.x - c.x1 < r.h * 0.9) { c.t += (i.x - c.x1 > r.h * 0.3 ? ' ' : '') + i.s; c.x1 = i.x + i.w; }
+      else r.cells.push({ t: i.s, x0: i.x, x1: i.x + i.w, h: r.h });
+    }
+  }
+  return rows;
+}
+function horizText(rows) {
+  if (!rows.length) return '';
+  const minX = Math.min(...rows.map(r => r.cells[0].x0));
+  return rows.map(r => {
+    const ind = Math.round((r.cells[0].x0 - minX) / r.h);
     let line = ind >= 1 ? '　'.repeat(Math.min(ind, 6)) : '', end = null;
-    for (const i of r.it) { if (end !== null) { const gap = i.x - end; if (gap > r.h * 2) line += '\t'; else if (gap > r.h * 0.3) line += ' '; } line += i.s; end = i.x + i.w; }
+    for (const c of r.cells) { if (end !== null) line += c.x0 - end > r.h * 2 ? '\t' : ' '; line += c.t; end = c.x1; }
     return line;
   }).join('\n');
 }
-function vertLines(items) {
-  const cols = [];
-  for (const i of items) {
-    const x = i.transform[4], y = i.transform[5], s = Math.abs(i.transform[0]) || Math.hypot(i.transform[0], i.transform[1]) || 10;
-    let c = cols.find(c => Math.abs(c.x - x) < s * 0.5);
-    if (!c) { c = { x, s, it: [] }; cols.push(c); }
-    c.it.push({ y, s: i.str });
+// 表の列をそろえる：中身の行で文字がかかっていない縦の帯を列の境目にし、見出しは真ん中の位置で当てはめる
+function alignTable(rows) {
+  const hi = findHeader(rows.map(r => r.cells.map(c => c.t)));
+  if (hi < 0) return null;
+  const h = median(rows.flatMap(r => r.cells.map(c => c.h))) || 10;
+  const data = rows.slice(hi + 1).filter(r => r.cells.length >= 3 && !DAY_ONLY.test(half(r.cells[0].t)));
+  const iv = data.flatMap(r => r.cells.map(c => [c.x0, c.x1])).sort((x, y) => x[0] - y[0]);
+  const C = [];
+  for (const [x0, x1] of iv) { const l = C[C.length - 1]; if (l && x0 <= l.x1 + h * 0.6) l.x1 = Math.max(l.x1, x1); else C.push({ x0, x1 }); }
+  for (const hc of rows[hi].cells) {
+    const cx = (hc.x0 + hc.x1) / 2;
+    if (!C.some(c => cx >= c.x0 - h * 0.5 && cx <= c.x1 + h * 0.5)) { C.push({ x0: hc.x0, x1: hc.x1 }); C.sort((x, y) => x.x0 - y.x0); }
   }
-  cols.sort((a, b) => b.x - a.x);
-  const top = Math.max(...cols.flatMap(c => c.it.map(i => i.y)));
-  return cols.map(c => { c.it.sort((a, b) => b.y - a.y); const ind = Math.round((top - c.it[0].y) / c.s); return '　'.repeat(Math.max(0, Math.min(ind, 6))) + c.it.map(i => i.s).join(''); }).join('\n');
+  if (C.length < 2) return null;
+  const colC = c => { const cx = (c.x0 + c.x1) / 2; let j = C.findIndex(k => cx >= k.x0 - h * 0.5 && cx <= k.x1 + h * 0.5); if (j < 0) j = col(c); return j; };
+  const col = c => {
+    const k0 = C.findIndex(k => c.x0 >= k.x0 - h * 0.5 && c.x0 <= k.x1); // 左寄せの文字は、書き出しの位置の列
+    if (k0 >= 0) return k0;
+    let best = 0, bo = -1, bd = 1e9;
+    C.forEach((k, j) => { const o = Math.min(c.x1, k.x1) - Math.max(c.x0, k.x0); const d = Math.abs((c.x0 + c.x1) / 2 - (k.x0 + k.x1) / 2); if (o > bo + 0.01 || (o <= 0 && bo <= 0 && d < bd)) { if (o > 0 || bo <= 0) { best = j; bo = Math.max(o, bo); bd = d; } } });
+    return best;
+  };
+  return rows.map((r, ri) => { const row = Array(C.length).fill(''); for (const c of r.cells) { const j = ri === hi ? colC(c) : col(c); row[j] = row[j] ? row[j] + ' ' + c.t : c.t; } return row; });
 }
-async function pdfText(buf) {
-  pdfjsLib.GlobalWorkerOptions.workerSrc = 'lib/pdf.worker.min.js';
-  const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(buf), cMapUrl: 'lib/cmaps/', cMapPacked: true }).promise;
+// 縦書きのページか（1文字ずつ縦に並んでいるか）
+function isVerticalPage(items) {
+  // 1文字ずつの部品で、いちばん近い隣が「下」にある文字が多ければ縦書き
+  const one = items.filter(i => [...i.s].length === 1);
+  if (one.length < 30) return false;
+  let v = 0, hz = 0;
+  for (const a of one) {
+    let dv = 1e9, dh = 1e9;
+    for (const b of one) {
+      if (a === b) continue;
+      const dx = b.x - a.x, dy = b.y - a.y;
+      if (Math.abs(dx) < a.h * 0.3 && dy > 0 && dy < dv) dv = dy;
+      if (Math.abs(dy) < a.h * 0.3 && dx > 0 && dx < dh) dh = dx;
+    }
+    if (dv < a.h * 1.7 && dv < dh) v++; else if (dh < a.h * 1.7) hz++;
+  }
+  return v > 20 && v > hz * 2;
+}
+// 紙面を余白で区切って、読む順に並べる（縦書きは右から左）
+function xycut(segs, vertical) {
+  if (segs.length <= 1) return [segs];
+  const h = median(segs.map(x => x.h)) || 10;
+  let best = null, mx = -1e9;
+  const byY = segs.slice().sort((a, b) => a.y0 - b.y0);
+  byY.forEach((g, i) => { if (i && g.y0 - mx > h * 2.5 && (!best || g.y0 - mx > best.gap)) best = { gap: g.y0 - mx, i }; mx = Math.max(mx, g.y1); });
+  if (best) return xycut(byY.slice(0, best.i), vertical).concat(xycut(byY.slice(best.i), vertical));
+  best = null; mx = -1e9;
+  const byX = segs.slice().sort((a, b) => a.x0 - b.x0);
+  byX.forEach((g, i) => { if (i && g.x0 - mx > h * 1.8 && (!best || g.x0 - mx > best.gap)) best = { gap: g.x0 - mx, i }; mx = Math.max(mx, g.x1); });
+  if (best) { const L = xycut(byX.slice(0, best.i), vertical), R = xycut(byX.slice(best.i), vertical); return vertical ? R.concat(L) : L.concat(R); }
+  return [segs];
+}
+function vertText(items) {
+  // 1文字ずつ（と、縦中横の短い数字）を縦の列にまとめる。ページ番号や日付などの横書きは捨てる
+  const chars = items.filter(i => [...i.s].length === 1 || ([...i.s].length <= 3 && i.w <= i.h * 1.4)).map(i => ({ c: i.s, cx: i.x + i.w / 2, y: i.y, h: i.h }));
+  chars.sort((a, b) => a.cx - b.cx);
+  const cols = [];
+  for (const ch of chars) { const l = cols[cols.length - 1]; if (l && ch.cx - l.cx <= ch.h * 0.45) { l.it.push(ch); l.cx = (l.cx * (l.it.length - 1) + ch.cx) / l.it.length; } else cols.push({ cx: ch.cx, it: [ch] }); }
+  const segs = [];
+  for (const col of cols) {
+    col.it.sort((a, b) => a.y - b.y);
+    let cur = null;
+    for (const ch of col.it) {
+      if (cur && ch.y - cur.last < ch.h * 3.2) { const miss = Math.round((ch.y - cur.last) / ch.h) - 1; if (miss > 0) cur.t += '　'.repeat(miss); cur.t += ch.c; cur.last = ch.y; cur.y1 = ch.y; }
+      else { cur = { t: ch.c, cx: col.cx, x0: col.cx - ch.h / 2, x1: col.cx + ch.h / 2, y0: ch.y - ch.h, y1: ch.y, last: ch.y, h: ch.h }; segs.push(cur); }
+    }
+  }
+  // 箱の中のシーン番号は、すぐ下の列（柱）の頭につける
+  const isNum = g => /^[0-9０-９]{1,3}$/.test(g.t);
+  const body = segs.filter(g => !isNum(g));
+  for (const n of segs.filter(isNum)) {
+    let best = null, bd = 1e9;
+    for (const g of body) { const dx = Math.abs(g.cx - n.cx), dy = g.y0 - n.y1; if (dx < n.h * 2 && dy > -n.h && dy < n.h * 6 && dx + dy < bd) { bd = dx + dy; best = g; } }
+    if (best) best.t = n.t + '　' + best.t; else body.push(n);
+  }
   const out = [];
-  for (let p = 1; p <= pdf.numPages; p++) {
-    const page = await pdf.getPage(p), tc = await page.getTextContent();
-    const items = tc.items.filter(i => i.str && i.str.trim());
-    if (!items.length) continue;
-    const vert = items.filter(i => tc.styles[i.fontName] && tc.styles[i.fontName].vertical).length > items.length / 2;
-    out.push(vert ? vertLines(items) : horizLines(items));
+  let prev = null, last = -1;
+  for (const blk of xycut(body, true)) {
+    const top = Math.min(...blk.map(g => g.y0)), bottom = Math.max(...blk.map(g => g.y1)), h = median(blk.map(g => g.h)) || 10;
+    blk.sort((a, b) => b.cx - a.cx || a.y0 - b.y0);
+    for (const g of blk) {
+      const ind = Math.max(0, Math.min(6, Math.round((g.y0 - top) / h)));
+      // 列の下まで届いた行の続き（同じ字下げで始まる次の列）は、1行につなぐ
+      if (prev && prev.full && ind > 0 && ind === prev.ind && !/^([0-9０-９]|※|＊|ＳＥ|SE|インサート)/.test(g.t) && !/[。」』）)]$/.test(out[last])) { out[last] += g.t; prev.full = g.y1 >= bottom - h * 1.6; continue; }
+      out.push('　'.repeat(ind) + g.t); last = out.length - 1;
+      prev = { ind, full: g.y1 >= bottom - h * 1.6 };
+    }
+    out.push('');
   }
   return out.join('\n');
+}
+async function pdfRead(buf) {
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'lib/pdf.worker.min.js';
+  const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(buf), cMapUrl: 'lib/cmaps/', cMapPacked: true }).promise;
+  const texts = [], tables = [];
+  for (let p = 1; p <= pdf.numPages; p++) {
+    const page = await pdf.getPage(p), vp = page.getViewport({ scale: 1 }), tc = await page.getTextContent();
+    // 用紙を回したページも、見たままの向きに直してから読む
+    const items = tc.items.filter(i => i.str && i.str.trim()).map(i => { const t = pdfjsLib.Util.transform(vp.transform, i.transform); const hh = Math.hypot(t[2], t[3]) || 10; return { s: i.str, x: t[4], y: t[5], w: i.width, h: hh }; });
+    if (!items.length) continue;
+    if (isVerticalPage(items)) { texts.push(vertText(items)); continue; }
+    const rows = horizRows(items);
+    texts.push(horizText(rows));
+    const tb = alignTable(rows);
+    if (tb) tables.push({ name: pdf.numPages > 1 ? `${p}ページ目` : '表', rows: tb });
+  }
+  // 何ページにも出てくる日付・ページ番号の行は除く
+  const text = texts.join('\n').split('\n').filter(l => !/^[\s　]*([－\-―–]\s*\d+\s*[－\-―–]|\d{4}\/\d{1,2}\/\d{1,2})[\s　]*$/.test(l)).join('\n');
+  return { text, tables };
 }
 async function extract(file) {
   const name = file.name, ext = (name.split('.').pop() || '').toLowerCase();
@@ -795,9 +1031,9 @@ async function extract(file) {
   if (ext === 'docx') { await need('mammoth'); const r = await mammoth.convertToHtml({ arrayBuffer: buf }); return fromHtml(name, r.value); }
   if (ext === 'pdf') {
     await need('pdf');
-    const text = await pdfText(buf);
-    if (!text.trim()) throw new Error('文字の入っていない PDF です（紙をスキャンしたもの）。元のファイルを入れるか、文字を貼り付けてください');
-    return { name, text, tables: tabTables(text, name) };
+    const r = await pdfRead(buf.slice(0));
+    if (!r.text.trim()) throw new Error('文字の入っていない PDF です（紙をスキャンしたもの）。元のファイルを入れるか、文字を貼り付けてください');
+    return { name, buf, pdf: true, text: r.text, tables: r.tables.length ? r.tables.map(t => Object.assign(t, { name: `${name} ${t.name}` })) : tabTables(r.text, name) };
   }
   const text = decodeText(buf);
   if (ext === 'csv' || ext === 'tsv') return { name, text, tables: [{ name, rows: parseCsv(text) }] };
@@ -812,22 +1048,26 @@ function analyze(d) {
   else if (d.script.scenes.length >= 2) d.kind = 'script';
   else d.kind = tableOk ? 'table' : 'other';
   d.id = d.id || uid();
+  if (d.pdf && d.toPages === undefined) d.toPages = d.kind === 'other';
   return d;
 }
 function tableResult(d) {
-  const all = { recs: [], events: [], cuts: [], days: [], persons: [] };
+  const all = { recs: [], events: [], cuts: [], days: [], persons: [], gear: [] };
   d.tables.forEach((t, i) => {
     const ti = d.tinfo[i]; if (!ti || ti.hdr < 0 || ti.off) return;
     const r = parseTable(t.rows, ti.hdr, ti.map);
     for (const k of Object.keys(all)) all[k] = all[k].concat(r[k]);
+    all.dayInfo = Object.assign(all.dayInfo || {}, r.dayInfo);
   });
-  all.days = uniq(all.days); all.persons = uniq(all.persons);
+  all.days = uniq(all.days); all.persons = uniq(all.persons); all.gear = uniq(all.gear);
   return all;
 }
 
 /* ───────── 取り込み（作品へ反映） ───────── */
 function applyScript(res) {
   if (res.title && !P.title) P.title = res.title;
+  if (res.draft) P.draft = res.draft;
+  if (res.credits && res.credits.length && !(P.credits || []).length) P.credits = res.credits;
   addChars(res.chars);
   res.scenes.forEach((s, i) => {
     const sc = findScene(s.no) || newScene(s.no);
@@ -844,9 +1084,13 @@ function applyTable(res, src) {
   const dayId = lbl => (lbl ? getDay(lbl).id : '');
   P.events = P.events.filter(e => e.src !== src);
   res.events.forEach(e => P.events.push({ id: uid(), src, day: dayId(e.day), start: e.start, end: e.end, label: e.label, order: e.order }));
+  P.slots = (P.slots || []).filter(x => x.src !== src);
+  const seen = new Set();
   for (const r of res.recs) {
     const sc = findScene(r.no) || newScene(r.no);
-    if (r.place) { if (sc.place && sc.place !== r.place && !r.loc && !sc.loc) sc.loc = r.place; else if (!sc.place) sc.place = r.place; }
+    if (seen.has(sc.id) && r.day) { P.slots.push({ id: uid(), src, sc: sc.id, day: dayId(r.day), start: r.start, summary: r.summary, loc: r.loc || (r.place && r.place !== sc.place ? r.place : ''), notes: r.notes, order: r.order }); continue; }
+    seen.add(sc.id);
+    if (r.place) { if (sc.place && !r.loc && !sc.loc) sc.loc = r.place; else if (!sc.place) sc.place = r.place; } // 台本に場所があれば、表の「場所」はロケ地として残す
     for (const k of ['loc', 'summary', 'extras', 'costume', 'makeup', 'notes', 'start']) if (r[k]) sc[k] = r[k];
     for (const k of ['tod', 'io']) if (r[k] && (!sc[k] || !sc.lines.length)) sc[k] = r[k]; // 台本に書いてあればそちらを優先
     if (r.day) { sc.day = dayId(r.day); sc.order = r.order; }
@@ -862,16 +1106,21 @@ function applyTable(res, src) {
     sc.cuts.sort((a, b) => natCmp(a.no, b.no));
   }
   addChars(res.persons);
+  if (res.gear && res.gear.length) P.gear = uniq((P.gear || []).concat(res.gear));
+  for (const [lbl, info] of Object.entries(res.dayInfo || {})) { const d = getDay(lbl); if (info.call && !d.call) d.call = info.call; if (info.meet && !d.meet) d.meet = info.meet; }
 }
-function commitPending(id, quiet) {
+async function commitPending(id, quiet) {
   const d = pending.find(x => x.id === id); if (!d) return;
+  let pages = [];
+  if (d.pdf && d.toPages && d.buf) { try { const old = P.docs.find(x => x.name === d.name); pages = await pdfPages(d.buf, d.name); if (old) for (const pid of old.pages || []) { old.pages = []; await dropImage(pid); } } catch (e) { toast('ページを画像にできませんでした'); } busy(false); }
   let msg = '';
   if (d.kind === 'script') { applyScript(d.script); msg = `台本を取り込みました（シーン ${d.script.scenes.length}）`; }
   else if (d.kind === 'table') { const r = tableResult(d); applyTable(r, d.name); msg = `表を取り込みました（シーン ${uniq(r.recs.map(x => x.no)).length}・カット ${r.cuts.length}）`; }
   else msg = '資料として保存しました';
   if (d.kind === 'other' && d.toGear) { const items = d.text.split(/\r?\n/).map(l => l.trim().replace(/^[・\-－*□■☐●○◯\d.．)）]+\s*/, '')).filter(l => l && l.length <= 60); P.gear = uniq(P.gear.concat(items)); msg += `・持ち物に ${items.length} 件`; }
   P.docs = P.docs.filter(x => x.name !== d.name);
-  P.docs.push({ id: uid(), name: d.name, kind: d.kind, text: d.text.slice(0, 400000), added: Date.now() });
+  if (pages.length) msg += `・ページの画像 ${pages.length}枚`;
+  P.docs.push({ id: uid(), name: d.name, kind: d.kind, text: d.text.slice(0, 400000), pages, added: Date.now() });
   pending = pending.filter(x => x !== d);
   save(true);
   if (quiet) return msg;
@@ -950,14 +1199,14 @@ const SAMPLE_CUTS = [['シーン', 'カット', 'サイズ', '内容'],
   ['3', '1', '引き', '台所のハル'], ['3', '2', '寄り', '振り返るハル'],
   ['4', '1', 'ミディアム', '机に向かうミナ'], ['4', '2', 'アップ', 'ペン先'],
   ['5', '1', '引き', '晴れのバス停'], ['5', '2', 'ミディアム', '走ってくるミナ'], ['5', '3', '2ショット', '笑う二人']];
-function loadSample() {
+async function loadSample() {
   const docs = [
     analyze({ name: '見本：台本.txt', text: SAMPLE_SCRIPT, tables: [] }),
     analyze({ name: '見本：香盤表.xlsx', text: SAMPLE_KOBAN.map(r => r.join('\t')).join('\n'), tables: [{ name: '香盤表', rows: SAMPLE_KOBAN }] }),
     analyze({ name: '見本：カット表.xlsx', text: SAMPLE_CUTS.map(r => r.join('\t')).join('\n'), tables: [{ name: 'カット表', rows: SAMPLE_CUTS }] }),
   ];
   pending = pending.concat(docs);
-  docs.forEach(d => commitPending(d.id, true));
+  for (const d of docs) await commitPending(d.id, true);
   P.days.forEach((d, i) => { d.call = i ? '15:30' : '7:30'; d.meet = i ? 'スタッフ宅（緑町）' : '南公民館'; });
   if (!P.gear.length) P.gear = ['カメラ本体・レンズ', 'バッテリー（予備3本）', 'SDカード（予備2枚）', '三脚', 'ガンマイク・ブーム', 'ピンマイク', 'レコーダー', 'ライト・スタンド', '延長コード', 'カチンコ', '台本・香盤表', '雨具・タオル'];
   P.director = P.director || '（見本）';
@@ -1021,7 +1270,9 @@ function renderDocs() {
   }
   h += `<section class="card"><h3>作品</h3><div class="fields">
     <label class="field full"><span>作品名</span><input data-b="p||title" value="${esc(P.title)}" placeholder="例：雨上がりのバス停"></label>
-    <label class="field"><span>監督</span><input data-b="p||director" value="${esc(P.director)}"></label>
+    <label class="field"><span>稿</span><input data-b="p||draft" value="${esc(P.draft || '')}" placeholder="例：第2稿"></label>
+    <label class="field full"><span>スタッフ・出演（1行に「役割：名前」）</span><textarea data-b="p||credits" rows="4" placeholder="監督：○○&#10;撮影：○○">${esc((P.credits || []).map(c => (c.role ? c.role + '：' : '') + c.name).join('\n'))}</textarea></label>
+    <label class="field full"><span>現場の注意（1行に1つ。撮影の画面とチェックシートに出ます）</span><textarea data-b="p||rules" rows="3">${esc((P.rules || []).join('\n'))}</textarea></label>
     <label class="field full"><span>メモ（チェックシートの上に出ます）</span><textarea data-b="p||memo" rows="2">${esc(P.memo)}</textarea></label>
   </div></section>`;
   if (P.docs.length) {
@@ -1072,6 +1323,7 @@ function renderPending(d) {
       ${r.days.length ? `<li>撮影日：<b>${r.days.length}日</b>（${esc(r.days.join('、'))}）</li>` : ''}
       ${r.events.length ? `<li>集合・移動・休憩など：${r.events.length}</li>` : ''}
       ${r.cuts.length ? `<li>カット：<b>${r.cuts.length}</b></li>` : ''}
+      ${r.gear.length ? `<li>持ち物：${esc(r.gear.join('、'))}</li>` : ''}
       ${r.persons.length ? `<li>人物の列：${esc(r.persons.join('、'))}</li>` : ''}
     </ul>${!nScenes && !r.cuts.length ? '<p class="err">シーン番号が読み取れませんでした。「列の読み方」で、シーン番号の列を選んでください。</p>' : ''}</div>`;
   } else {
@@ -1079,6 +1331,7 @@ function renderPending(d) {
     h += `<div class="res">${d.text.length.toLocaleString()}字・${lines}行。そのまま保存して、あとで見られるようにします。</div>
       <label class="row-h small"><input type="checkbox" data-a="pendGear" data-id="${d.id}" ${d.toGear ? 'checked' : ''}> 1行ずつ「当日の持ち物・機材」に入れる（持ち物リストや機材表のとき）</label>`;
   }
+  if (d.pdf) h += `<label class="row-h small"><input type="checkbox" data-a="pendPages" data-id="${d.id}" ${d.toPages ? 'checked' : ''}> ページを画像でも残す（写真・地図・図が入った資料のとき。シーンの参考画像に付けられます）</label>`;
   h += `<details><summary>読み取った文字を見る</summary><pre class="doc">${esc(d.text.slice(0, 6000))}${d.text.length > 6000 ? '\n…' : ''}</pre></details>
     <div class="btns grid2"><button class="btn" data-a="pendDrop" data-id="${d.id}">やめる</button><button class="btn primary" data-a="pendGo" data-id="${d.id}">取り込む</button></div></section>`;
   return h;
@@ -1091,9 +1344,14 @@ function sceneMeta(sc) {
 }
 function progBadge(sc) {
   const pr = sceneProgress(sc), n = takesOf(sc.id).length;
+  if (sc.noshoot) return `<span class="badge">撮影なし</span>`;
   if (sceneDone(sc)) return `<span class="badge ok">撮了</span>`;
   if (!n) return sc.cuts.length ? `<span class="small">${sc.cuts.length}カット</span>` : '';
   return `<span class="badge keep">OK ${pr.ok}/${pr.all}</span>`;
+}
+function slotRow(x) {
+  const sc = sceneById(x.sc);
+  return `<button class="srow ${sceneDone(sc) ? 'done' : ''}" data-a="openScene" data-id="${sc.id}"><span class="no">S#${esc(sc.no)}${x.start ? `<small>${esc(x.start)}</small>` : ''}</span><span style="min-width:0"><span class="t">${esc(x.summary || sc.place)}</span><span class="m" style="display:block">${esc([x.loc || sc.loc ? 'ロケ ' + (x.loc || sc.loc) : '', '同じシーンの別の撮影'].filter(Boolean).join('　'))}</span></span>${progBadge(sc)}</button>`;
 }
 function sceneRow(sc, extra = '') {
   return `<button class="srow ${sceneDone(sc) ? 'done' : ''}" data-a="openScene" data-id="${sc.id}"><span class="no">S#${esc(sc.no)}${sc.start ? `<small>${esc(sc.start)}</small>` : ''}</span><span style="min-width:0"><span class="t">${esc(sc.place || '（場所なし）')}</span><span class="m" style="display:block">${esc(sceneMeta(sc))}</span>${extra}</span>${progBadge(sc)}</button>`;
@@ -1114,17 +1372,17 @@ function renderPlan() {
       h += `<div class="list">` + items.map((it, i) => {
         const mv = d ? `<span class="mv"><button data-a="move" data-day="${d.id}" data-i="${i}" data-dir="-1" aria-label="上へ" ${i ? '' : 'disabled'}>↑</button><button data-a="move" data-day="${d.id}" data-i="${i}" data-dir="1" aria-label="下へ" ${i < items.length - 1 ? '' : 'disabled'}>↓</button></span>` : '';
         if (it.t === 'ev') return `<div class="dnd"><div class="ev"><b>${esc(it.o.start || '')}</b><span class="grow">${esc(it.o.label)}</span><button class="btn small" data-a="delEvent" data-id="${it.o.id}">消す</button></div>${mv}</div>`;
-        return `<div class="dnd">${sceneRow(it.o)}${mv}</div>`;
+        return `<div class="dnd">${it.t === 'sl' ? slotRow(it.o) : sceneRow(it.o)}${mv}</div>`;
       }).join('') + `</div>`;
       if (d) h += `<div class="btns"><button class="btn small" data-a="addEvent" data-day="${d.id}">＋ 集合・移動・休憩などを足す</button></div>`;
     }
     h += `<div class="btns" style="margin-top:6px"><button class="btn" data-a="addDay">＋ 撮影日を足す</button></div>`;
   } else {
-    const names = allNames(), scs = P.days.length ? P.days.flatMap(d => timeline(d.id).filter(i => i.t === 'sc').map(i => i.o)).concat(P.scenes.filter(s => !s.day).sort(cmpScene)) : scriptOrder();
+    const names = allNames(), scs = P.days.length ? uniq(P.days.flatMap(d => dayScenes(d.id)).concat(P.scenes.filter(s => !s.day).sort(cmpScene))) : scriptOrder();
     h += `<p class="small">人物ごとの出番（${P.days.length ? '撮影日の順' : '台本の順'}）。○は出演、声は台詞のみ。</p><div class="mx-wrap"><table class="mx"><thead><tr><th class="sticky l">シーン</th>${P.days.length ? '<th>撮影日</th>' : ''}${names.map(n => `<th>${esc(n)}</th>`).join('')}</tr></thead><tbody>` +
       scs.map(sc => `<tr><td class="sticky l"><button data-a="openScene" data-id="${sc.id}"><b>S#${esc(sc.no)}</b> ${esc((sc.place || '').slice(0, 10))}</button></td>${P.days.length ? `<td>${esc(sc.day ? dayLabel(dayById(sc.day)) : '未定')}</td>` : ''}${names.map(n => { const on = sc.cast.some(c => sameName(c, n)); const voiceOnly = on && sc.lines.length && sc.lines.filter(l => l.k === 'd' && sameName(speakerBase(l.who), n)).every(l => /声|OFF|ＯＦＦ|ＯＳ|OS|VO|ＶＯ/i.test(l.p + l.who)) && sc.lines.some(l => l.k === 'd' && sameName(speakerBase(l.who), n)) && !sc.lines.some(l => l.k === 'a' && l.text.includes(n)); return `<td class="${on ? 'on' : ''}">${on ? (voiceOnly ? '声' : '○') : ''}</td>`; }).join('')}</tr>`).join('') +
       `<tr><td class="sticky l"><b>出番の数</b></td>${P.days.length ? '<td></td>' : ''}${names.map(n => `<td><b>${scs.filter(sc => sc.cast.some(c => sameName(c, n))).length}</b></td>`).join('')}</tr></tbody></table></div>`;
-    const byDay = P.days.map(d => ({ d, names: uniq(timeline(d.id).filter(i => i.t === 'sc').flatMap(i => i.o.cast)) })).filter(x => x.names.length);
+    const byDay = P.days.map(d => ({ d, names: uniq(dayScenes(d.id).flatMap(sc => sc.cast)) })).filter(x => x.names.length);
     if (byDay.length) h += `<section class="card"><h3>撮影日ごとに必要な出演者</h3>${byDay.map(x => `<div><b>${esc(dayLabel(x.d))}</b>　${esc(x.names.join('、'))}</div>`).join('')}</section>`;
   }
   h += `<div class="btns"><button class="btn" data-a="addScene">＋ シーンを足す</button></div></div>`;
@@ -1133,25 +1391,30 @@ function renderPlan() {
 
 /* ───────── 撮影（当日） ───────── */
 function pickDay() {
-  if (S.day !== null && (S.day === '' ? P.scenes.some(s => !s.day) : dayById(S.day))) return S.day;
+  if (S.day !== null && (S.day === '' ? P.scenes.some(s => !s.day && !s.noshoot) : dayById(S.day))) return S.day;
   const t = todayISO();
-  const d = P.days.find(x => x.date === t) || P.days.find(x => timeline(x.id).some(i => i.t === 'sc' && !sceneDone(i.o))) || P.days[0];
+  const d = P.days.find(x => x.date === t) || P.days.find(x => dayScenes(x.id).some(sc => !sceneDone(sc))) || P.days[0];
   return d ? d.id : '';
 }
 function prepChip(key, label) { return `<button class="chip" role="checkbox" aria-checked="${chk(key)}" data-a="check" data-k="${esc(key)}"><span class="tk"></span>${esc(label)}</button>`; }
-function shootCard(sc, isNow) {
+function shootCard(sc, isNow, slot) {
   const done = sceneDone(sc);
+  const start = slot ? slot.start : sc.start, loc = slot ? slot.loc || sc.loc : sc.loc, summary = slot ? slot.summary || sc.summary : sc.summary;
   const cast = sc.cast.map(n => prepChip(`${sc.id}|c|${n}`, n)).join('');
   const props = (sc.props || []).map(n => prepChip(`${sc.id}|p|${n}`, n)).join('');
   const cos = costumeItems(sc).map(n => prepChip(`${sc.id}|w|${n}`, n)).join('');
   const mk = makeupItems(sc).map(n => prepChip(`${sc.id}|m|${n}`, n)).join('');
-  const cuts = sc.cuts.map(c => { const st = cutState(sc, c.id); return `<span class="cutpill ${st.ok ? 'ok' : st.n ? 'tried' : ''}" title="${esc(c.desc)}">C${esc(c.no)}${st.ok ? ' OK' : st.n ? ` ${st.n}回` : ''}</span>`; }).join('');
+  const withDesc = sc.cuts.some(c => c.desc);
+  const cuts = sc.cuts.map(c => { const st = cutState(sc, c.id); const pill = `<span class="cutpill ${st.ok ? 'ok' : st.n ? 'tried' : ''}">C${esc(c.no)}${st.ok ? ' OK' : st.n ? ` ${st.n}回` : ''}</span>`; return withDesc ? `<div class="cutrowv">${pill}<span>${c.size ? `<b>${esc(c.size)}</b> ` : ''}${esc(c.desc)}</span></div>` : pill; }).join('');
   const ts = takesOf(sc.id);
-  return `<article class="scard ${done ? 'done' : isNow ? 'now' : ''}" id="sc-${sc.id}">
-    <div class="hd">${sc.start ? `<span class="tm">${esc(sc.start)}</span>` : ''}<span class="sn">S#${esc(sc.no)}</span><span class="pl">${esc(sc.place)}</span>${todLine(sc) ? `<span class="badge">${esc(todLine(sc))}</span>` : ''}
+  return `<article class="scard ${done ? 'done' : isNow ? 'now' : ''}" id="sc-${slot ? slot.id : sc.id}">
+    <div class="hd">${start ? `<span class="tm">${esc(start)}</span>` : ''}<span class="sn">S#${esc(sc.no)}</span><span class="pl">${esc(sc.place)}</span>${todLine(sc) ? `<span class="badge">${esc(todLine(sc))}</span>` : ''}
       <button class="btn small donebtn" data-a="sceneDone" data-id="${sc.id}" aria-pressed="${done}">${done ? '撮了 ✓' : '撮了にする'}</button></div>
-    ${sc.loc ? `<div class="small">ロケ地：<b style="color:var(--ink)">${esc(sc.loc)}</b>${sc.mins ? `　予定 ${sc.mins}分` : ''}</div>` : sc.mins ? `<div class="small">予定 ${sc.mins}分</div>` : ''}
-    ${sc.summary ? `<div class="sm">${esc(sc.summary)}</div>` : ''}
+    ${loc ? `<div class="small">ロケ地：<b style="color:var(--ink)">${esc(loc)}</b>${sc.mins && !slot ? `　予定 ${sc.mins}分` : ''}</div>` : sc.mins && !slot ? `<div class="small">予定 ${sc.mins}分</div>` : ''}
+    ${slot ? '<div class="small">同じシーンの別の撮影予定です（記録はシーンにまとまります）</div>' : ''}
+    ${summary ? `<div class="sm">${esc(summary)}</div>` : ''}
+    ${sc.dir ? `<div class="memo"><b>演出</b>${esc(sc.dir)}</div>` : ''}
+    ${(sc.refs || []).some(id => IMG[id]) ? `<div class="thumbs">${thumbs(sc.refs)}</div>` : ''}
     ${cast ? `<div class="chips"><span class="lbl">出演</span>${cast}</div>` : ''}
     ${sc.extras ? `<div class="small">エキストラ：${esc(sc.extras)}</div>` : ''}
     ${props ? `<div class="chips"><span class="lbl">小道具</span>${props}</div>` : ''}
@@ -1159,7 +1422,7 @@ function shootCard(sc, isNow) {
     ${mk ? `<div class="chips"><span class="lbl">メイク</span>${mk}</div>` : ''}
     ${sc.notes ? `<div class="memo"><b>備考</b>${esc(sc.notes)}</div>` : ''}
     ${sc.cont ? `<div class="memo"><b>繋がり</b>${esc(sc.cont)}</div>` : ''}
-    ${cuts ? `<div class="cutline"><span class="lbl">カット</span>${cuts}</div>` : ''}
+    ${cuts ? (withDesc ? `<div class="cutlist"><span class="lbl">撮るもの</span>${cuts}</div>` : `<div class="cutline"><span class="lbl">カット</span>${cuts}</div>`) : ''}
     <div class="btns grid2"><button class="btn" data-a="openScene" data-id="${sc.id}">台本・詳細</button><button class="btn ${done ? '' : 'primary'}" data-a="openRec" data-id="${sc.id}">記録する${ts.length ? `（${ts.length}テイク）` : ''}</button></div>
   </article>`;
 }
@@ -1169,20 +1432,22 @@ function renderShoot() {
   let h = `<div class="wrap">`;
   if (!P.scenes.length) { $('v-shoot').innerHTML = `<div class="wrap"><div class="empty">まだシーンがありません。<br>「資料」で台本や香盤表を入れてください。</div></div>`; return; }
   const chips = P.days.map(x => `<button class="chip" data-a="day" data-id="${x.id}" aria-pressed="${x.id === dayId}">${esc(dayLabel(x))}</button>`);
-  if (P.scenes.some(s => !s.day)) chips.push(`<button class="chip" data-a="day" data-id="" aria-pressed="${dayId === ''}">日程未定</button>`);
+  if (P.scenes.some(s => !s.day && !s.noshoot)) chips.push(`<button class="chip" data-a="day" data-id="" aria-pressed="${dayId === ''}">日程未定</button>`);
   if (chips.length > 1) h += `<div class="daychips">${chips.join('')}</div>`;
-  const items = timeline(dayId), scs = items.filter(i => i.t === 'sc').map(i => i.o);
+  const items = timeline(dayId).filter(it => it.t !== 'sc' || !it.o.noshoot), scs = uniq(items.map(itemScene));
   const doneN = scs.filter(sceneDone).length, miss = scs.reduce((n, sc) => n + missingCuts(sc).length, 0), takeN = P.takes.filter(t => scs.some(s => s.id === t.sc)).length;
   const nowSc = scs.find(s => !sceneDone(s));
+  const nowIt = items.find(it => itemScene(it) === nowSc);
   h += `<section class="card"><div class="row-h"><h2 class="grow">${esc(dayLabel(d))}</h2><button class="btn small" data-a="wake" aria-pressed="${S.wake}">${S.wake ? '画面を消さない：入' : '画面を消さない：切'}</button></div>
     ${d && (d.call || d.meet) ? `<div>集合 <b>${esc(d.call)}</b>　${esc(d.meet)}</div>` : ''}
     ${d && d.notes ? `<div class="memo">${esc(d.notes)}</div>` : ''}
     ${P.memo ? `<div class="memo">${esc(P.memo)}</div>` : ''}
+    ${(P.rules || []).length ? `<details><summary>現場の注意（${P.rules.length}）</summary><ul style="margin-left:1.2em;font-size:14px">${P.rules.map(r => `<li>${esc(r)}</li>`).join('')}</ul></details>` : ''}
     <div class="sum"><div><b>${doneN}/${scs.length}</b><span>撮了シーン</span></div><div><b>${miss}</b><span>OKが無いカット</span></div><div><b>${takeN}</b><span>テイク</span></div></div>
     <div class="bar"><i style="width:${scs.length ? doneN / scs.length * 100 : 0}%"></i></div>
     ${nowSc ? `<button class="btn primary wide" data-a="openRec" data-id="${nowSc.id}">次：S#${esc(nowSc.no)} ${esc(nowSc.place)} を記録する</button>` : scs.length ? '<div class="badge ok" style="text-align:center;padding:8px">この日のシーンはすべて撮了です</div>' : ''}
   </section>`;
-  h += `<p class="small">出演・小道具・衣装はタップで準備済みにできます。</p><div class="list">` + items.map(it => it.t === 'ev' ? `<div class="ev"><b>${esc(it.o.start || '')}</b>${esc(it.o.label)}</div>` : shootCard(it.o, it.o === nowSc)).join('') + `</div>`;
+  h += `<p class="small">出演・小道具・衣装はタップで準備済みにできます。</p><div class="list">` + items.map(it => it.t === 'ev' ? `<div class="ev"><b>${esc(it.o.start || '')}</b>${esc(it.o.label)}</div>` : shootCard(itemScene(it), it === nowIt, it.t === 'sl' ? it.o : null)).join('') + `</div>`;
   if (dayId !== '' || P.gear.length) {
     const gk = i => `g|${dayId}|${P.gear[i]}`;
     const gDone = P.gear.filter((g, i) => chk(gk(i))).length;
@@ -1197,7 +1462,7 @@ function renderShoot() {
 
 /* ───────── 記録（スクリプト表） ───────── */
 function orderedScenes(mode) {
-  if (mode === 'shoot') return P.days.flatMap(d => timeline(d.id).filter(i => i.t === 'sc').map(i => i.o)).concat(P.scenes.filter(s => !s.day).sort(cmpScene));
+  if (mode === 'shoot') return uniq(P.days.flatMap(d => dayScenes(d.id)).concat(P.scenes.filter(s => !s.day).sort(cmpScene)));
   return scriptOrder();
 }
 function sortTakes(sc, ts, mode) {
@@ -1252,6 +1517,8 @@ function renderOut() {
       <div class="seg">${[['all', 'すべてのテイク'], ['ok', 'OK・KEEPだけ']].map(([k, l]) => `<button data-a="outFilter" data-k="${k}" aria-pressed="${(S.outFilter || 'all') === k}">${l}</button>`).join('')}</div>
       <div class="btns grid2"><button class="btn primary" data-a="printScript">印刷・PDF</button><button class="btn" data-a="csvScript">Excel用（CSV）</button></div>
       <div class="btns grid2"><button class="btn" data-a="shareScript">文字で送る</button></div></section>
+    <section class="card"><h2>編集素材リスト</h2><p class="lead">台本の ※写真・ＣＧ・動画、字幕、ナレーション、唄、ＳＥ をシーンごとに並べたもの。編集・ＣＧ・音の担当に渡せます。</p>
+      <div class="btns grid2"><button class="btn" data-a="printPost">印刷・PDF</button><button class="btn" data-a="csvPost">Excel用（CSV）</button></div></section>
     <section class="card"><h2>香盤表</h2><p class="lead">撮影日の順に、シーン・場所・人物の出番（○）・小道具・衣装を並べた表。</p>
       <div class="btns grid2"><button class="btn" data-a="printKoban">印刷・PDF</button><button class="btn" data-a="csvKoban">Excel用（CSV）</button></div></section>
     <section class="card"><h2>作品データ</h2><p class="lead">別の端末に移す、スタッフに渡す、念のため残すときに。読み込むと今の内容と入れ替わります。</p>
@@ -1296,27 +1563,32 @@ const pbox = '<span class="box"></span>';
 function checkSheetHtml(dayIds) {
   return dayIds.map(id => {
     const d = dayById(id), items = timeline(id);
+    const hasPrep = items.some(it => { const sc = itemScene(it); return sc && (sc.props.length || sc.costume || sc.makeup); }), nCol = hasPrep ? 10 : 9;
     const rows = items.map(it => {
-      if (it.t === 'ev') return `<tr class="evr"><td></td><td class="c">${esc(it.o.start)}</td><td colspan="8">${esc(it.o.label)}</td></tr>`;
-      const sc = it.o;
+      if (it.t === 'ev') return `<tr class="evr"><td></td><td class="c">${esc(it.o.start)}</td><td colspan="${nCol - 2}">${esc(it.o.label)}</td></tr>`;
+      const sc = itemScene(it), sl = it.t === 'sl' ? it.o : null;
+      if (sc.noshoot) return '';
       const prep = [sc.props.length ? '小道具：' + sc.props.map(p => pbox + esc(p)).join(' ') : '', sc.costume ? '衣装：' + costumeItems(sc).map(p => pbox + esc(p)).join(' ') : '', sc.makeup ? 'メイク：' + makeupItems(sc).map(p => pbox + esc(p)).join(' ') : ''].filter(Boolean).join('<br>');
       const cuts = sc.cuts.map(c => `${cutState(sc, c.id).ok ? '☑' : pbox}C${esc(c.no)} ${esc(c.size)} ${esc(c.desc)}`).join('<br>');
-      return `<tr><td class="c">${sceneDone(sc) ? '☑' : pbox}</td><td class="c">${esc(sc.start)}${sc.mins ? `<br>${sc.mins}分` : ''}</td><td class="c"><b>${esc(sc.no)}</b></td><td>${esc(sc.place)}<br>${esc(todLine(sc))}</td><td>${esc(sc.loc)}</td><td>${esc(sc.summary)}</td><td>${sc.cast.map(n => pbox + esc(n)).join('<br>')}${sc.extras ? '<br>エキストラ：' + esc(sc.extras) : ''}</td><td>${prep}</td><td>${cuts}</td><td>${esc([sc.notes, sc.cont ? '繋がり：' + sc.cont : ''].filter(Boolean).join(' / '))}</td></tr>`;
+      return `<tr><td class="c">${sceneDone(sc) ? '☑' : pbox}</td><td class="c">${esc(sl ? sl.start : sc.start)}${sc.mins && !sl ? `<br>${sc.mins}分` : ''}</td><td class="c"><b>${esc(sc.no)}</b></td><td>${esc(sc.place)}<br>${esc(todLine(sc))}</td><td>${esc(sl ? sl.loc || sc.loc : sc.loc)}</td><td>${esc(sl ? sl.summary || sc.summary : sc.summary)}${sc.dir ? `<div class="dir">演出：${esc(sc.dir)}</div>` : ''}</td><td>${sc.cast.map(n => pbox + esc(n)).join('<br>')}${sc.extras ? '<br>エキストラ：' + esc(sc.extras) : ''}</td>${hasPrep ? `<td>${prep}</td>` : ''}<td>${cuts}</td><td>${esc([sc.notes, sc.cont ? '繋がり：' + sc.cont : ''].filter(Boolean).join(' / '))}</td></tr>`;
     }).join('');
     const gear = id !== '' && P.gear.length ? `<div class="gear"><b>持ち物・機材</b>${P.gear.map((g, i) => `<div>${chk(`g|${id}|${g}`) ? '☑' : pbox}${esc(g)}</div>`).join('')}</div>` : '';
     return `<section class="pg"><h1>撮影チェックシート<small>${esc(P.title)}${P.director ? '　監督 ' + esc(P.director) : ''}</small></h1>
       <div class="ph"><b>${esc(dayLabel(d))}</b>${d && d.date ? `（${esc(d.date)}）` : ''}${d && d.call ? `　集合 ${esc(d.call)}` : ''}${d && d.meet ? `　${esc(d.meet)}` : ''}${d && d.notes ? `<br>${esc(d.notes)}` : ''}${P.memo ? `<br>${esc(P.memo)}` : ''}</div>
-      <table><thead><tr><th>撮了</th><th>時刻</th><th>S#</th><th>場所・昼夜</th><th>ロケ地</th><th>内容</th><th>出演</th><th>小道具・衣装・メイク</th><th>カット</th><th>備考</th></tr></thead><tbody>${rows || '<tr><td colspan="10">シーンがありません</td></tr>'}</tbody></table>
-      ${gear}<div class="foot">出力 ${fmtAt(Date.now())}　撮影帳</div></section>`;
+      <table><thead><tr><th>撮了</th><th>時刻</th><th>S#</th><th>場所・昼夜</th><th>ロケ地</th><th>内容</th><th>出演</th>${hasPrep ? '<th>小道具・衣装・メイク</th>' : ''}<th>${items.some(it => { const sc = itemScene(it); return sc && sc.cuts.some(c => c.desc); }) ? '撮るもの' : 'カット'}</th><th>備考</th></tr></thead><tbody>${rows || `<tr><td colspan="${nCol}">シーンがありません</td></tr>`}</tbody></table>
+      ${(P.rules || []).length ? `<div class="rules"><b>現場の注意</b><ul>${P.rules.map(r => `<li>${esc(r)}</li>`).join('')}</ul></div>` : ''}
+      ${gear}<div class="foot">${esc(credLine())}　出力 ${fmtAt(Date.now())}　撮影帳</div></section>`;
   }).join('');
 }
+function credLine() { return (P.credits || []).map(c => `${c.role}：${c.name}`).join('　'); }
 function checkCsv(dayIds) {
   const rows = [['撮影日', '時刻', '種類', 'シーン', '場所', '昼夜・内外', 'ロケ地', '内容', '出演', 'エキストラ', '小道具', '衣装', 'メイク', 'カット', '備考', '繋がり', '撮了']];
   for (const id of dayIds) for (const it of timeline(id)) {
     const dl = dayLabel(dayById(id));
     if (it.t === 'ev') { rows.push([dl, it.o.start, '予定', '', it.o.label]); continue; }
-    const sc = it.o;
-    rows.push([dl, sc.start, 'シーン', sc.no, sc.place, todLine(sc), sc.loc, sc.summary, listText(sc.cast), sc.extras, listText(sc.props), sc.costume, sc.makeup, sc.cuts.map(c => `C${c.no} ${c.size} ${c.desc}`.trim()).join('\n'), sc.notes, sc.cont, sceneDone(sc) ? '済' : '']);
+    const sc = itemScene(it), sl = it.t === 'sl' ? it.o : null;
+    if (sc.noshoot) continue;
+    rows.push([dl, sl ? sl.start : sc.start, 'シーン', sc.no, sc.place, todLine(sc), sl ? sl.loc || sc.loc : sc.loc, [sl ? sl.summary || sc.summary : sc.summary, sc.dir ? '演出：' + sc.dir : ''].filter(Boolean).join('\n'), listText(sc.cast), sc.extras, listText(sc.props), sc.costume, sc.makeup, sc.cuts.map(c => `C${c.no} ${c.size} ${c.desc}`.trim()).join('\n'), sc.notes, sc.cont, sceneDone(sc) ? '済' : '']);
   }
   return rows;
 }
@@ -1326,8 +1598,12 @@ function checkText(dayIds) {
     const d = dayById(id); L.push('', `■ ${dayLabel(d)}${d && d.call ? ' 集合' + d.call : ''}${d && d.meet ? ' ' + d.meet : ''}`);
     for (const it of timeline(id)) {
       if (it.t === 'ev') { L.push(`${it.o.start || ''} ${it.o.label}`); continue; }
-      const sc = it.o;
-      L.push(`${sceneDone(sc) ? '済' : '□'} ${sc.start || ''} S#${sc.no} ${sc.place}${todLine(sc) ? `（${todLine(sc)}）` : ''}${sc.loc ? ' ＠' + sc.loc : ''}`);
+      const sc = itemScene(it), sl = it.t === 'sl' ? it.o : null;
+      if (sc.noshoot) continue;
+      const loc = sl ? sl.loc || sc.loc : sc.loc;
+      L.push(`${sceneDone(sc) ? '済' : '□'} ${(sl ? sl.start : sc.start) || ''} S#${sc.no} ${sc.place}${todLine(sc) ? `（${todLine(sc)}）` : ''}${loc ? ' ＠' + loc : ''}`);
+      if (sl && sl.summary) L.push(`　${sl.summary}`);
+      if (sc.dir) L.push(`　演出：${sc.dir}`);
       if (sc.cast.length) L.push(`　出演：${listText(sc.cast)}`);
       if (sc.props.length) L.push(`　小道具：${listText(sc.props)}`);
       if (sc.costume) L.push(`　衣装：${sc.costume}`);
@@ -1347,12 +1623,27 @@ function scriptHtml() {
   const rows = data.map(({ sc, ts }) => {
     const head = `<tr class="sh"><td colspan="11">S#${esc(sc.no)}　${esc(sc.place)}${todLine(sc) ? `（${esc(todLine(sc))}）` : ''}${sc.loc ? `　ロケ：${esc(sc.loc)}` : ''}${sc.day ? `　撮影：${esc(dayLabel(dayById(sc.day)))}` : ''}${sc.secs ? `　台本の目安 ${estText(sc.secs)}` : ''}${sc.cont ? `<br>繋がり：${esc(sc.cont)}` : ''}${sc.edit ? `<br>編集へ：${esc(sc.edit)}` : ''}</td></tr>`;
     const body = ts.length ? ts.map(t => { const c = sc.cuts.find(x => x.id === t.cut); return `<tr><td class="c">${esc(sc.no)}</td><td class="c">${esc(c ? c.no : '一連')}</td><td class="c">${t.n}</td><td class="c ${t.r === 'OK' ? 'ok' : t.r === 'NG' ? 'ng' : ''}">${esc(t.r || '')}</td><td class="c">${fmtSec(t.sec)}</td><td>${esc(t.clip)}</td><td>${esc(t.snd)}</td><td>${esc(t.tc)}</td><td>${esc(c ? [c.size, c.desc].filter(Boolean).join(' ') : '')}</td><td>${esc(t.note)}</td><td class="c">${fmtAt(t.at)}</td></tr>`; }).join('') : `<tr><td colspan="11" class="ng">記録なし</td></tr>`;
-    return head + body;
+    const pi = postItems(sc);
+    const post = pi.length ? `<tr class="pm"><td colspan="11">${POST_ORDER.filter(k => pi.some(x => x.k === k)).map(k => `<b>${esc(postName(k))}</b> ${pi.filter(x => x.k === k).map(x => esc(x.t)).join('／')}`).join('<br>')}</td></tr>` : '';
+    return head + post + body;
   }).join('');
-  return `<section class="pg"><h1>スクリプト表<small>${esc(P.title)}${P.director ? '　監督 ' + esc(P.director) : ''}</small></h1>
+  return `<section class="pg"><h1>スクリプト表<small>${esc(P.title)}${P.draft ? '　' + esc(P.draft) : ''}　${esc(credLine())}</small></h1>
     <div class="ph">${(S.outOrder || 'script') === 'shoot' ? '撮影の順' : '台本の順'}・${(S.outFilter || 'all') === 'ok' ? 'OK・KEEPのみ' : 'すべてのテイク'}　テイク ${P.takes.length}（OK ${okN}）　出力 ${fmtAt(Date.now())}</div>
     <table><thead><tr><th>S#</th><th>C</th><th>T</th><th>判定</th><th>尺</th><th>クリップ</th><th>音声</th><th>TC</th><th>カット内容</th><th>メモ</th><th>記録</th></tr></thead><tbody>${rows || '<tr><td colspan="11">記録がありません</td></tr>'}</tbody></table>
     <div class="foot">判定：OK＝使う、KEEP＝予備、NG＝使わない。尺は現場で計った長さ（目安）。</div></section>`;
+}
+const postName = k => ({ N: 'ナレーション', SE: 'ＳＥ', CG: 'ＣＧ' }[k] || k);
+function postData() { return scriptOrder().map(sc => ({ sc, items: postItems(sc) })).filter(x => x.items.length || x.sc.edit); }
+function postHtml() {
+  const rows = postData().map(({ sc, items }) => `<tr class="sh"><td colspan="3">S#${esc(sc.no)}　${esc(sc.place)}${todLine(sc) ? `（${esc(todLine(sc))}）` : ''}${sc.edit ? `<br>編集へ：${esc(sc.edit)}` : ''}</td></tr>` +
+    items.slice().sort((a, b) => POST_ORDER.indexOf(a.k) - POST_ORDER.indexOf(b.k)).map(x => `<tr><td class="c">${pbox}</td><td class="c" style="white-space:nowrap">${esc(postName(x.k))}</td><td>${esc(x.t)}</td></tr>`).join('')).join('');
+  return `<section class="pg"><h1>編集素材リスト<small>${esc(P.title)}${P.draft ? '　' + esc(P.draft) : ''}</small></h1><div class="ph">台本の ※写真・ＣＧ・動画、字幕、ナレーション、唄、ＳＥ を台本の順に並べたもの。出力 ${fmtAt(Date.now())}</div>
+    <table><thead><tr><th>済</th><th>種類</th><th>内容</th></tr></thead><tbody>${rows || '<tr><td colspan="3">ありません</td></tr>'}</tbody></table></section>`;
+}
+function postCsv() {
+  const rows = [['シーン', '場所', '種類', '内容', '編集へ']];
+  for (const { sc, items } of postData()) for (const x of items.slice().sort((a, b) => POST_ORDER.indexOf(a.k) - POST_ORDER.indexOf(b.k))) rows.push([sc.no, sc.place, postName(x.k), x.t, sc.edit]);
+  return rows;
 }
 function scriptCsv() {
   const rows = [['シーン', '場所', '昼夜・内外', 'カット', 'サイズ', 'カット内容', 'テイク', '判定', '尺（秒）', '尺', 'クリップ', '音声', 'TC', 'メモ', '撮影日', '記録時刻', '繋がり', '編集へ']];
@@ -1372,24 +1663,36 @@ function scriptText() {
   }
   return L.join('\n');
 }
-function kobanScenes() { return P.days.flatMap(d => timeline(d.id).filter(i => i.t === 'sc').map(i => i.o)).concat(P.scenes.filter(s => !s.day).sort(cmpScene)); }
+function kobanRows() {
+  return P.days.flatMap(d => timeline(d.id).filter(i => i.t !== 'ev').map(i => ({ sc: itemScene(i), sl: i.t === 'sl' ? i.o : null })))
+    .concat(P.scenes.filter(s => !s.day).sort(cmpScene).map(sc => ({ sc, sl: null })));
+}
+const kr = (r, k) => (r.sl && r.sl[k] ? r.sl[k] : r.sc[k]);
+const krDay = r => { const id = r.sl ? r.sl.day : r.sc.day; return id ? dayLabel(dayById(id)) : (r.sc.noshoot ? '撮影なし' : '未定'); };
 function castMark(sc, n) { return sc.cast.some(c => sameName(c, n)) ? '○' : ''; }
 function kobanHtml() {
   const names = allNames();
-  const rows = kobanScenes().map(sc => `<tr><td>${esc(sc.day ? dayLabel(dayById(sc.day)) : '未定')}</td><td class="c">${esc(sc.start)}</td><td class="c"><b>${esc(sc.no)}</b></td><td>${esc(sc.place)}</td><td class="c">${esc(sc.tod)}</td><td class="c">${esc(sc.io)}</td><td>${esc(sc.loc)}</td><td>${esc(sc.summary)}</td>${names.map(n => `<td class="c">${castMark(sc, n)}</td>`).join('')}<td>${esc(listText(sc.props))}</td><td>${esc(sc.costume)}</td><td>${esc(sc.notes)}</td></tr>`).join('');
+  const R = kobanRows(), hp = R.some(r => r.sc.props.length), hc = R.some(r => r.sc.costume);
+  const rows = R.map(r => { const sc = r.sc; return `<tr><td>${esc(krDay(r))}</td><td class="c">${esc(kr(r, 'start'))}</td><td class="c"><b>${esc(sc.no)}</b></td><td>${esc(sc.place)}</td><td class="c">${esc(sc.tod)}</td><td class="c">${esc(sc.io)}</td><td>${esc(kr(r, 'loc'))}</td><td>${esc(kr(r, 'summary'))}</td>${names.map(n => `<td class="c">${castMark(sc, n)}</td>`).join('')}${hp ? `<td>${esc(listText(sc.props))}</td>` : ''}${hc ? `<td>${esc(sc.costume)}</td>` : ''}<td>${esc(kr(r, 'notes'))}</td></tr>`; }).join('');
   return `<section class="pg"><h1>香盤表<small>${esc(P.title)}</small></h1><div class="ph">出力 ${fmtAt(Date.now())}</div>
-    <table><thead><tr><th>撮影日</th><th>時刻</th><th>S#</th><th>場所</th><th>昼夜</th><th>内外</th><th>ロケ地</th><th>内容</th>${names.map(n => `<th>${esc(n)}</th>`).join('')}<th>小道具</th><th>衣装</th><th>備考</th></tr></thead><tbody>${rows}</tbody></table></section>`;
+    <table><thead><tr><th>撮影日</th><th>時刻</th><th>S#</th><th>場所</th><th>昼夜</th><th>内外</th><th>ロケ地</th><th>内容</th>${names.map(n => `<th>${esc(n)}</th>`).join('')}${hp ? '<th>小道具</th>' : ''}${hc ? '<th>衣装</th>' : ''}<th>備考</th></tr></thead><tbody>${rows}</tbody></table></section>`;
 }
 function kobanCsv() {
   const names = allNames();
-  return [['撮影日', '時刻', 'シーン', '場所', '昼夜', '内外', 'ロケ地', '内容', ...names, '小道具', '衣装', 'メイク', '備考']].concat(kobanScenes().map(sc => [sc.day ? dayLabel(dayById(sc.day)) : '未定', sc.start, sc.no, sc.place, sc.tod, sc.io, sc.loc, sc.summary, ...names.map(n => castMark(sc, n)), listText(sc.props), sc.costume, sc.makeup, sc.notes]));
+  return [['撮影日', '時刻', 'シーン', '場所', '昼夜', '内外', 'ロケ地', '内容', ...names, '小道具', '衣装', 'メイク', '備考']].concat(kobanRows().map(r => { const sc = r.sc; return [krDay(r), kr(r, 'start'), sc.no, sc.place, sc.tod, sc.io, kr(r, 'loc'), kr(r, 'summary'), ...names.map(n => castMark(sc, n)), listText(sc.props), sc.costume, sc.makeup, kr(r, 'notes')]; }));
 }
 async function restoreFile(f) {
   try {
     const j = JSON.parse(decodeText(await f.arrayBuffer()));
     if (!j || !j.v || !Array.isArray(j.scenes)) throw new Error();
     if (!confirm(`「${j.title || '作品'}」を読み込みます。今の内容（${P.title || '作品'}）と入れ替わります。よろしいですか？`)) return;
-    P = Object.assign(blank(), j); S.sheets = []; S.run = null; S.day = null; save(true); render(); toast('作品データを読み込みました');
+    const images = j.images || []; delete j.images;
+    busy(true, '作品データを読み込んでいます…');
+    try { await IDB.clear(); } catch (e) {}
+    for (const k in IMG) delete IMG[k];
+    for (const im of images) { IMG[im.id] = im.data; try { await IDB.put(im.id, im.data); } catch (e) {} }
+    busy(false);
+    P = Object.assign(blank(), j); S.sheets = []; S.run = null; S.day = null; S.recCut = {}; save(true); render(); toast('作品データを読み込みました');
   } catch (e) { toast('作品データとして読めませんでした'); }
 }
 
@@ -1430,6 +1733,8 @@ const SHEET = {
         <label class="field"><span>開始時刻</span><input ${b('start')} value="${esc(sc.start)}" placeholder="9:30" inputmode="numeric"></label>
         <label class="field"><span>予定（分）</span><input ${b('mins')} value="${sc.mins || ''}" inputmode="numeric"></label>
         <label class="field full"><span>内容</span><textarea ${b('summary')} rows="2">${esc(sc.summary)}</textarea></label>
+        <label class="field full"><span>演出メモ（芝居・音・狙いなど。撮影の画面に出ます）</span><textarea ${b('dir')} rows="2">${esc(sc.dir || '')}</textarea></label>
+        <label class="row-h small full"><input type="checkbox" ${b('noshoot')} data-rerender="1" ${sc.noshoot ? 'checked' : ''}> 撮影しないシーン（資料映像・写真・ＣＧだけで作る）</label>
         <label class="field full"><span>出演（「、」で区切る）</span><input ${b('cast')} data-list="1" value="${esc(listText(sc.cast))}"></label>
         <label class="field full"><span>エキストラ</span><input ${b('extras')} value="${esc(sc.extras)}"></label>
         <label class="field full"><span>小道具（「、」で区切る）</span><input ${b('props')} data-list="1" value="${esc(listText(sc.props))}"></label>
@@ -1437,6 +1742,11 @@ const SHEET = {
         <label class="field full"><span>メイク</span><input ${b('makeup')} value="${esc(sc.makeup)}"></label>
         <label class="field full"><span>備考</span><textarea ${b('notes')} rows="2">${esc(sc.notes)}</textarea></label>
       </div></section>
+      <section class="card"><div class="row-h"><h3 class="grow">参考画像（構図あわせ・立ち位置の図など）</h3><span class="small">${(sc.refs || []).length}</span></div>
+        ${(sc.refs || []).length ? `<div class="thumbs big">${(sc.refs || []).map(id => `<span class="tw">${thumbs([id], sc.refs)}<button class="x tx" data-a="unref" data-sc="${sc.id}" data-id="${id}" aria-label="外す">×</button></span>`).join('')}</div>` : ''}
+        <div class="btns"><button class="btn small" data-a="pickImgs" data-id="${sc.id}">資料のページから選ぶ</button><button class="btn small" data-a="addImg" data-id="${sc.id}">写真を足す</button></div></section>
+      ${(() => { const sl = (P.slots || []).filter(x => x.sc === sc.id); return sl.length ? `<section class="card"><h3>同じシーンの別の撮影予定</h3>${sl.map(x => `<div class="row-h"><span class="grow"><b>${esc(dayLabel(dayById(x.day)))} ${esc(x.start)}</b>　${esc(x.summary)}${x.loc ? `　＠${esc(x.loc)}` : ''}</span><button class="btn small" data-a="delSlot" data-id="${x.id}">消す</button></div>`).join('')}</section>` : ''; })()}
+      ${(() => { const pi = postItems(sc); return pi.length ? `<section class="card"><details><summary>編集素材（台本から）<span class="small">${pi.length}</span></summary><div class="list" style="margin-top:6px">${POST_ORDER.filter(k => pi.some(x => x.k === k)).map(k => `<div><span class="badge">${esc(postName(k))}</span> ${pi.filter(x => x.k === k).map(x => esc(x.t)).join('<br>')}</div>`).join('')}</div></details></section>` : ''; })()}
       <section class="card"><div class="row-h"><h3 class="grow">カット割り</h3><span class="small">${sc.cuts.length}カット</span></div>
         ${sc.cuts.length ? `<div class="cutrow small"><span>番号</span><span>サイズ</span><span>内容</span><span></span></div>` : '<p class="small">カットを分けない（一連で撮る）なら空のままで大丈夫です。</p>'}
         ${sc.cuts.map(c => `<div class="cutrow"><input data-b="cut|${sc.id}|${c.id}|no" value="${esc(c.no)}" aria-label="カット番号"><input data-b="cut|${sc.id}|${c.id}|size" value="${esc(c.size)}" list="sizelist" aria-label="サイズ"><input data-b="cut|${sc.id}|${c.id}|desc" value="${esc(c.desc)}" aria-label="内容"><button class="x" style="width:36px;height:36px;font-size:16px" data-a="delCut" data-sc="${sc.id}" data-id="${c.id}" aria-label="消す">×</button></div>`).join('')}
@@ -1462,6 +1772,8 @@ const SHEET = {
       <div class="chips">${chips}<button class="chip ${!sc.cuts.length ? '' : 'dash'}" data-a="recCut" data-id="" aria-pressed="${cut === ''}">一連</button><button class="chip dash" data-a="addCutRec" data-id="${sc.id}">＋カット</button></div>
       <section class="card rec-top">
         <div class="ctlabel">${esc(cutLabel(sc, cut))}　テイク ${n}${c && (c.size || c.desc) ? `<br><small>${esc([c.size, c.desc].filter(Boolean).join('　'))}</small>` : ''}</div>
+        ${sc.dir ? `<div class="memo"><b>演出</b>${esc(sc.dir)}</div>` : ''}
+        ${(sc.refs || []).some(id => IMG[id]) ? `<div class="thumbs">${thumbs(sc.refs)}</div>` : ''}
         <div class="timer ${running ? 'run' : ''}" id="timer">${running ? '0:00.0' : last ? fmtSec(last) : '0:00'}</div>
         <button class="bigbtn ${running ? 'run' : ''}" data-a="${running ? 'recStop' : 'recStart'}">${running ? 'カット（止める）' : 'スタート（計る）'}</button>
         <div class="results"><button class="rOK" data-a="recResult" data-r="OK">OK</button><button class="rKEEP" data-a="recResult" data-r="KEEP">KEEP</button><button class="rNG" data-a="recResult" data-r="NG">NG</button></div>
@@ -1510,6 +1822,7 @@ const SHEET = {
     return sheetTop(esc(d.name)) + `<div class="sheet-body"><div class="wrap">
       <div class="btns"><button class="btn" data-a="docReread" data-id="${d.id}">もう一度読み取る</button><button class="btn danger" data-a="delDoc" data-id="${d.id}">資料を消す</button></div>
       <p class="small">資料を消しても、取り込んだシーンや予定はそのまま残ります。</p>
+      ${(d.pages || []).some(id => IMG[id]) ? `<div class="thumbs big">${thumbs(d.pages)}</div>` : ''}
       <pre class="doc">${esc(d.text)}</pre></div></div>`;
   },
   gear() {
@@ -1521,6 +1834,17 @@ const SHEET = {
       <label class="field"><span>時刻</span><input id="evStart" placeholder="12:30" inputmode="numeric"></label>
       <label class="field full"><span>内容</span><input id="evLabel" placeholder="例：昼食、移動（車で15分）"></label></div>
       <button class="btn primary" data-a="eventSave" data-day="${s.day}">足す</button></section></div></div>`;
+  },
+  img(s) {
+    const id = s.list[s.i] || s.list[0], m = P.imgs.find(x => x.id === id) || {};
+    return sheetTop(esc(m.name || '参考画像'), s.list.length > 1 ? `<span class="small">${s.i + 1}/${s.list.length}</span>` : '') + `<div class="sheet-body" style="padding-left:0;padding-right:0"><div style="text-align:center">${IMG[id] ? `<img src="${IMG[id]}" alt="" style="width:${S.zoom ? '220%' : '100%'};max-width:${S.zoom ? 'none' : '1100px'};height:auto;display:inline-block" data-a="imgZoom">` : '<p class="small">画像がこの端末にありません</p>'}</div>
+      <div class="btns grid2" style="padding:10px 16px">${s.list.length > 1 ? '<button class="btn" data-a="imgStep" data-dir="-1">← 前</button><button class="btn" data-a="imgStep" data-dir="1">次 →</button>' : ''}</div><p class="small" style="text-align:center">画像をタップすると拡大・元に戻す</p></div>`;
+  },
+  pick(s) {
+    const sc = sceneById(s.id), groups = {};
+    for (const m of P.imgs) if (IMG[m.id]) (groups[m.doc || 'あとから足した画像'] = groups[m.doc || 'あとから足した画像'] || []).push(m);
+    return sheetTop(`S#${esc(sc.no)} に付ける画像を選ぶ`) + `<div class="sheet-body"><div class="wrap"><p class="small">タップで付ける・外す。終わったら × で閉じてください。</p>
+      ${Object.entries(groups).map(([g, ms]) => `<section class="card"><h3>${esc(g)}</h3><div class="pickgrid">${ms.map(m => `<button class="pk" data-a="pickToggle" data-id="${m.id}" aria-pressed="${(sc.refs || []).includes(m.id)}"><img src="${IMG[m.id]}" alt="" loading="lazy"><span>${esc(m.name.replace(g.replace(/\.pdf$/i, ''), '').trim() || m.name)}</span></button>`).join('')}</div></section>`).join('') || '<p class="small">まだ画像がありません。「資料」で PDF を「ページを画像でも残す」にして取り込むか、写真を足してください。</p>'}</div></div>`;
   },
   text(s) { return sheetTop(esc(s.title)) + `<div class="sheet-body"><div class="wrap"><p class="small">長押しですべて選んでコピーしてください。</p><textarea class="inp" rows="20" readonly>${esc(s.text)}</textarea></div></div>`; },
   lic() {
@@ -1566,22 +1890,23 @@ const ACT = {
   pasteToggle: () => { S.paste = !S.paste; render(); if (S.paste) setTimeout(() => $('pastebox') && $('pastebox').focus(), 50); },
   pasteGo: () => readPasted($('pastebox').value, $('pastekind').value),
   pendGo: b => commitPending(b.dataset.id),
-  pendAll: () => { const rank = { script: 0, table: 1, other: 2 }; const list = pending.filter(d => !d.error).sort((a, b) => rank[a.kind] - rank[b.kind]); list.forEach(d => commitPending(d.id, true)); render(); toast(`${list.length} 件の資料を取り込みました。「香盤」で確かめてください`); },
+  pendAll: async () => { const rank = { script: 0, table: 1, other: 2 }; const list = pending.filter(d => !d.error).sort((a, b) => rank[a.kind] - rank[b.kind]); for (const d of list) await commitPending(d.id, true); render(); toast(`${list.length} 件の資料を取り込みました。「香盤」で確かめてください`); },
   pendDrop: b => { pending = pending.filter(x => x.id !== b.dataset.id); render(); },
   openDoc: b => openSheet({ t: 'doc', id: b.dataset.id }),
   docReread: b => { const d = P.docs.find(x => x.id === b.dataset.id); if (!d) return; const tabs = /\.(csv|tsv)$/i.test(d.name) ? [{ name: d.name, rows: parseCsv(d.text) }] : tabTables(d.text, d.name); const nd = analyze({ name: d.name, text: d.text, tables: tabs }); pending.push(nd); S.sheets = []; setTab('docs'); },
-  delDoc: b => { if (!confirm('この資料を消しますか？')) return; P.docs = P.docs.filter(x => x.id !== b.dataset.id); save(); closeSheet(); },
+  delDoc: async b => { if (!confirm('この資料を消しますか？')) return; const d = P.docs.find(x => x.id === b.dataset.id); P.docs = P.docs.filter(x => x !== d); for (const id of (d && d.pages) || []) await dropImage(id); save(); closeSheet(); },
   planView: b => { S.planView = b.dataset.k; persist(); render(); },
   openScene: b => openSheet({ t: 'scene', id: b.dataset.id }),
   addScene: () => { const sc = newScene(''); sc.seq = P.scenes.length; save(); render(); openSheet({ t: 'scene', id: sc.id }); },
-  delScene: b => { const sc = sceneById(b.dataset.id); const n = takesOf(sc.id).length; if (!confirm(`S#${sc.no} を消しますか？${n ? `（テイクの記録 ${n} 件も消えます）` : ''}`)) return; P.scenes = P.scenes.filter(x => x !== sc); P.takes = P.takes.filter(t => t.sc !== sc.id); S.sheets = S.sheets.filter(x => x.id !== sc.id); save(); render(); },
+  delScene: b => { const sc = sceneById(b.dataset.id); const n = takesOf(sc.id).length; if (!confirm(`S#${sc.no} を消しますか？${n ? `（テイクの記録 ${n} 件も消えます）` : ''}`)) return; P.scenes = P.scenes.filter(x => x !== sc); P.takes = P.takes.filter(t => t.sc !== sc.id); P.slots = (P.slots || []).filter(x => x.sc !== sc.id); S.sheets = S.sheets.filter(x => x.id !== sc.id); save(); render(); },
   addCut: b => { const sc = sceneById(b.dataset.id); sc.cuts.push({ id: uid(), no: String(sc.cuts.reduce((m, c) => Math.max(m, parseInt(c.no, 10) || 0), 0) + 1), size: '', desc: '' }); save(); renderSheets(); },
   addCutRec: b => { const sc = sceneById(b.dataset.id); const c = { id: uid(), no: String(sc.cuts.reduce((m, c) => Math.max(m, parseInt(c.no, 10) || 0), 0) + 1), size: '', desc: '' }; sc.cuts.push(c); S.recCut[sc.id] = c.id; save(); render(); toast(`C${c.no} を足しました（内容はシーンの詳細で書けます）`); },
   delCut: b => { const sc = sceneById(b.dataset.sc); const n = takesOf(sc.id, b.dataset.id).length; if (n && !confirm(`このカットのテイク ${n} 件は「一連」に移ります。消しますか？`)) return; sc.cuts = sc.cuts.filter(c => c.id !== b.dataset.id); P.takes.forEach(t => { if (t.sc === sc.id && t.cut === b.dataset.id) t.cut = ''; }); save(); render(); },
   addDay: () => { const d = { id: uid(), label: `${P.days.length + 1}日目`, date: '', call: '', meet: '', notes: '' }; P.days.push(d); save(); render(); openSheet({ t: 'day', id: d.id }); },
   openDay: b => openSheet({ t: 'day', id: b.dataset.id }),
-  delDay: b => { if (!confirm('この撮影日を消しますか？')) return; const id = b.dataset.id; P.days = P.days.filter(d => d.id !== id); P.scenes.forEach(s => { if (s.day === id) s.day = ''; }); P.events = P.events.filter(e => e.day !== id); save(); closeSheet(); },
+  delDay: b => { if (!confirm('この撮影日を消しますか？')) return; const id = b.dataset.id; P.days = P.days.filter(d => d.id !== id); P.scenes.forEach(s => { if (s.day === id) s.day = ''; }); P.events = P.events.filter(e => e.day !== id); P.slots = (P.slots || []).filter(x => x.day !== id); save(); closeSheet(); },
   move: b => { const items = timeline(b.dataset.day); const i = +b.dataset.i, j = i + +b.dataset.dir; if (j < 0 || j >= items.length) return; [items[i], items[j]] = [items[j], items[i]]; items.forEach((it, k) => { it.o.order = (k + 1) * 10; }); save(); render(); },
+  delSlot: b => { P.slots = P.slots.filter(x => x.id !== b.dataset.id); save(); render(); },
   addEvent: b => openSheet({ t: 'event', day: b.dataset.day }),
   eventSave: b => { const label = $('evLabel').value.trim(); if (!label) { toast('内容を書いてください'); return; } const st = normTime($('evStart').value); const items = timeline(b.dataset.day); let order = nextOrder(b.dataset.day); const m = hm2min(st); if (m !== null) { const after = items.find(it => (hm2min(it.o.start) ?? -1) > m); if (after) { order = (after.o.order || 0) - 5; } } P.events.push({ id: uid(), src: '', day: b.dataset.day, start: st, label, order }); timeline(b.dataset.day).forEach((it, k) => { it.o.order = (k + 1) * 10; }); save(); closeSheet(); },
   delEvent: b => { P.events = P.events.filter(e => e.id !== b.dataset.id); save(); render(); },
@@ -1594,6 +1919,13 @@ const ACT = {
   recStop: () => { recStop(); buzz(30); renderSheetsKeep(); },
   recResult: b => { const top = S.sheets[S.sheets.length - 1]; recResult(top.id, b.dataset.r); },
   noteAdd: b => { const el = $('rc-note'); el.value = (el.value ? el.value + '、' : '') + b.dataset.w; },
+  viewImg: b => { const list = (b.dataset.list || b.dataset.id).split(',').filter(Boolean); openSheet({ t: 'img', list, i: Math.max(0, list.indexOf(b.dataset.id)) }); },
+  imgStep: b => { const top = S.sheets[S.sheets.length - 1]; top.i = (top.i + +b.dataset.dir + top.list.length) % top.list.length; persist(); renderSheets(); },
+  imgZoom: () => { S.zoom = !S.zoom; renderSheets(); },
+  pickImgs: b => openSheet({ t: 'pick', id: b.dataset.id }),
+  pickToggle: b => { const sc = sceneById(S.sheets[S.sheets.length - 1].id); sc.refs = sc.refs || []; const id = b.dataset.id; if (sc.refs.includes(id)) sc.refs = sc.refs.filter(x => x !== id); else sc.refs.push(id); save(); b.setAttribute('aria-pressed', String(sc.refs.includes(id))); },
+  addImg: b => { const f = $('imgfile'); f.dataset.sc = b.dataset.id; f.click(); },
+  unref: async b => { const sc = sceneById(b.dataset.sc); sc.refs = (sc.refs || []).filter(x => x !== b.dataset.id); await dropImage(b.dataset.id); save(); render(); },
   openTake: b => openSheet({ t: 'take', id: b.dataset.id }),
   takeR: b => { const t = P.takes.find(x => x.id === b.dataset.id); t.r = b.dataset.r; save(); render(); },
   delTake: b => { if (!confirm('このテイクを消しますか？')) return; P.takes = P.takes.filter(t => t.id !== b.dataset.id); save(); closeSheet(); },
@@ -1607,11 +1939,13 @@ const ACT = {
   printScript: () => doPrint(scriptHtml(), true),
   csvScript: () => download(fileName('スクリプト表', 'csv'), toCsv(scriptCsv()), 'text/csv'),
   shareScript: () => shareText('スクリプト表', scriptText()),
+  printPost: () => doPrint(postHtml(), false),
+  csvPost: () => download(fileName('編集素材リスト', 'csv'), toCsv(postCsv()), 'text/csv'),
   printKoban: () => doPrint(kobanHtml(), true),
   csvKoban: () => download(fileName('香盤表', 'csv'), toCsv(kobanCsv()), 'text/csv'),
-  backup: () => download(fileName('作品データ', 'json'), JSON.stringify(P), 'application/json'),
+  backup: () => download(fileName('作品データ', 'json'), JSON.stringify(Object.assign({}, P, { images: P.imgs.filter(m => IMG[m.id]).map(m => ({ id: m.id, data: IMG[m.id] })) })), 'application/json'),
   restore: () => $('restore').click(),
-  wipe: () => { if (!confirm('この端末の作品データをすべて消して、新しく始めますか？（先に「作品データを保存」しておくと戻せます）')) return; P = blank(); pending = []; S.sheets = []; S.run = null; S.day = null; S.recCut = {}; save(true); setTab('docs'); toast('新しい作品を始めました'); },
+  wipe: () => { if (!confirm('この端末の作品データをすべて消して、新しく始めますか？（先に「作品データを保存」しておくと戻せます）')) return; P = blank(); pending = []; S.sheets = []; S.run = null; S.day = null; S.recCut = {}; for (const k in IMG) delete IMG[k]; IDB.clear().catch(() => {}); save(true); setTab('docs'); toast('新しい作品を始めました'); },
   licenses: () => openSheet({ t: 'lic' }),
   close: () => closeSheet(),
   wake: () => { S.wake = !S.wake; persist(); applyWake(); render(); toast(S.wake ? '撮影中は画面を消しません' : '画面は自動で消えます'); },
@@ -1620,6 +1954,12 @@ const ACT = {
   gearSave: () => { P.gear = uniq($('gearText').value.split('\n').map(x => x.trim())); save(); closeSheet(); },
 };
 function renderSheetsKeep() { renderSheets(); }
+async function addImgFiles(files, scId) {
+  const sc = sceneById(scId); if (!sc) return;
+  busy(true, '画像を入れています…');
+  for (const f of files) { try { const id = await addImage(await fileToJpeg(f), f.name, ''); sc.refs = (sc.refs || []).concat(id); } catch (e) { toast('画像を読めませんでした：' + f.name); } }
+  busy(false); save(); render();
+}
 
 document.addEventListener('click', e => {
   const b = e.target.closest('[data-a]');
@@ -1635,7 +1975,11 @@ document.addEventListener('toggle', e => {
 function bindValue(t) {
   const [kind, id, a, b] = t.dataset.b.split('|');
   let v = t.type === 'checkbox' ? t.checked : t.value;
-  if (kind === 'p') { P[a] = v; if (a === 'title') renderTop(); }
+  if (kind === 'p') {
+    if (a === 'credits') v = String(v).split('\n').map(l => l.trim()).filter(Boolean).map(l => { const m = /^(.+?)[：:]\s*(.*)$/.exec(l); return m ? { role: m[1].trim(), name: m[2].trim() } : { role: '', name: l }; });
+    if (a === 'rules') v = String(v).split('\n').map(l => l.trim()).filter(Boolean);
+    P[a] = v; if (a === 'title') renderTop();
+  }
   else if (kind === 'sc') { const sc = sceneById(id); if (!sc) return; if (t.dataset.list) v = splitList(v, a === 'cast'); if (a === 'no') v = normNo(v) || v; if (a === 'mins') v = +half(v).replace(/[^\d]/g, '') || 0; if (a === 'start') v = normTime(v) || v; if (a === 'day' && v !== sc.day) sc.order = nextOrder(v); sc[a] = v; }
   else if (kind === 'cut') { const sc = sceneById(id); const c = sc && sc.cuts.find(x => x.id === a); if (c) c[b] = v; }
   else if (kind === 'tk') { const tk = P.takes.find(x => x.id === id); if (!tk) return; if (a === 'n') v = +half(v).replace(/\D/g, '') || tk.n; if (a === 'sec') v = parseSec(v); tk[a] = v; }
@@ -1652,6 +1996,8 @@ document.addEventListener('change', e => {
   else if (a === 'pendHdr' && p) { const ti = p.tinfo[+t.dataset.i], rows = p.tables[+t.dataset.i].rows; const r = Math.max(0, Math.min(rows.length - 1, (+t.value || 1) - 1)); ti.hdr = r; ti.map = guessMap(rows, r); render(); }
   else if (a === 'pendOff' && p) { p.tinfo[+t.dataset.i].off = !t.checked; render(); }
   else if (a === 'pendGear' && p) { p.toGear = t.checked; }
+  else if (a === 'pendPages' && p) { p.toPages = t.checked; }
+  else if (t.id === 'imgfile') { addImgFiles(t.files, t.dataset.sc); t.value = ''; }
   else if (t.id === 'file') { readFiles(t.files); t.value = ''; }
   else if (t.id === 'restore') { if (t.files[0]) restoreFile(t.files[0]); t.value = ''; }
   else if (t.id === 'outDay') { S.outDay = t.value; persist(); }
@@ -1694,6 +2040,7 @@ async function checkUpdate() {
 document.body.insertAdjacentHTML('beforeend', `<datalist id="todlist">${['朝', '昼', '夕', '夜', '深夜', '早朝'].map(x => `<option value="${x}">`).join('')}</datalist><datalist id="sizelist">${['引き', 'フル', 'ニー', 'ウエスト', 'ミディアム', 'バスト', 'アップ', '寄り', 'ルーズ', 'タイト', '2ショット', '肩なめ', '主観', '俯瞰', 'あおり', 'インサート', '移動'].map(x => `<option value="${x}">`).join('')}</datalist>`);
 
 render();
+IDB.all().then(all => { Object.assign(IMG, all); if (Object.keys(all).length) render(); }).catch(() => {});
 applyWake();
 checkUpdate();
 if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {});

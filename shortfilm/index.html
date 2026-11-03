@@ -284,6 +284,16 @@ pre.doc { white-space: pre-wrap; word-break: break-word; font-family: var(--font
   #print .pm td { font-size: 8pt; color: #222; }
   #print .rules { margin-top: 3mm; font-size: 9pt; }
   #print .rules ul { margin-left: 5mm; }
+  #print h2 { font-size: 11.5pt; margin: 4mm 0 1.5mm; }
+  #print .scn { page-break-before: always; }
+  #print table.kv th { width: 18mm; text-align: center; vertical-align: top; }
+  #print .imgs { display: flex; flex-wrap: wrap; gap: 3mm; }
+  #print .imgs figure { width: calc(33.3% - 2mm); margin: 0; break-inside: avoid; }
+  #print .imgs img { display: block; width: 100%; max-height: 62mm; object-fit: contain; border: .5pt solid #999; background: #fff; }
+  #print .imgs figcaption { font-size: 7.5pt; color: #444; margin-top: .8mm; }
+  #print .scn { font-size: 9pt; }
+  #print .scr { font-size: 8.5pt; line-height: 1.45; border: .5pt solid #999; padding: 2mm 3mm; }
+  #print .scr .a { color: #333; padding-left: 4mm; }
 }
 </style>
 </head>
@@ -315,7 +325,7 @@ pre.doc { white-space: pre-wrap; word-break: break-word; font-family: var(--font
 <script>
 (() => {
 'use strict';
-const VERSION = '1.2（11/3 使い方・鍵つきリンクで作品を開く）';
+const VERSION = '1.3（11/3 撮影資料を1冊にまとめて出力）';
 
 /* ───────── 基本 ───────── */
 const $ = id => document.getElementById(id);
@@ -1534,6 +1544,8 @@ function renderOut() {
       <div class="seg">${[['script', '台本の順'], ['shoot', '撮影の順']].map(([k, l]) => `<button data-a="outOrder" data-k="${k}" aria-pressed="${(S.outOrder || 'script') === k}">${l}</button>`).join('')}</div>
       <div class="seg">${[['all', 'すべてのテイク'], ['ok', 'OK・KEEPだけ']].map(([k, l]) => `<button data-a="outFilter" data-k="${k}" aria-pressed="${(S.outFilter || 'all') === k}">${l}</button>`).join('')}</div>
       ${outBtns('Script', true)}</section>
+    <section class="card"><h2>撮影資料（1冊にまとめたもの）</h2><p class="lead">最初に撮影日ごとの流れ・持ち物・現場の注意、続いてシーンごとに1ページ（撮影の日時と場所・撮るもの・演出・参考画像・編集素材・台本）。スタッフに配る資料に。</p>
+      <div class="btns grid2">${MODE.artifact ? '<span class="small">このページでは印刷できません。</span>' : '<button class="btn primary" data-a="printBook">印刷・PDF</button>'}</div></section>
     <section class="card"><h2>編集素材リスト</h2><p class="lead">台本の ※写真・ＣＧ・動画、字幕、ナレーション、唄、ＳＥ をシーンごとに並べたもの。編集・ＣＧ・音の担当に渡せます。</p>
       ${outBtns('Post', false)}</section>
     <section class="card"><h2>香盤表</h2><p class="lead">撮影日の順に、シーン・場所・人物の出番（○）・小道具・衣装を並べた表。</p>
@@ -1661,6 +1673,47 @@ function postHtml() {
     items.slice().sort((a, b) => POST_ORDER.indexOf(a.k) - POST_ORDER.indexOf(b.k)).map(x => `<tr><td class="c">${pbox}</td><td class="c" style="white-space:nowrap">${esc(postName(x.k))}</td><td>${esc(x.t)}</td></tr>`).join('')).join('');
   return `<section class="pg"><h1>編集素材リスト<small>${esc(P.title)}${P.draft ? '　' + esc(P.draft) : ''}</small></h1><div class="ph">台本の ※写真・ＣＧ・動画、字幕、ナレーション、唄、ＳＥ を台本の順に並べたもの。出力 ${fmtAt(Date.now())}</div>
     <table><thead><tr><th>済</th><th>種類</th><th>内容</th></tr></thead><tbody>${rows || '<tr><td colspan="3">ありません</td></tr>'}</tbody></table></section>`;
+}
+// 撮影資料（1冊）：日程の一覧と、シーンごとのページ（撮るもの・演出・参考画像・編集素材・台本）
+function bookHtml() {
+  const ttl = `${esc(P.title)}${P.draft ? '　' + esc(P.draft) : ''}`;
+  const dayTable = d => `<h2>${esc(dayLabel(d))}${d.call ? `　集合 ${esc(d.call)}` : ''}${d.meet ? `　${esc(d.meet)}` : ''}</h2>${d.notes ? `<div class="ph">${esc(d.notes)}</div>` : ''}
+    <table><thead><tr><th>時刻</th><th>S#</th><th>内容</th><th>ロケ地</th></tr></thead><tbody>${timeline(d.id).map(it => {
+      if (it.t === 'ev') return `<tr class="evr"><td class="c">${esc(it.o.start)}</td><td colspan="3">${esc(it.o.label)}</td></tr>`;
+      const sc = itemScene(it), sl = it.t === 'sl' ? it.o : null; if (sc.noshoot) return '';
+      return `<tr><td class="c">${esc(sl ? sl.start : sc.start)}</td><td class="c"><b>${esc(sc.no)}</b></td><td>${esc(sl ? sl.summary || sc.summary : sc.summary)}</td><td>${esc(sl ? sl.loc || sc.loc : sc.loc)}</td></tr>`;
+    }).join('')}</tbody></table>`;
+  const noShoot = P.scenes.filter(s => s.noshoot).sort(cmpScene), unset = P.scenes.filter(s => !s.day && !s.noshoot).sort(cmpScene);
+  const cover = `<section class="pg"><h1>撮影資料<small>${ttl}</small></h1>
+    ${credLine() ? `<div class="ph">${esc(credLine())}</div>` : ''}${P.memo ? `<div class="ph">${esc(P.memo)}</div>` : ''}
+    ${P.days.map(dayTable).join('')}
+    ${unset.length ? `<div class="ph"><b>日程未定：</b>${unset.map(s => 'S#' + esc(s.no) + ' ' + esc(s.place)).join('、')}</div>` : ''}
+    ${noShoot.length ? `<div class="ph"><b>撮影なし：</b>${noShoot.map(s => 'S#' + esc(s.no) + ' ' + esc(s.place)).join('、')}</div>` : ''}
+    ${P.gear.length ? `<div class="gear"><b>持ち物・機材</b>${P.gear.map(g => `<div>${pbox}${esc(g)}</div>`).join('')}</div>` : ''}
+    ${(P.rules || []).length ? `<div class="rules"><b>現場の注意</b><ul>${P.rules.map(r => `<li>${esc(r)}</li>`).join('')}</ul></div>` : ''}
+    <div class="foot">次のページから、シーンごとの資料（台本の順）。出力 ${fmtAt(Date.now())}　撮影帳</div></section>`;
+  const scene = sc => {
+    const when = sc.noshoot ? '撮影なし（資料映像・写真・ＣＧで作る）' : [sc.day ? `${dayLabel(dayById(sc.day))} ${sc.start || ''}` : '日程未定', sc.loc ? '＠' + sc.loc : ''].filter(Boolean).join('　');
+    const more = (P.slots || []).filter(x => x.sc === sc.id).map(x => `${dayLabel(dayById(x.day))} ${x.start || ''}　${x.summary || ''}${x.loc ? '　＠' + x.loc : ''}`);
+    const pi = postItems(sc).slice().sort((a, b) => POST_ORDER.indexOf(a.k) - POST_ORDER.indexOf(b.k));
+    const imgs = (sc.refs || []).filter(id => IMG[id]);
+    const name = id => ((P.imgs.find(m => m.id === id) || {}).name || '');
+    return `<section class="pg scn"><h1>S#${esc(sc.no)}　${esc(sc.place)}${todLine(sc) ? `（${esc(todLine(sc))}）` : ''}<small>${ttl}</small></h1>
+      <table class="kv"><tbody>
+        <tr><th>撮影</th><td>${esc(when)}${more.map(m => `<br>別の予定：${esc(m)}`).join('')}</td></tr>
+        ${sc.summary ? `<tr><th>内容</th><td>${esc(sc.summary)}</td></tr>` : ''}
+        ${sc.cast.length ? `<tr><th>出演</th><td>${esc(listText(sc.cast))}</td></tr>` : ''}
+        ${sc.dir ? `<tr><th>演出</th><td>${esc(sc.dir)}</td></tr>` : ''}
+        ${sc.notes ? `<tr><th>備考</th><td>${esc(sc.notes)}</td></tr>` : ''}
+        ${sc.cuts.length ? `<tr><th>撮るもの</th><td>${sc.cuts.map(c => `<div>${cutState(sc, c.id).ok ? '☑' : pbox}C${esc(c.no)}　${c.size ? `<b>${esc(c.size)}</b>　` : ''}${esc(c.desc)}</div>`).join('')}</td></tr>` : ''}
+        ${sc.edit ? `<tr><th>編集へ</th><td>${esc(sc.edit)}</td></tr>` : ''}
+      </tbody></table>
+      ${imgs.length ? `<h2>参考画像</h2><div class="imgs">${imgs.map(id => `<figure><img src="${IMG[id]}" alt=""><figcaption>${esc(name(id))}</figcaption></figure>`).join('')}</div>` : ''}
+      ${pi.length ? `<h2>編集素材</h2><table><tbody>${pi.map(x => `<tr><td class="c">${pbox}</td><td class="c" style="white-space:nowrap">${esc(postName(x.k))}</td><td>${esc(x.t)}</td></tr>`).join('')}</tbody></table>` : ''}
+      ${sc.lines.length ? `<h2>台本</h2><div class="scr">${sc.lines.map(l => l.k === 'd' ? `<div><b>${esc(l.who)}</b>${l.p ? `（${esc(l.p)}）` : ''}「${esc(l.text)}」</div>` : `<div class="a">${esc(l.text)}</div>`).join('')}</div>` : ''}
+    </section>`;
+  };
+  return cover + scriptOrder().map(scene).join('');
 }
 function postCsv() {
   const rows = [['シーン', '場所', '種類', '内容', '編集へ']];
@@ -2013,6 +2066,7 @@ const ACT = {
   printScript: () => doPrint(scriptHtml(), true),
   csvScript: () => download(fileName('スクリプト表', 'csv'), toCsv(scriptCsv()), 'text/csv'),
   shareScript: () => shareText('スクリプト表', scriptText()),
+  printBook: () => doPrint(bookHtml(), false),
   printPost: () => doPrint(postHtml(), false),
   csvPost: () => download(fileName('編集素材リスト', 'csv'), toCsv(postCsv()), 'text/csv'),
   printKoban: () => doPrint(kobanHtml(), true),

@@ -560,6 +560,29 @@ h3 { font-size: 12px; letter-spacing: .16em; }
 .slate .results .rKEEP { background: transparent; color: #f2a93b; border-color: #f2a93b; }
 .slate .results .rNG { background: #1c1d21; color: #c9c4ba; border-color: #3a3d43; }
 
+/* まとめたところ */
+.camd { border-top: 1px solid var(--line); padding-top: 4px; }
+.camd > summary { font-size: 14px; color: var(--accent); min-height: 40px; }
+.camd > summary .small { margin-left: auto; }
+.camcut { display: flex; flex-direction: column; gap: 4px; padding: 8px 0; border-bottom: 1px dashed var(--line); }
+.camcut:last-child { border-bottom: 0; }
+.camcut-h { display: flex; gap: 8px; align-items: baseline; font-size: 14px; }
+.dayrules { background: var(--surface2); border: 1px solid var(--line); border-radius: 12px; padding: 4px 12px; }
+.dayrules > summary { font-size: 14px; }
+.dayrules > summary .small { margin-left: auto; font-family: var(--mono); }
+.dayrules h3 { margin: 8px 0 4px; }
+.dayrules ul { margin: 0 0 8px 1.2em; font-size: 14px; }
+.dayrules .btn { margin-bottom: 10px; }
+details.card > summary { font-size: 17px; }
+.cutchips { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 2px; scrollbar-width: none; }
+.cutchips::-webkit-scrollbar { display: none; }
+.cutchips .chip { flex: 0 0 auto; }
+details.rec-top > summary { font-size: 13px; font-weight: 800; letter-spacing: .16em; color: var(--muted); }
+.btns.grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+.btns.grid3 .btn { padding: 8px 6px; font-size: 14px; }
+.btn.big { min-height: 56px; font-size: 17px; }
+.outhero { border-color: var(--accent); }
+
 /* PDF の下見 */
 .pdfpages { display: flex; flex-direction: column; gap: 12px; }
 .pdfpages img { display: block; width: 100%; height: auto; border-radius: 6px; box-shadow: var(--shadow); background: #fff; }
@@ -597,7 +620,7 @@ h3 { font-size: 12px; letter-spacing: .16em; }
 <script>
 (() => {
 'use strict';
-const VERSION = '3.3（11/3 FX6 のファイル名の番号送り）';
+const VERSION = '3.4（11/3 画面をまとめて短くした）';
 
 /* ───────── 基本 ───────── */
 const $ = id => document.getElementById(id);
@@ -1743,22 +1766,21 @@ function renderDocs() {
     <p class="small">ホーム画面のアイコンから開いたアプリは、Safari とは保存場所が別です。アイコンから使うときは、ここで一度開いてください。</p>
     <input class="inp worklink" placeholder="ここにリンクを貼り付け" autocomplete="off" autocapitalize="off" spellcheck="false" inputmode="url">
     <button class="btn primary wide" data-a="openPasted">開く</button></section>`;
-  if (P.scenes.length) h += `<section class="card" id="vercard"><h2>資料の版</h2>
-    <div class="row-h"><span class="grow">この端末：<b>第${P.rev || 1}版</b>　最新：<b id="latestrev">確かめています…</b></span></div>
-    <div class="btns grid2"><button class="btn primary" data-a="refreshWork">資料を最新にする</button><button class="btn" data-a="hardUpdate">アプリを最新にする</button></div>
-    <p class="small">アプリの版：${esc(VERSION)}。付けた記録は、どちらを押しても消えません。</p></section>`;
   if (P.scenes.length) h += `<section class="card"><h2>${esc(P.title || 'この作品')}の資料を見る</h2>
     <div class="btns grid2">
-      <button class="btn primary" data-a="view" data-k="book">撮影資料（日程・シーンごと）</button>
+      <button class="btn primary" data-a="view" data-k="book">撮影資料</button>
       <button class="btn" data-a="view" data-k="koban">香盤表</button>
-      <button class="btn" data-a="view" data-k="check">撮影チェックシート</button>
+      <button class="btn" data-a="view" data-k="check">チェックシート</button>
       <button class="btn" data-a="view" data-k="post">編集素材リスト</button>
-      <button class="btn" data-a="view" data-k="script">スクリプトシート（記録）</button>
+      <button class="btn" data-a="view" data-k="script">スクリプトシート</button>
       <button class="btn" data-a="openGuide">撮り方の手引き</button>
     </div>
     ${P.docs.length ? `<p class="small">もとの資料（台本・作品意図・写真と実景まとめなど）は、この画面のいちばん下の「取り込んだ資料」から開けます。</p>` : ''}</section>`;
-  h += `<section class="card">
-    <h2>資料を入れる</h2>
+  if (P.scenes.length) h += `<section class="card" id="vercard"><div class="row-h"><span class="grow">資料：この端末は<b>第${P.rev || 1}版</b>・最新は<b id="latestrev">確かめています…</b></span></div>
+    <div class="btns grid2"><button class="btn" data-a="refreshWork">資料を最新に</button><button class="btn" data-a="hardUpdate">アプリを最新に</button></div>
+    <p class="small">アプリの版：${esc(VERSION.split('（')[0])}。どちらを押しても、付けた記録は消えません。</p></section>`;
+  h += `<${P.scenes.length ? `details class="card" data-open="addDocs" ${S.open && S.open.addDocs ? 'open' : ''}` : 'section class="card"'}>
+    ${P.scenes.length ? '<summary>資料を入れ直す・足す</summary>' : '<h2>資料を入れる</h2>'}
     <p class="lead">台本・香盤表・カット表・そのほかの資料を入れると、シーン・出演・撮影日・カットを自動で読み取ります。読み取った結果を確かめてから取り込みます。</p>
     <label class="drop" id="drop" tabindex="0"><b>ファイルを選ぶ</b><span class="small">テキスト・Word（.docx）・Excel（.xlsx）・CSV・PDF。まとめて選べます</span></label>
     <div class="btns">
@@ -1768,7 +1790,7 @@ function renderDocs() {
     ${S.paste ? `<div class="field"><span>ここに台本や香盤表の文字を貼り付け（Googleドキュメントやメールからのコピーなど）</span><textarea class="inp" id="pastebox" rows="8"></textarea></div>
       <div class="row-h"><select class="inp" id="pastekind" style="width:auto"><option value="">種類は自動で判定</option><option value="script">台本</option><option value="table">香盤表・カット表</option><option value="other">その他の資料</option></select>
       <button class="btn primary" data-a="pasteGo">読み取る</button></div>` : ''}
-  </section>`;
+  </${P.scenes.length ? 'details' : 'section'}>`;
   const ready = pending.filter(d => !d.error);
   if (ready.length >= 2) h += `<div class="card flat row-h"><span class="grow small">読み取った資料が ${ready.length} 件あります。台本 → 表 → その他の順に取り込みます。</span><button class="btn primary" data-a="pendAll">すべて取り込む</button></div>`;
   h += pending.map(renderPending).join('');
@@ -1920,7 +1942,9 @@ function shootCard(sc, isNow, slot) {
   const cos = costumeItems(sc).map(n => prepChip(`${sc.id}|w|${n}`, n)).join('');
   const mk = makeupItems(sc).map(n => prepChip(`${sc.id}|m|${n}`, n)).join('');
   const withDesc = sc.cuts.some(c => c.desc);
-  const cuts = sc.cuts.map(c => { const st = cutState(sc, c.id); const pill = `<span class="cutpill ${st.ok ? 'ok' : st.n ? 'tried' : ''}">C${esc(c.no)}${st.ok ? ' OK' : st.n ? ` ${st.n}回` : ''}</span>`; return withDesc ? `<div class="cutrowv">${pill}<div>${c.size ? `<b>${esc(c.size)}</b> ` : ''}${esc(c.desc)}${c.fig ? `<button class="figthumb" data-a="openFig" data-sc="${sc.id}" data-id="${c.id}" aria-label="カメラ位置の図を開く">${figSVG(sc.stage, c.fig, { small: true })}<span>図を開く（案A〜C）</span></button>` : ''}${camHtml(c, sc)}</div></div>` : pill; }).join('');
+  const cuts = sc.cuts.map(c => { const st = cutState(sc, c.id); const pill = `<span class="cutpill ${st.ok ? 'ok' : st.n ? 'tried' : ''}">C${esc(c.no)}${st.ok ? ' OK' : st.n ? ` ${st.n}回` : ''}</span>`; return withDesc ? `<div class="cutrowv">${pill}<div>${c.size ? `<b>${esc(c.size)}</b> ` : ''}${esc(c.desc)}</div></div>` : pill; }).join('');
+  const camOpen = !!(S.open && S.open['cam|' + sc.id]);
+  const camCuts = sc.cuts.filter(c => c.cam || c.fig);
   const ts = takesOf(sc.id);
   return `<article class="scard ${done ? 'done' : isNow ? 'now' : ''}" id="sc-${slot ? slot.id : sc.id}">
     <div class="hd">${start ? `<span class="tm">${esc(start)}</span>` : ''}<span class="sn">S#${esc(sc.no)}</span><span class="pl">${esc(sc.place)}</span>${todLine(sc) ? `<span class="badge">${esc(todLine(sc))}</span>` : ''}
@@ -1938,9 +1962,9 @@ function shootCard(sc, isNow, slot) {
     ${sc.notes ? `<div class="memo"><b>備考</b>${esc(sc.notes)}</div>` : ''}
     ${sc.cont ? `<div class="memo"><b>繋がり</b>${esc(sc.cont)}</div>` : ''}
     ${cuts ? (withDesc ? `<div class="cutlist"><span class="lbl">撮るもの</span>${cuts}</div>` : `<div class="cutline"><span class="lbl">カット</span>${cuts}</div>`) : ''}
-    ${sc.axis ? `<div class="memo"><b>画面の向き・軸</b>${esc(sc.axis)}</div>` : ''}
-    ${sc.link ? `<div class="memo"><b>前後のつながり</b>${esc(sc.link)}</div>` : ''}
-    ${!withDesc && sc.cuts.some(c => c.cam) ? `<div class="cutlist">${camBlock(sc)}</div>` : ''}
+    ${hasCam(sc) ? `<details class="camd" data-open="cam|${sc.id}" ${camOpen ? 'open' : ''}><summary>カメラワーク（案・図・理由）<span class="small">${camCuts.length ? camCuts.length + 'カット' : ''}</span></summary>
+      ${camOpen ? `<div class="cutlist">${sc.axis ? `<div class="memo"><b>画面の向き・軸</b>${esc(sc.axis)}</div>` : ''}${sc.link ? `<div class="memo"><b>前後のつながり</b>${esc(sc.link)}</div>` : ''}
+      ${camCuts.map(c => `<div class="camcut"><div class="camcut-h"><span class="cutpill">C${esc(c.no)}</span><span>${c.size ? `<b>${esc(c.size)}</b> ` : ''}${esc(c.desc)}</span></div>${c.fig ? `<button class="figthumb" data-a="openFig" data-sc="${sc.id}" data-id="${c.id}" aria-label="カメラ位置の図を開く">${figSVG(sc.stage, c.fig, { small: true })}<span>図を開く${c.alts && c.alts.length ? `（案A〜${planLabel(c.alts.length)}）` : ''}</span></button>` : ''}${camHtml(c, sc)}</div>`).join('')}</div>` : ''}</details>` : ''}
     <div class="btns grid2"><button class="btn" data-a="openScene" data-id="${sc.id}">台本・詳細</button><button class="btn ${done ? '' : 'primary'}" data-a="openRec" data-id="${sc.id}">記録する${ts.length ? `（${ts.length}テイク）` : ''}</button></div>
   </article>`;
 }
@@ -1960,9 +1984,10 @@ function renderShoot() {
     ${d && (d.call || d.meet) ? `<div class="cs-call"><span class="small">集合</span><b>${esc(d.call)}</b><span>${esc(d.meet)}</span></div>` : ''}
     ${d && d.notes ? `<div class="memo">${esc(d.notes)}</div>` : ''}
     ${P.memo ? `<div class="memo">${esc(P.memo)}</div>` : ''}
-    <button class="btn small" data-a="openGuide" style="align-self:flex-start">撮り方の手引き（原則と出典）</button>
-    ${(P.camPlan || []).length ? `<details><summary>カメラの決まりごと（作品全体）</summary><ul style="margin-left:1.2em;font-size:14px">${P.camPlan.map(r => `<li>${esc(r)}</li>`).join('')}</ul></details>` : ''}
-    ${(P.rules || []).length ? `<details><summary>現場の注意（${P.rules.length}）</summary><ul style="margin-left:1.2em;font-size:14px">${P.rules.map(r => `<li>${esc(r)}</li>`).join('')}</ul></details>` : ''}
+    <details class="dayrules" data-open="dayrules" ${S.open && S.open.dayrules ? 'open' : ''}><summary>現場の注意・カメラの決まりごと<span class="small">${(P.rules || []).length + (P.camPlan || []).length || ''}</span></summary>
+      ${(P.rules || []).length ? `<h3>現場の注意</h3><ul>${P.rules.map(r => `<li>${esc(r)}</li>`).join('')}</ul>` : ''}
+      ${(P.camPlan || []).length ? `<h3>カメラの決まりごと（作品全体）</h3><ul>${P.camPlan.map(r => `<li>${esc(r)}</li>`).join('')}</ul>` : ''}
+      <button class="btn small" data-a="openGuide">撮り方の手引き（原則と出典）を開く</button></details>
     <div class="sum"><div><b>${doneN}/${scs.length}</b><span>撮了シーン</span></div><div><b>${miss}</b><span>OKが無いカット</span></div><div><b>${takeN}</b><span>テイク</span></div></div>
     <div class="bar"><i style="width:${scs.length ? doneN / scs.length * 100 : 0}%"></i></div>
     ${nowSc ? `<button class="btn primary wide" data-a="openRec" data-id="${nowSc.id}">次：S#${esc(nowSc.no)} ${esc(nowSc.place)} を記録する</button>` : scs.length ? '<div class="badge ok" style="text-align:center;padding:8px">この日のシーンはすべて撮了です</div>' : ''}
@@ -2040,29 +2065,36 @@ function outBtns(k, share) {
     : [view, B('copy', '表をコピー'), share ? B('share', '文字で送る') : '', B('print', '印刷・PDF'), B('csv', 'Excel用（CSV）')];
   return `<div class="btns grid2">${list.filter(Boolean).join('')}</div>`;
 }
+const OUTDOCS = [
+  ['check', '撮影チェックシート', '当日の流れ・出演・撮るもの・備考を、チェック欄つきで。紙で持ち歩く人や、スタッフへの共有に。'],
+  ['book', '撮影資料', '日程・持ち物・現場の注意と、シーンごとの撮るもの・演出・参考画像・台本を1冊に。スタッフに配る資料に。'],
+  ['post', '編集素材リスト', '台本の写真・ＣＧ・動画・字幕・ナレーション・唄・ＳＥ をシーンごとに。編集・ＣＧ・音の担当に。'],
+  ['koban', '香盤表', '撮影日の順に、シーン・場所・人物の出番・小道具・衣装を並べた表。'],
+];
 function renderOut() {
   const dayOpts = P.days.map(d => `<option value="${d.id}" ${S.outDay === d.id ? 'selected' : ''}>${esc(dayLabel(d))}</option>`).join('');
+  const k = OUTDOCS.some(x => x[0] === S.outDoc) ? S.outDoc : 'check', doc = OUTDOCS.find(x => x[0] === k), cap = k[0].toUpperCase() + k.slice(1);
+  const B = (a, l, cls = '', kk = '') => `<button class="btn ${cls}" data-a="${a}" ${kk ? `data-k="${kk}"` : ''}>${l}</button>`;
+  const can = { check: ['print', 'copy', 'share', 'csv'], book: ['print'], post: ['print', 'copy', 'csv'], koban: ['print', 'copy', 'csv'] }[k].filter(x => !MODE.artifact || x === 'copy' || x === 'share');
+  const L = { print: '印刷・PDF', copy: '表をコピー', share: '文字で送る', csv: 'Excel用（CSV）' };
   $('v-out').innerHTML = `<div class="wrap">
-    <p class="small">${MODE.artifact ? 'このページでは印刷とファイルの保存ができません。「表をコピー」を押して、Excel・スプレッドシートの左上のマスに貼り付けてください。「文字で送る」は LINE やメールに貼れる文字をコピーします。' : '「表をコピー」は Excel・スプレッドシートにそのまま貼り付けられます。'}</p>
-    <section class="card"><h2>撮影チェックシート</h2><p class="lead">当日の流れ・出演・撮るもの・備考をチェック欄つきで。紙で持ち歩く人、スタッフへの共有に。</p>
-      <label class="field"><span>撮影日</span><select id="outDay"><option value="all">すべての日</option>${dayOpts}${P.scenes.some(s => !s.day) ? `<option value="" ${S.outDay === '' ? 'selected' : ''}>日程未定のシーン</option>` : ''}</select></label>
-      ${outBtns('Check', true)}</section>
-    <section class="card"><h2>スクリプトシート（編集用）</h2><p class="lead">シーン・カット・テイクごとの OK／KEEP／NG、尺、クリップ名、音声ファイル、メモ。繋がりと編集への申し送り、編集素材も入ります。撮影のあと編集担当に渡します。</p>
-      <div class="seg">${[['script', '台本の順'], ['shoot', '撮影の順']].map(([k, l]) => `<button data-a="outOrder" data-k="${k}" aria-pressed="${(S.outOrder || 'script') === k}">${l}</button>`).join('')}</div>
-      <div class="seg">${[['all', 'すべてのテイク'], ['ok', 'OK・KEEPだけ']].map(([k, l]) => `<button data-a="outFilter" data-k="${k}" aria-pressed="${(S.outFilter || 'all') === k}">${l}</button>`).join('')}</div>
-      ${MODE.artifact ? '' : '<button class="btn primary wide" data-a="pdfScript">スクリプトシートを PDF で監督に送る</button>'}
-      ${outBtns('Script', true)}</section>
-    <section class="card"><h2>撮影資料（1冊にまとめたもの）</h2><p class="lead">最初に撮影日ごとの流れ・持ち物・現場の注意、続いてシーンごとに1ページ（撮影の日時と場所・撮るもの・演出・参考画像・編集素材・台本）。スタッフに配る資料に。</p>
-      <div class="btns grid2"><button class="btn primary" data-a="view" data-k="book">画面で見る</button>${MODE.artifact ? '' : '<button class="btn" data-a="printBook">印刷・PDF</button>'}</div></section>
-    <section class="card"><h2>編集素材リスト</h2><p class="lead">台本の ※写真・ＣＧ・動画、字幕、ナレーション、唄、ＳＥ をシーンごとに並べたもの。編集・ＣＧ・音の担当に渡せます。</p>
-      ${outBtns('Post', false)}</section>
-    <section class="card"><h2>香盤表</h2><p class="lead">撮影日の順に、シーン・場所・人物の出番（○）・小道具・衣装を並べた表。</p>
-      ${outBtns('Koban', false)}</section>
-    <section class="card"><h2>作品データ</h2><p class="lead">${MODE.artifact ? '別の作品データ（.json）を読み込むと、今の内容と入れ替わります。' : '別の端末に移す、スタッフに渡す、念のため残すときに。読み込むと今の内容と入れ替わります。'}</p>
-      <div class="btns grid2">${MODE.artifact ? '' : '<button class="btn" data-a="backup">作品データを保存</button>'}<button class="btn" data-a="restore">作品データを読み込む</button><button class="btn" data-a="openLinkBox">リンクで作品を開く</button></div>
-      <div class="btns"><button class="btn danger" data-a="wipe">新しい作品を始める（全部消す）</button></div></section>
-    <section class="card"><h2>表示</h2><p class="lead">暗い表示は夜や屋内、明るい表示は日なたの屋外で見やすくなります。</p>
-      <div class="seg">${[['dark', '暗い'], ['light', '明るい'], ['auto', '端末に合わせる']].map(([k, l]) => `<button data-a="theme" data-k="${k}" aria-pressed="${(S.theme || 'dark') === k}">${l}</button>`).join('')}</div></section>
+    <section class="card outhero"><h2>スクリプトシート</h2><p class="lead">シーン・カット・テイクごとの判定・尺・カメラと音声のファイル名・メモ。撮影のあと、監督と編集に渡します。</p>
+      <div class="seg">${[['script', '台本の順'], ['shoot', '撮影の順']].map(([x, l]) => `<button data-a="outOrder" data-k="${x}" aria-pressed="${(S.outOrder || 'script') === x}">${l}</button>`).join('')}</div>
+      <div class="seg">${[['all', 'すべてのテイク'], ['ok', 'OK・KEEPだけ']].map(([x, l]) => `<button data-a="outFilter" data-k="${x}" aria-pressed="${(S.outFilter || 'all') === x}">${l}</button>`).join('')}</div>
+      ${MODE.artifact ? '' : '<button class="btn primary wide big" data-a="pdfScript">PDF で監督に送る</button><p class="small" style="text-align:center;margin-top:-4px">メール・AirDrop・LINE などで送れます</p>'}
+      <div class="btns grid3">${B('view', '画面で見る', '', 'script')}${B('copyScript', '表をコピー')}${MODE.artifact ? B('shareScript', '文字で送る') : B('csvScript', 'Excel用')}</div></section>
+    <section class="card"><h2>ほかの資料を渡す</h2>
+      <div class="chips">${OUTDOCS.map(([x, l]) => `<button class="chip" data-a="outDoc" data-k="${x}" aria-pressed="${x === k}">${l}</button>`).join('')}</div>
+      <p class="lead">${doc[2]}</p>
+      ${k === 'check' ? `<label class="field"><span>撮影日</span><select id="outDay"><option value="all">すべての日</option>${dayOpts}${P.scenes.some(s => !s.day) ? `<option value="" ${S.outDay === '' ? 'selected' : ''}>日程未定のシーン</option>` : ''}</select></label>` : ''}
+      <div class="btns grid2">${B('view', '画面で見る', 'primary', k)}${can.map(x => B(x + cap, L[x])).join('')}</div></section>
+    <section class="card"><h2>設定</h2>
+      <h3>表示</h3>
+      <div class="seg">${[['dark', '暗い'], ['light', '明るい'], ['auto', '端末に合わせる']].map(([x, l]) => `<button data-a="theme" data-k="${x}" aria-pressed="${(S.theme || 'dark') === x}">${l}</button>`).join('')}</div>
+      <p class="small">暗い表示は夜や屋内、明るい表示は日なたの屋外で見やすくなります。</p>
+      <h3>作品データ</h3>
+      <div class="btns grid2">${MODE.artifact ? '' : '<button class="btn" data-a="backup">作品データを保存</button>'}<button class="btn" data-a="restore">作品データを読み込む</button><button class="btn" data-a="openLinkBox">リンクで作品を開く</button><button class="btn danger" data-a="wipe">全部消して始める</button></div>
+      <p class="small">別の端末に移す、念のため残すときは「作品データを保存」。読み込むと、今の内容と入れ替わります。</p></section>
     <p class="small" style="text-align:center">キネコマ ${esc(VERSION)}　<button class="link" data-a="licenses">使っている部品</button></p>
   </div>`;
 }
@@ -2472,7 +2504,7 @@ const SHEET = {
     const ts = takesOf(sc.id).sort((a, b) => b.at - a.at);
     const last = S.last && S.last.sc === sc.id && S.last.cut === cut ? S.last.sec : 0;
     return sheetTop(`S#${esc(sc.no)} ${esc(sc.place)}${todLine(sc) ? `（${esc(todLine(sc))}）` : ''}`, `<button class="btn small donebtn" data-a="sceneDone" data-id="${sc.id}" aria-pressed="${sceneDone(sc)}">${sceneDone(sc) ? '撮了 ✓' : '撮了'}</button>`) + `<div class="sheet-body"><div class="wrap">
-      <div class="chips">${chips}<button class="chip ${!sc.cuts.length ? '' : 'dash'}" data-a="recCut" data-id="" aria-pressed="${cut === ''}">一連</button><button class="chip dash" data-a="addCutRec" data-id="${sc.id}">＋カット</button></div>
+      <div class="chips cutchips">${chips}<button class="chip ${!sc.cuts.length ? '' : 'dash'}" data-a="recCut" data-id="" aria-pressed="${cut === ''}">一連</button><button class="chip dash" data-a="addCutRec" data-id="${sc.id}" aria-label="カットを足す">＋</button></div>
       <section class="slate ${running ? 'run' : ''}">
         <div class="clap" aria-hidden="true"></div>
         <div class="slate-body">
@@ -2490,9 +2522,9 @@ const SHEET = {
       <section class="card rec-top">
         <label class="field"><span>メモ（NGの理由、良かったところなど）</span><input id="rc-note" placeholder="例：台詞とちり"></label>
         <div class="notechips">${['芝居', '台詞', 'カメラ', 'ピント', '音', '外の音', '照明', '映り込み', '段取り', '尻OK', '頭OK', '監督の好み'].map(w => `<button data-a="noteAdd" data-w="${w}">${w}</button>`).join('')}</div>
-        <p class="small">カメラのファイル名は、前のテイクの番号を一つ進めて先に入れてあります。カメラの画面と違うときは書き直してください。テイク番号も「−」「＋」で直せます。スタート→カット で長さを計り、OK・KEEP・NG を押すと1テイク記録されます。計らずに押してもかまいません。</p>
+        <p class="small">ファイル名とテイク番号は自動で進みます。カメラと違うときだけ直してください。</p>
       </section>
-      <section class="card rec-top"><h3>このカットの撮り方</h3>
+      <details class="card rec-top" data-open="recplan" ${!S.open || S.open.recplan !== false ? 'open' : ''}><summary>このカットの撮り方</summary>
         ${(() => { const pl = plans(c); if (!pl.length) return ''; const k = Math.min(c.pick || 0, pl.length - 1), x = pl[k];
           return `${pl.length > 1 ? `<div class="chips planchips">${pl.map((p, i) => `<button class="chip" data-a="pickPlan" data-sc="${sc.id}" data-id="${c.id}" data-i="${i}" aria-pressed="${i === k}">案${planLabel(i)}<span class="small">${esc(p.when)}</span></button>`).join('')}</div>` : ''}
             <div class="memo"><b>カメラ${pl.length > 1 ? `（案${planLabel(k)}）` : ''}</b>${esc(x.cam)}${mmLine(planFig(c, k))}${x.why ? `<span class="small">理由：${esc(x.why)}</span>` : ''}${basisHtml(k ? c.alts[k - 1] : c, planFig(c, k), sc)}</div>
@@ -2500,7 +2532,7 @@ const SHEET = {
         ${sc.axis ? `<div class="small"><b>画面の向き・軸：</b>${esc(sc.axis)}</div>` : ''}
         ${sc.dir ? `<div class="memo"><b>演出</b>${esc(sc.dir)}</div>` : ''}
         ${(sc.refs || []).some(id => IMG[id]) ? `<div class="thumbs">${thumbs(sc.refs)}</div>` : ''}
-      </section>
+      </details>
       <section class="card"><div class="row-h"><h3 class="grow">このシーンのテイク</h3><span class="small">${ts.length}</span></div>
         <div class="takes">${ts.map(t => takeRow(sc, t)).join('') || '<p class="small">まだありません</p>'}</div></section>
       <section class="card"><label class="field"><span>繋がりメモ</span><textarea data-b="sc|${sc.id}|cont" rows="2" placeholder="例：右手にカバン、袖を一回まくる">${esc(sc.cont)}</textarea></label>
@@ -2612,14 +2644,14 @@ const SHEET = {
         <li><span>赤い<b>「記録する」</b>を押すと記録の画面。上の C1・C2 で撮るカットを選び、<b>スタート</b>→<b>カット</b>で長さを計って、<b>OK・KEEP・NG</b> を押す。OK を押すと次のカットに進みます</span></li>
         <li><span>全部のカットに OK が付くと<b>撮了</b>になります（「撮了にする」で手でも付けられます）</span></li>
       </ol>`)}
-      ${step('カメラワーク案', '<p>撮影のカードの<b>「カメラワーク案（アングルと理由）」</b>を押すと、そのシーンの画面の向き（イマジナリーライン）、前後のシーンとのつながり、カットごとのカメラの位置・サイズ・動きと理由が出ます。「記録する」の画面にも、今撮るカットの案が出ます。現場で人が多い・時間が押したなどのときは、記録の画面の<b>「案A・案B・案C」</b>を押すと別案に切り替わり、どの案で撮ったかがテイクに残ります（スクリプトシートにも出ます）。作品全体の決まりごとは「撮影」の画面のいちばん上にあります。</p>')}
+      ${step('カメラワーク案', '<p>撮影のカードの<b>「カメラワーク（案・図・理由）」</b>を押すと、そのシーンの画面の向き（イマジナリーライン）、前後のシーンとのつながり、カットごとのカメラの位置・サイズ・動きと理由が出ます。「記録する」の画面にも、今撮るカットの案が出ます。現場で人が多い・時間が押したなどのときは、記録の画面の<b>「案A・案B・案C」</b>を押すと別案に切り替わり、どの案で撮ったかがテイクに残ります（スクリプトシートにも出ます）。作品全体の決まりごとは「撮影」の画面のいちばん上にあります。</p>')}
       ${step('撮り方の根拠', '<p>カメラ案の下の<b>「根拠」</b>のボタンを押すと、その撮り方の原則（何をする・なぜ・現場で確かめること・出典）が開きます。「撮影」の画面の上と「資料」の画面の<b>「撮り方の手引き」</b>で、すべての原則を見て、さがせます。この作品以外の撮影でも使えます。</p>')}
       ${step('シーンのくわしい中身：「台本・詳細」', '<p>撮影のカードの「台本・詳細」、または「香盤」でシーンを押すと開きます。台本の本文、編集素材（写真・ＣＧ・字幕・ナレーションなど）、参考画像の追加、撮るものの書き直しができます。</p>')}
       ${step('全体の予定：「香盤」', '<p>「台本の順」で全シーン、「撮影日ごと」で日ごとの並び（↑↓で入れ替え）、「人物」で出番の表を見られます。</p>')}
       ${step('カメラのファイル名とテイク番号', '<p>記録の画面のカチンコに、<b>カメラのファイル名</b>（カメラの画面に出ている名前。例：C0012）と<b>音声のファイル名</b>を書きます。前のテイクの番号を一つ進めて先に入れてあるので、カメラと違うときだけ直してください。<b>テイク番号</b>は自動で進みますが、「−」「＋」や数字の入力で直せます。</p>')}
       ${step('撮ったもの：「記録」', '<p>撮ったテイクの一覧です。「撮り残し」で OK の無いカットだけを出せます。テイクを押すとファイル名やメモを直せます。</p>')}
       ${step('監督に渡す：スクリプトシートの PDF', '<p>「記録」または「出力」の<b>「スクリプトシートを PDF で監督に送る」</b>を押すと、スクリプトシート（シーン・カット・テイク・判定・尺・カメラと音声のファイル名・メモ）が PDF になります。<b>「送る」</b>でメール・AirDrop・LINE などを選んで渡せます。OK のテイクは番号を丸で囲み、カットごとに「使うテイク」をまとめてあります。</p>')}
-      ${step('人に渡す：「出力」', `<p><b>撮影チェックシート</b>（当日の流れ、紙で持つとき）、<b>スクリプトシート</b>（撮影後、編集担当へ）、<b>編集素材リスト</b>（ＣＧ・音・編集の担当へ）、<b>香盤表</b>。${MODE.artifact ? 'このページでは印刷とファイル保存ができないので、<b>「表をコピー」</b>を押して Excel・スプレッドシート・LINE などに貼り付けてください。' : '「印刷・PDF」「Excel用（CSV）」「表をコピー」から選べます。'}</p>`)}
+      ${step('人に渡す：「出力」', `<p>いちばん上が<b>スクリプトシート</b>（撮影後、監督と編集へ。PDF で送れる）。その下の「ほかの資料を渡す」で、<b>撮影チェックシート</b>・<b>撮影資料</b>・<b>編集素材リスト</b>・<b>香盤表</b>を選んで書き出します。表示と作品データは「設定」にあります。${MODE.artifact ? 'このページでは印刷とファイル保存ができないので、<b>「表をコピー」</b>を押して Excel・スプレッドシート・LINE などに貼り付けてください。' : '「印刷・PDF」「Excel用（CSV）」「表をコピー」から選べます。'}</p>`)}
       ${step('資料を画面で見る', '<p>「資料」の画面のいちばん上にある<b>「撮影資料」「香盤表」「撮影チェックシート」「編集素材リスト」「スクリプトシート」</b>を押すと、そのまま画面で読めます（「出力」の「画面で見る」と同じ）。撮影資料は日程と、シーンごとの撮るもの・演出・参考画像・編集素材・台本をまとめたものです。画像はタップで大きくなります。</p>')}
       ${step('資料を入れ直す：「資料」', '<p>新しい台本や香盤表（PDF・Word・Excel など）を入れると読み取ります。取り込んだ資料の本文もここで読めます。</p>')}
       <button class="btn primary wide" data-a="close">閉じる</button>
@@ -2984,6 +3016,7 @@ const ACT = {
   workUpdate: async () => { try { busy(true, '新しい資料を読み込んでいます…'); const j = await decryptWork(P.work.name, P.work.key); busy(false); await mergeProject(j); $('workbar').hidden = true; toast('資料を新しくしました（記録はそのままです）'); } catch (e) { busy(false); toast('新しい資料を読み込めませんでした。ネットにつながっているか確かめてください'); } },
   openPasted: b => openPasted(b),
   openLinkBox: () => openSheet({ t: 'openlink' }),
+  outDoc: b => { S.outDoc = b.dataset.k; persist(); render(); },
   view: b => { if (b.dataset.k === 'check' && $('outDay')) outDays(); openSheet({ t: 'view', k: b.dataset.k }); },
   wake: () => { S.wake = !S.wake; persist(); applyWake(); render(); toast(S.wake ? '撮影中は画面を消しません' : '画面は自動で消えます'); },
   gearAdd: () => { const el = $('gearInput'); const v = el.value.trim(); if (!v) return; P.gear.push(v); save(); S.gearOpen = true; render(); },
@@ -3007,6 +3040,7 @@ document.addEventListener('click', e => {
 document.addEventListener('toggle', e => {
   const d = e.target;
   if (d.dataset && d.dataset.a === 'gearOpen') { S.gearOpen = d.open; persist(); }
+  if (d.dataset && d.dataset.open) { S.open = S.open || {}; const was = !!S.open[d.dataset.open]; S.open[d.dataset.open] = d.open; persist(); if (d.open && !was && d.dataset.open.startsWith('cam|')) render(); }
   if (d.dataset && d.dataset.a === 'pendOpen') { const p = pending.find(x => x.id === d.dataset.id); if (p) p.tinfo[+d.dataset.i].open = d.open; }
 }, true);
 function bindValue(t) {

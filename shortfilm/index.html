@@ -597,7 +597,7 @@ h3 { font-size: 12px; letter-spacing: .16em; }
 <script>
 (() => {
 'use strict';
-const VERSION = '3.2（11/3 画面の上のぼやけを直した）';
+const VERSION = '3.3（11/3 FX6 のファイル名の番号送り）';
 
 /* ───────── 基本 ───────── */
 const $ = id => document.getElementById(id);
@@ -757,7 +757,11 @@ function nextOrder(dayId) { return timeline(dayId).reduce((m, it) => Math.max(m,
 /* テイク */
 const takesOf = (scId, cut) => P.takes.filter(t => t.sc === scId && (cut === undefined || (t.cut || '') === (cut || ''))).sort((a, b) => (a.n || 0) - (b.n || 0));
 function nextTakeNo(scId, cut) { return takesOf(scId, cut).reduce((m, t) => Math.max(m, t.n || 0), 0) + 1; }
-function bump(s) { const m = /^(.*?)(\d+)(\D*)$/.exec(s || ''); if (!m) return s || ''; return m[1] + String(+m[2] + 1).padStart(m[2].length, '0') + m[3]; }
+function bump(s) {
+  // ソニーの FX6 などの名前（A001C003_231105AB）は、C の後ろのクリップ番号を進める（後ろの日付は進めない）
+  const fx = /^(.*?[A-Z]\d{3}C)(\d{3,4})(_[0-9A-Z]*)?(\.\w+)?$/i.exec(s || '');
+  if (fx) return fx[1] + String(+fx[2] + 1).padStart(fx[2].length, '0') + (fx[3] || '') + (fx[4] || '');
+  const m = /^(.*?)(\d+)(\D*)$/.exec(s || ''); if (!m) return s || ''; return m[1] + String(+m[2] + 1).padStart(m[2].length, '0') + m[3]; }
 function lastTakeWith(k) { let best = null; for (const t of P.takes) if (t[k] && (!best || t.at > best.at)) best = t; return best; }
 function suggest(k) { const t = lastTakeWith(k); return t ? bump(t[k]) : ''; }
 function cutLabel(sc, cutId) { if (!cutId) return '一連'; const c = sc.cuts.find(x => x.id === cutId); return c ? 'C' + c.no : 'C?'; }
@@ -2475,7 +2479,7 @@ const SHEET = {
           <div class="sl-title"><span><b>${esc(P.title || '')}</b>${(() => { const d = ((P.credits || []).find(x => /監督/.test(x.role)) || {}).name; return d ? `　監督 ${esc(d)}` : ''; })()}</span><span>${(() => { const d = new Date(); return `${d.getMonth() + 1}/${d.getDate()}`; })()}</span></div>
           <div class="sl-grid"><div><span>シーン</span><b class="${String(sc.no).length > 2 ? 'long' : ''}">${esc(sc.no)}</b></div><div><span>カット</span><b class="${!c || String(c.no).length > 2 ? 'long' : ''}">${c ? esc(c.no) : '一連'}</b></div>
             <div><span>テイク</span><div class="tk"><button data-a="takeStep" data-d="-1" aria-label="テイク番号を一つ減らす">−</button><input id="rc-n" data-k="${sc.id}|${cut}" value="${n}" inputmode="numeric" aria-label="テイク番号"><button data-a="takeStep" data-d="1" aria-label="テイク番号を一つ増やす">＋</button></div></div></div>
-          <div class="sl-files"><label class="sl-file main"><span>カメラのファイル名</span><input id="rc-clip" value="${esc(suggest('clip'))}" placeholder="例：C0012" autocapitalize="characters" autocomplete="off" spellcheck="false"></label>
+          <div class="sl-files"><label class="sl-file main"><span>カメラのファイル名</span><input id="rc-clip" value="${esc(suggest('clip'))}" placeholder="例：A001C001" autocapitalize="characters" autocomplete="off" spellcheck="false"></label>
             <label class="sl-file"><span>音声のファイル名</span><input id="rc-snd" value="${esc(suggest('snd'))}" placeholder="例：ZOOM0001" autocapitalize="characters" autocomplete="off" spellcheck="false"></label></div>
           ${c && (c.size || c.desc) ? `<div class="sl-sub">${esc([c.size, c.desc].filter(Boolean).join('　'))}</div>` : ''}
           <div class="tcode ${running ? 'run' : ''}"><i class="recdot" aria-hidden="true"></i><span class="timer" id="timer">${running ? '0:00.0' : last ? fmtSec(last) : '0:00'}</span><span class="rectxt">${running ? '録画中' : last ? '計った長さ' : '待機'}</span></div>

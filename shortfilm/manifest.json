@@ -1,14 +1,22 @@
 {
-  "name": "撮影帳（短編映画の撮影と記録）",
-  "short_name": "撮影帳",
+  "name": "キネコマ（撮影と記録の現場手帳）",
+  "short_name": "キネコマ",
   "lang": "ja",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#eceff2",
-  "theme_color": "#14191f",
+  "background_color": "#111215",
+  "theme_color": "#111215",
   "icons": [
-    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" }
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
   ]
 }

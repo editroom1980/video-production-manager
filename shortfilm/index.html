@@ -368,7 +368,7 @@ pre.doc { white-space: pre-wrap; word-break: break-word; font-family: var(--font
 <script>
 (() => {
 'use strict';
-const VERSION = '1.6（11/3 カメラワーク案、資料の更新）';
+const VERSION = '1.7（11/3 カメラワーク案をカードに表示、古いデータにも更新の知らせ）';
 
 /* ───────── 基本 ───────── */
 const $ = id => document.getElementById(id);
@@ -1491,7 +1491,7 @@ function shootCard(sc, isNow, slot) {
   const cos = costumeItems(sc).map(n => prepChip(`${sc.id}|w|${n}`, n)).join('');
   const mk = makeupItems(sc).map(n => prepChip(`${sc.id}|m|${n}`, n)).join('');
   const withDesc = sc.cuts.some(c => c.desc);
-  const cuts = sc.cuts.map(c => { const st = cutState(sc, c.id); const pill = `<span class="cutpill ${st.ok ? 'ok' : st.n ? 'tried' : ''}">C${esc(c.no)}${st.ok ? ' OK' : st.n ? ` ${st.n}回` : ''}</span>`; return withDesc ? `<div class="cutrowv">${pill}<span>${c.size ? `<b>${esc(c.size)}</b> ` : ''}${esc(c.desc)}</span></div>` : pill; }).join('');
+  const cuts = sc.cuts.map(c => { const st = cutState(sc, c.id); const pill = `<span class="cutpill ${st.ok ? 'ok' : st.n ? 'tried' : ''}">C${esc(c.no)}${st.ok ? ' OK' : st.n ? ` ${st.n}回` : ''}</span>`; return withDesc ? `<div class="cutrowv">${pill}<div>${c.size ? `<b>${esc(c.size)}</b> ` : ''}${esc(c.desc)}${camHtml(c)}</div></div>` : pill; }).join('');
   const ts = takesOf(sc.id);
   return `<article class="scard ${done ? 'done' : isNow ? 'now' : ''}" id="sc-${slot ? slot.id : sc.id}">
     <div class="hd">${start ? `<span class="tm">${esc(start)}</span>` : ''}<span class="sn">S#${esc(sc.no)}</span><span class="pl">${esc(sc.place)}</span>${todLine(sc) ? `<span class="badge">${esc(todLine(sc))}</span>` : ''}
@@ -1509,7 +1509,9 @@ function shootCard(sc, isNow, slot) {
     ${sc.notes ? `<div class="memo"><b>備考</b>${esc(sc.notes)}</div>` : ''}
     ${sc.cont ? `<div class="memo"><b>繋がり</b>${esc(sc.cont)}</div>` : ''}
     ${cuts ? (withDesc ? `<div class="cutlist"><span class="lbl">撮るもの</span>${cuts}</div>` : `<div class="cutline"><span class="lbl">カット</span>${cuts}</div>`) : ''}
-    ${hasCam(sc) ? `<details class="camd"><summary>カメラワーク案（アングルと理由）</summary><div class="cutlist">${camBlock(sc)}</div></details>` : ''}
+    ${sc.axis ? `<div class="memo"><b>画面の向き・軸</b>${esc(sc.axis)}</div>` : ''}
+    ${sc.link ? `<div class="memo"><b>前後のつながり</b>${esc(sc.link)}</div>` : ''}
+    ${!withDesc && sc.cuts.some(c => c.cam) ? `<div class="cutlist">${camBlock(sc)}</div>` : ''}
     <div class="btns grid2"><button class="btn" data-a="openScene" data-id="${sc.id}">台本・詳細</button><button class="btn ${done ? '' : 'primary'}" data-a="openRec" data-id="${sc.id}">記録する${ts.length ? `（${ts.length}テイク）` : ''}</button></div>
   </article>`;
 }
@@ -1895,12 +1897,16 @@ async function openWork(name, key) {
 }
 // 置いてある作品データが新しくなったら知らせる（鍵はこの端末に覚えておく）
 async function checkWorkUpdate() {
-  if (!P.work || MODE.artifact || location.protocol === 'file:') return;
+  if (MODE.artifact || location.protocol === 'file:' || !P.scenes.length) return;
   try {
-    const info = (await workIndex())[P.work.name];
+    const idx = await workIndex();
+    const name = P.work ? P.work.name : Object.keys(idx).find(n => idx[n].title && idx[n].title === P.title);
+    const info = name && idx[name];
     if (!info || !((info.rev || 1) > (P.rev || 1))) return;
     const bar = $('workbar'); bar.hidden = false;
-    bar.innerHTML = `<button data-a="workUpdate">「${esc(P.title)}」の資料が新しくなりました${info.note ? `（${esc(info.note)}）` : ''}。タップで更新（記録はそのまま）</button>`;
+    bar.innerHTML = P.work
+      ? `<button data-a="workUpdate">「${esc(P.title)}」の資料が新しくなりました${info.note ? `（${esc(info.note)}）` : ''}。ここをタップで更新（記録はそのまま）</button>`
+      : `<button data-a="openLinkBox">「${esc(P.title)}」の資料が新しくなりました${info.note ? `（${esc(info.note)}）` : ''}。ここをタップして、いつもの作品のリンクを貼り付けてください（記録はそのまま）</button>`;
   } catch (e) {}
 }
 async function openFromLink() {

@@ -215,6 +215,18 @@ table.mx { border-collapse: collapse; font-size: 13px; min-width: 100%; }
 .cam { margin-top: 3px; font-size: 13px; background: var(--surface2); border-radius: 8px; padding: 6px 8px; }
 .cam b { font-size: 12px; color: var(--muted); margin-right: 4px; }
 .cam .why { color: var(--muted); margin-top: 2px; }
+.basis { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; margin-top: 4px; }
+.basis > span { font-size: 11px; font-weight: 800; color: var(--muted); }
+.basis button { font-size: 11.5px; font-weight: 700; padding: 3px 8px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); }
+.prin > summary { font-size: 15px; }
+.prin .pd { font-size: 14px; margin: 6px 0; }
+.prin .pd > b { display: block; font-size: 12px; color: var(--muted); }
+.srcs { margin-left: 1.1em; font-size: 13px; display: flex; flex-direction: column; gap: 4px; }
+.srcs a { color: var(--accent); word-break: break-word; }
+.gitem { border-top: 1px solid var(--line); padding-top: 4px; }
+.gitem:first-of-type { border-top: 0; }
+.docv .bref, #print .bref { margin: 2mm 0 3mm; font-size: 13px; }
+#print .bref { font-size: 9pt; }
 .mm { margin-top: 3px; font-size: 13px; }
 .mm b { color: var(--accent); font-size: 13px; margin-right: 0; }
 .memo .mm { margin: 4px 0 2px; }
@@ -413,7 +425,7 @@ pre.doc { white-space: pre-wrap; word-break: break-word; font-family: var(--font
 <script>
 (() => {
 'use strict';
-const VERSION = '2.1（11/3 レンズの mm）';
+const VERSION = '2.2（11/3 撮り方の手引きと根拠）';
 
 /* ───────── 基本 ───────── */
 const $ = id => document.getElementById(id);
@@ -587,6 +599,108 @@ function sceneProgress(sc) {
 function sceneDone(sc) { return sc.done || (P.takes.some(t => t.sc === sc.id) && sceneOk(sc)); }
 function missingCuts(sc) { if (sc.noshoot) return []; return missingCuts0(sc); }
 function missingCuts0(sc) { if (sc.cuts.length) return sc.cuts.filter(c => !cutState(sc, c.id).ok); return sceneOk(sc) ? [] : [null]; }
+/* ───────── 撮り方の手引き（原則と出典） ─────────
+   出典は、原典の本文・目次・出版社の紹介・解説記事・学習サイトで確かめたもの。
+   原典の本文まで確かめられていないものは note に書く。 */
+const GUIDE_CATS = ['画面の向きとつながり', 'サイズと構図', 'アングルと高さ', 'レンズ', 'カメラの動きと固定', '編集のための撮り方', '段取りと考え方'];
+const SRC = {
+  gots: { k: '本', t: 'Roy Thompson・Christopher Bowen『Grammar of the Shot』（Focal Press）', u: 'https://www.oreilly.com/library/view/grammar-of-the/9780240521213/Chapter04e.html', n: '出版社の電子版の章の見出しと用語集で確認' },
+  gots5: { k: '本', t: 'Thompson・Bowen『Grammar of the Shot』第5章「Will It Cut? Shooting for Editing」', u: 'https://www.oreilly.com/library/view/grammar-of-the/9780240526010/12_Chapter5.html', n: '章の見出しで確認' },
+  five: { k: '本', t: 'Joseph V. Mascelli『The Five C\'s of Cinematography』（1965年。アングル・つながり・編集・寄り・構図の5章）', u: 'https://silmanjamespress.com/the-five-cs-of-cinematography/', n: '出版社の紹介と章立てで確認' },
+  five2: { k: '記事', t: 'AAFT「5 C\'s of Cinematography」（マシェリの5つのCの解説）', u: 'https://aaft.com/blog/cinema/the-5-cs-of-cinematography/' },
+  sb180: { k: '記事', t: 'StudioBinder「What is the 180 Degree Rule」', u: 'https://www.studiobinder.com/blog/what-is-the-180-degree-rule/' },
+  wiki180: { k: '資料', t: 'Wikipedia「180-degree rule」（線を越えるときの中立のカットなど）', u: 'https://en.wikipedia.org/wiki/180-degree_rule' },
+  arijon: { k: '本', t: 'Daniel Arijon『Grammar of the Film Language』（三角形の原則とカメラ位置）', u: 'https://www.silmanjamespress.com/grammar-of-the-film-language', n: '出版社の紹介と目次で確認' },
+  nfs30: { k: '記事', t: 'No Film School「The 30-Degree Rule: A Trick All DPs and Editors Should Know」', u: 'https://nofilmschool.com/30-degree-rule-dps-editors' },
+  laf: { k: '記事', t: 'Learn About Film「The 180 Degree Rule, Looking Space and Eyeline Match」', u: 'https://learnaboutfilm.com/?p=1666' },
+  wolf: { k: '記事', t: 'Wolfcrow「What is Film Continuity」（画面の方向・中立の方向など）', u: 'https://wolfcrow.com/the-15-essential-rules-of-film-continuity/' },
+  vaia: { k: '資料', t: 'Vaia「Continuity Editing」（動作つなぎ・視線の一致・主観・インサート・カットアウェイの定義）', u: 'https://www.vaia.com/en-us/explanations/media-studies/filmmaking/continuity-editing' },
+  rond: { k: '記事', t: 'Ron Dexter「Framing Tricks」（動きの前後に最低3秒回す）', u: 'https://rondexter.com/professional/operation/framing_tricks.htm' },
+  viterbo: { k: '資料', t: 'Viterbo University「Basic Filmmaking Concepts」（動作の前後に5〜10秒回す）', u: 'https://www.viterbo.edu/sites/default/files/2019-02/Basic%20Filmmaking%20Concepts_0.pdf' },
+  pbeat: { k: '記事', t: 'PremiumBeat「Run-and-Gun B-Roll Filmmaking Mistakes」（実景は10〜15秒以上）', u: 'https://www.premiumbeat.com/blog/run-and-gun-b-roll-filmmaking-mistakes' },
+  brown: { k: '本', t: 'Blain Brown『Cinematography: Theory and Practice』（マスターシーン方式・カバレッジ・レンズの遠近感と圧縮）', u: 'https://www.taylorfrancis.com/books/mono/10.4324/9781315667829/cinematography-theory-practice-blain-brown', n: '目次で確認' },
+  cutwari: { k: '資料', t: '名古屋映像設計研究所「カット割り」（映像制作用語辞典）', u: 'https://www.filmsterms.com/terminology-index/cutwari' },
+  adobe: { k: '記事', t: 'Adobe Blog「映像制作基礎：サイズ・アングル・構図を意識して撮影しよう」', u: 'https://blog.adobe.com/jp/publish/2021/07/02/cc-adobe-stock-contributor-j-vook-video-camera-size-angle-composition-2' },
+  oseman: { k: '記事', t: 'Neil Oseman「Lead Room, Nose Room or Looking Space」', u: 'https://neiloseman.com/lead-room-nose-room-or-looking-space/' },
+  head: { k: '資料', t: 'Wikipedia「Headroom (photographic framing)」', u: 'https://en.wikipedia.org/wiki/Headroom_(photographic_framing)' },
+  libre: { k: '資料', t: 'LibreTexts「Video Composition」（三分割・ヘッドルーム・リードルーム）', u: 'https://human.libretexts.org/Courses/City_College_of_San_Francisco/Video_Production_Handbook_I/08%3A_Video_Aesthetics/8.05%3A_Video_Composition' },
+  sstrip: { k: '記事', t: 'Soundstripe「Low Angle Shot: Definition, Types, and Examples」', u: 'https://www.soundstripe.com/blogs/low-angle-shot' },
+  scsa: { k: '資料', t: '西オーストラリア州教育課程「Camera angles」用語集', u: 'https://k10outline.scsa.wa.edu.au/home/teaching/curriculum-browser/the-arts/media-arts3/arts-overview/glossary2/camera-angles' },
+  eyelv: { k: '記事', t: 'Spotlight FX「What is an Eye Level Shot」', u: 'https://spotlightfx.com/blog/what-is-an-eye-level-shot' },
+  keh: { k: '記事', t: 'KEH「35mm vs 50mm vs 85mm for Portraits」（ゆがみは主に距離から）', u: 'https://www.keh.com/expert-advice/camera-gear/35mm-vs-50mm-vs-85mm-for-portraits-which-should-you-choose/' },
+  diyp: { k: '記事', t: 'DIYPhotography「50mm vs 85mm for Portrait Photography」', u: 'https://www.diyphotography.net/50mm-vs-85mm-for-portraits/' },
+  lock: { k: '資料', t: 'How To Film School「Lock Off」（用語辞典）', u: 'https://howtofilmschool.com/dictionary/lock-off/' },
+  plate: { k: '記事', t: 'FilmDaft「What Is a VFX Plate?」（クリーンプレート）', u: 'https://filmdaft.com/what-is-a-vfx-plate-definition/' },
+  dissolve: { k: '記事', t: 'Dissolve「4 Visual Effects Tips to Add to Your Filmmaking Toolbox」（レンズ・絞り・高さを記録）', u: 'https://ideas.dissolve.com/tips/guest-post-4-visual-effects-tips-to-add-to-your-filmmaking-toolbox' },
+  fsvfx: { k: '記事', t: 'Fstoppers「Ten Tips for Shooting Video Footage for Visual Effects」', u: 'https://fstoppers.com/vfx/ten-tips-shooting-video-footage-visual-effects-173143' },
+  katz: { k: '本', t: 'Steven D. Katz『Film Directing: Shot by Shot』（1991年。パン・移動・トラッキングの章）', u: 'https://www.librarything.com/work/100384', n: '目次と図書館の書誌で確認' },
+  murch: { k: '記事', t: 'No Film School「6 Rules for Good Cutting According to Walter Murch」（『In the Blink of an Eye』の6つの基準）', u: 'https://nofilmschool.com/2016/11/6-rules-good-cutting-according-oscar-winning-editor-walter-murch' },
+  murchv: { k: '動画', t: 'Vimeo「Walter Murch\'s Rule of Six」', u: 'https://vimeo.com/154554714' },
+  tomino: { k: '記事', t: '基本読書「映像の原則 改訂版」（富野由悠季『映像の原則』の紹介）', u: 'https://huyukiitoichi.hatenadiary.jp/entry/20111025/1319547311', n: '原典の本文は未確認。紹介記事による' },
+  tomino2: { k: '記事', t: '富野監督とかBLOGサイト2「富野監督の『映像の原則』は合っているのか」', u: 'https://tominotoka.seesaa.net/article/2011-09-27.html', n: '原典の本文は未確認' },
+  kinu: { k: '本', t: '衣笠竜屯 監修『映画制作の教科書 プロが教える60のコツ』（メイツ出版、2020年）', u: 'https://booklive.jp/product/index/title_id/20024432/vol_no/001', n: '確認できたのは目次の見出し（TAKE24〜26）だけ' },
+};
+const GUIDE = [
+  { id: 'axis', cat: 0, t: 'イマジナリーライン（180度ルール）', do: '人物の視線や動きの向き、人物と見ているものを結ぶ線を決め、そのシーンの間はカメラを線の片側だけに置く。', why: '線を越えると、画面の左右の向きが逆になり、観客が位置関係や進む向きを見失う。越えたいときは、線の上のカット（正面・真後ろ）や、別のものを見せるカットをはさむ。', chk: 'カメラを動かすたびに、線のどちら側にいるかを確かめる。', kw: /イマジナリー|同じ側|線の|側から撮り|反対側/, src: ['gots', 'sb180', 'five', 'arijon', 'wiki180'] },
+  { id: 'dir', cat: 0, t: '画面の方向（スクリーンディレクション）', do: '画面を横切る動き（左→右、右→左）は向きを強く見せる。シーンをまたいでも同じ向きにそろえると、旅や流れが続いて見える。向きを逆にするのは、意味を変えたいときだけ。', why: '観客は横の動きの向きで「どこへ向かっているか」を読み取る。途中で逆になると、引き返したように見える。', chk: '前のシーンの最後と、次のシーンの最初で、人物の向きがそろっているか。', kw: /画面の(右|左)|左から|右へ|左へ|向きの逆転|進む向き/, src: ['five', 'wolf', 'laf'] },
+  { id: 'neutral', cat: 0, t: '線の上のカット（正面・真後ろ・奥への動き）', do: '真正面、真後ろ、カメラに向かってくる・離れていく動きは、左右の向きが中立になる。', why: '左右の向きを持たないので、どちらの向きのカットともつながり、線を越える前後のつなぎにもなる。', chk: '中立のカットのあとで向きを変えるなら、その先のカットはずっと新しい側で撮る。', kw: /正面|真後ろ|奥へ|手前へ|奥から|向かってくる/, src: ['wiki180', 'wolf'] },
+  { id: 'thirty', cat: 0, t: '30度ルール（同じ被写体を続けて撮るとき）', do: '同じ人物を続けて撮るカットは、カメラの角度を30度以上変えるか、サイズをはっきり変える。', why: '角度もサイズもほとんど同じだと、つないだときに画面が飛んだように見える（ジャンプカット）。', chk: '同じ位置から寄るときは、サイズをはっきり変える（ミディアム→寄り など）。', kw: /同じ位置で.*(寄|替え)|85mmに替え|位置を変え/, src: ['gots5', 'nfs30'] },
+  { id: 'eyeline', cat: 0, t: '視線の一致（見る→見ているもの）', do: '「見る人」のカットのあとに「見ているもの」のカットを置く。視線の高さと向きを、両方のカットで合わせる。', why: '観客は人物の視線の先を見たくなる。向きや高さがずれると、別のものを見ているように見える。', chk: '見ているものを撮るときは、人物の目の高さとおなじくらいから、視線の向きに合わせて撮る。', kw: /見つめ|目を留め|目線|視線の先|見上げる|を見る|振り返/, src: ['laf', 'vaia', 'five'] },
+  { id: 'pov', cat: 0, t: '主観ショット', do: 'カメラを人物の目の位置に置き、人物が見ているもの・歩く道を、その人の目で見せる。', why: '観客が人物と同じものを見るので、人物の体験に入りこめる。', chk: '目の高さと歩く速さを、その人物に合わせる。', kw: /主観|手持ち/, src: ['five', 'vaia'] },
+  { id: 'action', cat: 0, t: '動作つなぎ', do: '動作の途中で次のカットへ切り替えられるよう、前後のカットで同じ動作を少し重ねて撮る（振り向く・歩き出す・登り始めるなど）。', why: '動きの途中で切り替えると、カットの変わり目が目立たず、自然につながる。', chk: '動作は毎テイク同じ手順・同じ速さで。前のカットの終わりと、次のカットの始まりを重ねて撮る。', kw: /振り向|振り返|歩き出|登り始|降りる|後ずさ|動作/, src: ['five', 'vaia'] },
+  { id: 'size', cat: 1, t: 'サイズの選び方（引き・ミディアム・寄り）', do: '引きは場所と位置関係、ミディアムは動作、寄りは表情や細部を見せる。見せたいものに合わせて大きさを決める。', why: '大きさで観客の注目する先が決まる。寄りは感情や動機に目を向けさせる。', chk: '同じ場面で、引き・ミディアム・寄りを少なくとも1つずつ押さえる。', kw: /引き|ミディアム|寄り|フル/, src: ['five', 'adobe', 'cutwari'] },
+  { id: 'look', cat: 1, t: '視線の余白（ルックルーム・リードルーム）', do: '人物が向いている方、進む方に余白を空ける。', why: '視線の先に余白があると、観客はその先を見たくなる。逆に余白がないと、窮屈で行き詰まった感じになる（わざと使うこともある）。', chk: '横顔や歩く人物は、向いている側を広く空けているか。', kw: /空け|余白|横顔|視線/, src: ['oseman', 'libre', 'gots'] },
+  { id: 'head', cat: 1, t: 'ヘッドルームと三分割', do: '画面を縦横3つに分ける線を目安にし、人物の目を上の線のあたりに置く。頭の上は空けすぎない。', why: '目の位置がそろうと安定して見え、空けすぎると人物が下に沈んで見える。', chk: '寄りほどヘッドルームを少なめに。', kw: /寄り（顔）|寄り（正面|寄り（横顔/, src: ['head', 'libre'] },
+  { id: 'ots', cat: 1, t: '肩越し・背中越し', do: '人物の肩や背中を手前に入れ、その人が見ているものを奥に入れる。', why: '「見る人」と「見られるもの」を1つの画に入れ、関係と視線の先がすぐわかる。', chk: '手前の肩・背中は画面の端に小さく。ピントは見ているものか人物か、狙いで決める。', kw: /肩越し|背中越し/, src: ['five', 'arijon'] },
+  { id: 'eyelevel', cat: 2, t: '目の高さ（中立の高さ）', do: '基本は人物の目の高さに置く。', why: '目の高さは強くも弱くも見せない中立の見え方。基本の高さがあるから、見上げ・見下ろしが効く。', chk: '人物の目の高さに合わせて三脚の高さを決める。', kw: /目の高さ/, src: ['eyelv', 'scsa'] },
+  { id: 'low', cat: 2, t: '見上げ（ローアングル）', do: 'カメラを低くして見上げる。', why: '人物や建物を大きく、力強く、高く見せる。階段や塔の高さを強調できる。前後の流れで、頼もしくも、威圧的にも見える。', chk: '使いすぎると効き目が薄れる。ここぞというところで。', kw: /見上げ|低め|地面すれすれ|腰の高さ|ティルトアップ|足首の高さ/, src: ['sstrip', 'scsa'] },
+  { id: 'high', cat: 2, t: '見下ろし（ハイアングル）', do: 'カメラを高くして見下ろす。', why: '人物を小さく、弱く、ひとりに見せる。場所全体や人の流れを見渡す画にもなる。', chk: '高い位置にカメラを置くときは、転倒・落下に注意。', kw: /見下ろし|高め|上から|俯瞰/, src: ['sstrip', 'scsa'] },
+  { id: 'wide', cat: 3, t: '広角レンズ（24〜28mm）', do: '広い範囲を写す。場所全体、ＣＧやタイトルを重ねる余白をとるときに。', why: '奥行きが強く出る。近づいて撮ると顔や手前のものがゆがむ（ゆがみは主に近さから）。', chk: '人物は画面の端に置かない。近づきすぎない。', kw: /広角|24mm|28mm/, src: ['keh', 'brown'] },
+  { id: 'normal', cat: 3, t: '標準レンズ（35〜50mm）', do: '人の目で見た感じに近い広さ。引き（35mm）や、腰から上（50mm）に。', why: 'ゆがみが少なく、人物と背景の釣り合いがとれた、自然な見え方になる。', chk: '同じ場面のカットは、なるべく同じ系統の mm でそろえる。', kw: /35mm|50mm|標準/, src: ['keh', 'diyp'] },
+  { id: 'tele', cat: 3, t: '中望遠・望遠レンズ（85mm〜）', do: '顔の寄り（85mm）、遠くのものを引き寄せる・詰めて見せる（100mm〜）ときに。', why: '背景がぼけて人物が浮き、遠近が詰まって見える（圧縮）。離れて撮れるので、演者が緊張しにくく、通行人も避けやすい。', chk: '離れる分だけ場所が要る。手ぶれしやすいので三脚で。', kw: /望遠|85mm|100mm|135mm|圧縮/, src: ['keh', 'diyp', 'brown'] },
+  { id: 'lock', cat: 4, t: '固定（ロックオフ）', do: '三脚でカメラを固定し、カットの間は動かさない。ＣＧや古写真と重ねる実景は、特に動かさない。', why: '合成や重ね合わせには、動かない画が要る。どうしても動かすなら、パンとティルトだけにする。', chk: '三脚の締め忘れ、地面の傾き、風でのぶれを確かめる。', kw: /固定|三脚/, src: ['lock', 'plate'] },
+  { id: 'pan', cat: 4, t: 'パン・ティルト', do: '三脚の上でカメラを左右（パン）・上下（ティルト）に振る。ゆっくり一定の速さで。', why: '動く人物についていったり、2つのものを1カットでつないだりできる。速さがばらつくと、見ていて落ち着かない。', chk: '始めと終わりに、数秒止まった画を残す。', kw: /パン|ティルト|なめる/, src: ['katz'] },
+  { id: 'hand', cat: 4, t: '手持ち・移動', do: 'カメラを手で持ち、人物と一緒に歩く、または主観で歩く。', why: '一緒に歩いている感じ、その場にいる感じが出る。揺れが大きいと見づらい。', chk: '歩く速さを一定に。揺れが気になるときは、三脚で数か所を撮ってつなぐ。', kw: /手持ち|並んで歩|歩きながら/, src: ['katz', 'five'] },
+  { id: 'inout', cat: 5, t: '入りと出（前後に数秒）', do: '動く人物は、画面に入る前から出たあとまで撮る。動作の前後にも数秒余分に回す。', why: '入りと出があると編集で切りやすく、前後のカットにつなぎやすい。余白がないと切る場所がない。', chk: '「スタート」から動き出すまで、「カット」の前に数秒待つ。', kw: /入って|入り|出ていく|抜ける|去る|歩き去|出る/, src: ['rond', 'viterbo'] },
+  { id: 'hold', cat: 5, t: '実景・インサートは長めに', do: '実景やインサートは、短くても10〜15秒、ゆっくりした作品ならそれ以上回す。', why: '編集で長さや入る場所を選べる。重ねる・ゆっくり見せるときに足りなくならない。', chk: '人や車が少ない瞬間を待つときは、1分ほど回しておく。', kw: /20秒|30秒|1分|長め|長回し|時間をあけて/, src: ['pbeat'] },
+  { id: 'master', cat: 5, t: '引きで場所を見せてから寄る（マスターとカバレッジ）', do: '場面の全体がわかる引きを撮り、そのあと人物や細部の寄りを押さえる。', why: '観客は最初に場所と位置関係がわかると、その後の寄りを迷わず見られる。編集でも組み立てやすい。', chk: 'どのシーンでも、場所がわかる引きを1つは撮る。', kw: /引き（実景|全景|全体|場所/, src: ['brown', 'five', 'cutwari'] },
+  { id: 'insert', cat: 5, t: 'インサートとカットアウェイ', do: '手元・足元・小道具などの寄り（インサート）や、その場の別のもの（カットアウェイ）を撮っておく。', why: '強調したいものを見せられる。編集で時間を縮めたり、つなぎ目を隠したりできる。', chk: '本番の芝居と同じ動き・同じ向きで撮る。', kw: /インサート|足元|手と耳|段の質感|入口|ポスター|寄り（水|段を降りる足|登る足/, src: ['five', 'vaia'] },
+  { id: 'vfx', cat: 5, t: 'ＣＧ・古写真と重ねる実景の記録', do: 'カメラを固定し、レンズの mm・絞り・カメラの高さ・被写体までの距離を記録する。参考の写真も撮る。重ねる相手（古写真・ＣＧ）と同じ位置・高さ・向きに合わせる。', why: 'ＣＧのカメラや重ね合わせを、撮ったときと同じ条件で作るため。記録がないと合わせ直しに時間がかかる。', chk: '使った mm と高さを、テイクのメモに必ず残す。', kw: /ＣＧ|CG|古写真|絵葉書|写真.*(重ね|同じ位置)|kcb|c581|c575|合成/, src: ['dissolve', 'plate', 'fsvfx'] },
+  { id: 'murch', cat: 5, t: '編集の6つの基準（ウォルター・マーチ）', do: '編集者マーチは、良いカットの基準を「感情・物語・リズム・視線の動き・画面の平面・空間の立体」の順に挙げる。撮影でも、まず感情が伝わるカットを押さえる。', why: '迷ったときは、位置関係のつじつまより、感情が伝わることを優先する、という考え方。', chk: '表情や間がいちばん伝わるテイクに OK を付けているか。', kw: /表情|顔|間を|待つ|沈黙/, src: ['murch', 'murchv'], note: '各基準の割合（51%など）は紹介記事の数字で、原典では確かめていない' },
+  { id: 'tomino', cat: 6, t: '画面の上手・下手（富野由悠季『映像の原則』の考え方）', do: '日本の映像演出で語られる考え方の一つ。画面の右（上手）は強いもの・上位、左（下手）は弱いもの・下位の印象を持つ、とする。', why: '向きの意味づけを決めておくと、作品全体で向きに意味を持たせられる。ただし、すべての作品がこの考え方で作られているわけではない。', chk: '作品の中で決めた向きの意味を、最後まで守る。', kw: /上手|下手/, src: ['tomino', 'tomino2'], note: '原典の本文は未確認。紹介記事による' },
+  { id: 'kinu', cat: 6, t: '撮影日の前の準備と、現場の心得（衣笠竜屯『映画制作の教科書』）', do: '撮影日の前の不安はチェックリストで解決する。パート別に現場での心得を決めておく。撮影当日の服・荷物・集合は、アウトドアに出かけるつもりで用意する。', why: '準備と段取りが決まっていると、現場では撮ることに集中できる。', chk: '持ち物・機材・集合をチェックリストで確かめる（このアプリの「当日の持ち物・機材」）。', kw: /(?!)/, src: ['kinu'], note: '確認できたのは目次の見出し（TAKE24〜26）だけ。本文は未確認' },
+];
+const GUIDE_BY = Object.fromEntries(GUIDE.map(g => [g.id, g]));
+// カメラ案の言葉と図から、当てはまる原則を選ぶ（新しい作品の案にも使える）
+function autoBasis(p, f, sc) {
+  const text = [p && p.cam, f && f.size, f && f.h, f && f.note].filter(Boolean).join(' ');
+  const ids = new Set();
+  for (const g of GUIDE) if (g.kw.test(text)) ids.add(g.id);
+  if (f) {
+    const mm = +f.mm || 0;
+    if (mm && mm <= 28) ids.add('wide'); else if (mm && mm < 85) ids.add('normal'); else if (mm >= 85) ids.add('tele');
+    if (f.pan) ids.add('pan');
+    if (f.campath) ids.add('hand');
+    if (f.path) { ids.add('dir'); ids.add('inout'); }
+    if ((f.act || f.acts) && ((sc && sc.stage && sc.stage.axis) || f.axis)) ids.add('axis');
+    if (/目の高さ/.test(f.h || '')) ids.add('eyelevel');
+  }
+  // そのカットに特に関係が深いものから最大5つ（どの案にも付く一般的なものは後回し）
+  const W = { vfx: 10, ots: 9, pov: 9, action: 8, inout: 8, insert: 8, axis: 7, low: 7, high: 7, tele: 7, wide: 6, look: 6, neutral: 6, thirty: 6, eyeline: 6, hold: 5, pan: 5, hand: 5, dir: 6, master: 4, murch: 4, lock: 3, head: 3, normal: 3, size: 2, eyelevel: 2, tomino: 1, kinu: 1 };
+  return [...ids].sort((a, b) => (W[b] || 0) - (W[a] || 0)).slice(0, 5).sort((a, b) => GUIDE.indexOf(GUIDE_BY[a]) - GUIDE.indexOf(GUIDE_BY[b]));
+}
+const planBasis = (p, f, sc) => ((p && p.basis) || autoBasis(p, f, sc)).filter(id => GUIDE_BY[id]);
+function basisHtml(p, f, sc) {
+  const ids = planBasis(p, f, sc); if (!ids.length) return '';
+  return `<div class="basis"><span>根拠</span>${ids.map(id => `<button data-a="openPrin" data-id="${id}">${esc(GUIDE_BY[id].t.replace(/（.*$/, ''))}</button>`).join('')}</div>`;
+}
+function srcHtml(k) { const s = SRC[k]; if (!s) return ''; return `<li><span class="badge">${esc(s.k)}</span> <a href="${esc(s.u)}" target="_blank" rel="noopener">${esc(s.t)}</a>${s.n ? `<div class="small">${esc(s.n)}</div>` : ''}</li>`; }
+function prinHtml(g, open) {
+  return `<details class="prin" ${open ? 'open' : ''}><summary>${esc(g.t)}</summary>
+    <div class="pd"><b>何をする</b>${esc(g.do)}</div><div class="pd"><b>なぜ</b>${esc(g.why)}</div><div class="pd"><b>現場で確かめる</b>${esc(g.chk)}</div>
+    ${g.note ? `<div class="small">※ ${esc(g.note)}</div>` : ''}<div class="pd"><b>出典</b><ul class="srcs">${g.src.map(srcHtml).join('')}</ul></div></details>`;
+}
+
 /* ───────── カメラ位置の図（上から見た図。北が上） ───────── */
 const LENS_FOV = { 広角: 80, 標準: 50, 望遠: 24, 寄り: 40, マクロ: 34 };
 function clipHalf(A, B, C) { // 0〜100 の四角を、直線 AB のうち点 C の側だけに切る
@@ -667,16 +781,16 @@ function figSVG(stage, fig, opt = {}) {
 const planFig = (c, i) => (i ? ((c.alts || [])[i - 1] || {}).fig : c.fig);
 const planLabel = i => 'ABCDEFG'[i] || String(i + 1);
 const plans = c => (c && c.cam ? [{ when: '基本', cam: c.cam, why: c.why }] : []).concat((c && c.alts) || []);
-function altsHtml(c) {
+function altsHtml(c, sc) {
   const al = (c && c.alts) || []; if (!al.length) return '';
-  return `<details class="alts"><summary>別案（${al.map((a, i) => `${planLabel(i + 1)}：${esc(a.when)}`).join('／')}）</summary>${al.map((a, i) => `<div class="cam alt"><b>案${planLabel(i + 1)}</b><span class="when">${esc(a.when)}</span><div>${esc(a.cam)}</div>${mmLine(a.fig)}${a.why ? `<div class="why">理由：${esc(a.why)}</div>` : ''}</div>`).join('')}</details>`;
+  return `<details class="alts"><summary>別案（${al.map((a, i) => `${planLabel(i + 1)}：${esc(a.when)}`).join('／')}）</summary>${al.map((a, i) => `<div class="cam alt"><b>案${planLabel(i + 1)}</b><span class="when">${esc(a.when)}</span><div>${esc(a.cam)}</div>${mmLine(a.fig)}${a.why ? `<div class="why">理由：${esc(a.why)}</div>` : ''}${basisHtml(a, a.fig, sc)}</div>`).join('')}</details>`;
 }
 const mmLine = f => (f && f.mm ? `<div class="mm"><b>レンズ ${esc(f.mm)}mm</b>${f.mmWhy ? `：${esc(f.mmWhy)}` : ''}</div>` : '');
-function camHtml(c) { return c && c.cam ? `<div class="cam"><b>カメラ${c.alts && c.alts.length ? '（案A）' : ''}</b>${esc(c.cam)}${mmLine(c.fig)}${c.why ? `<div class="why">理由：${esc(c.why)}</div>` : ''}</div>${altsHtml(c)}` : ''; }
+function camHtml(c, sc) { return c && c.cam ? `<div class="cam"><b>カメラ${c.alts && c.alts.length ? '（案A）' : ''}</b>${esc(c.cam)}${mmLine(c.fig)}${c.why ? `<div class="why">理由：${esc(c.why)}</div>` : ''}${basisHtml(c, c.fig, sc)}</div>${altsHtml(c, sc)}` : ''; }
 const hasCam = sc => !!(sc.axis || sc.link || sc.cuts.some(c => c.cam));
 function camBlock(sc) {
   return `${sc.axis ? `<div class="memo"><b>画面の向き・軸</b>${esc(sc.axis)}</div>` : ''}${sc.link ? `<div class="memo"><b>前後のつながり</b>${esc(sc.link)}</div>` : ''}
-    ${sc.cuts.filter(c => c.cam).map(c => `<div class="cutrowv"><span class="cutpill">C${esc(c.no)}</span><div>${esc(c.desc)}${camHtml(c)}</div></div>`).join('')}`;
+    ${sc.cuts.filter(c => c.cam).map(c => `<div class="cutrowv"><span class="cutpill">C${esc(c.no)}</span><div>${esc(c.desc)}${camHtml(c, sc)}</div></div>`).join('')}`;
 }
 function postItems(sc) {
   const out = [];
@@ -1461,6 +1575,7 @@ function renderDocs() {
       <button class="btn" data-a="view" data-k="check">撮影チェックシート</button>
       <button class="btn" data-a="view" data-k="post">編集素材リスト</button>
       <button class="btn" data-a="view" data-k="script">スクリプト表（記録）</button>
+      <button class="btn" data-a="openGuide">撮り方の手引き</button>
     </div>
     ${P.docs.length ? `<p class="small">もとの資料（台本・作品意図・写真と実景まとめなど）は、この画面のいちばん下の「取り込んだ資料」から開けます。</p>` : ''}</section>`;
   h += `<section class="card">
@@ -1626,7 +1741,7 @@ function shootCard(sc, isNow, slot) {
   const cos = costumeItems(sc).map(n => prepChip(`${sc.id}|w|${n}`, n)).join('');
   const mk = makeupItems(sc).map(n => prepChip(`${sc.id}|m|${n}`, n)).join('');
   const withDesc = sc.cuts.some(c => c.desc);
-  const cuts = sc.cuts.map(c => { const st = cutState(sc, c.id); const pill = `<span class="cutpill ${st.ok ? 'ok' : st.n ? 'tried' : ''}">C${esc(c.no)}${st.ok ? ' OK' : st.n ? ` ${st.n}回` : ''}</span>`; return withDesc ? `<div class="cutrowv">${pill}<div>${c.size ? `<b>${esc(c.size)}</b> ` : ''}${esc(c.desc)}${c.fig ? `<button class="figthumb" data-a="openFig" data-sc="${sc.id}" data-id="${c.id}" aria-label="カメラ位置の図を開く">${figSVG(sc.stage, c.fig, { small: true })}<span>図を開く（案A〜C）</span></button>` : ''}${camHtml(c)}</div></div>` : pill; }).join('');
+  const cuts = sc.cuts.map(c => { const st = cutState(sc, c.id); const pill = `<span class="cutpill ${st.ok ? 'ok' : st.n ? 'tried' : ''}">C${esc(c.no)}${st.ok ? ' OK' : st.n ? ` ${st.n}回` : ''}</span>`; return withDesc ? `<div class="cutrowv">${pill}<div>${c.size ? `<b>${esc(c.size)}</b> ` : ''}${esc(c.desc)}${c.fig ? `<button class="figthumb" data-a="openFig" data-sc="${sc.id}" data-id="${c.id}" aria-label="カメラ位置の図を開く">${figSVG(sc.stage, c.fig, { small: true })}<span>図を開く（案A〜C）</span></button>` : ''}${camHtml(c, sc)}</div></div>` : pill; }).join('');
   const ts = takesOf(sc.id);
   return `<article class="scard ${done ? 'done' : isNow ? 'now' : ''}" id="sc-${slot ? slot.id : sc.id}">
     <div class="hd">${start ? `<span class="tm">${esc(start)}</span>` : ''}<span class="sn">S#${esc(sc.no)}</span><span class="pl">${esc(sc.place)}</span>${todLine(sc) ? `<span class="badge">${esc(todLine(sc))}</span>` : ''}
@@ -1666,6 +1781,7 @@ function renderShoot() {
     ${d && (d.call || d.meet) ? `<div>集合 <b>${esc(d.call)}</b>　${esc(d.meet)}</div>` : ''}
     ${d && d.notes ? `<div class="memo">${esc(d.notes)}</div>` : ''}
     ${P.memo ? `<div class="memo">${esc(P.memo)}</div>` : ''}
+    <button class="btn small" data-a="openGuide" style="align-self:flex-start">撮り方の手引き（原則と出典）</button>
     ${(P.camPlan || []).length ? `<details><summary>カメラの決まりごと（作品全体）</summary><ul style="margin-left:1.2em;font-size:14px">${P.camPlan.map(r => `<li>${esc(r)}</li>`).join('')}</ul></details>` : ''}
     ${(P.rules || []).length ? `<details><summary>現場の注意（${P.rules.length}）</summary><ul style="margin-left:1.2em;font-size:14px">${P.rules.map(r => `<li>${esc(r)}</li>`).join('')}</ul></details>` : ''}
     <div class="sum"><div><b>${doneN}/${scs.length}</b><span>撮了シーン</span></div><div><b>${miss}</b><span>OKが無いカット</span></div><div><b>${takeN}</b><span>テイク</span></div></div>
@@ -1919,7 +2035,7 @@ function bookHtml() {
         ${sc.notes ? `<tr><th>備考</th><td>${esc(sc.notes)}</td></tr>` : ''}
         ${sc.axis ? `<tr><th>軸</th><td>${esc(sc.axis)}</td></tr>` : ''}
         ${sc.link ? `<tr><th>前後</th><td>${esc(sc.link)}</td></tr>` : ''}
-        ${sc.cuts.length ? `<tr><th>撮るもの</th><td>${sc.cuts.map(c => `<div class="bcut">${cutState(sc, c.id).ok ? '☑' : pbox}C${esc(c.no)}　${c.size ? `<b>${esc(c.size)}</b>　` : ''}${esc(c.desc)}${c.fig ? `<div class="bfig">${figSVG(sc.stage, c.fig, { small: true })}</div>` : ''}${c.cam ? `<div class="dir">カメラ${c.alts && c.alts.length ? '（案A）' : ''}：${esc(c.cam)}${c.fig && c.fig.mm ? `（${esc(c.fig.mm)}mm）` : ''}${c.why ? `<br>理由：${esc(c.why)}` : ''}</div>` : ''}${(c.alts || []).map((a, i) => `<div class="dir">案${planLabel(i + 1)}（${esc(a.when)}）：${esc(a.cam)}${a.fig && a.fig.mm ? `（${esc(a.fig.mm)}mm）` : ''}${a.why ? `<br>理由：${esc(a.why)}` : ''}</div>`).join('')}</div>`).join('')}</td></tr>` : ''}
+        ${sc.cuts.length ? `<tr><th>撮るもの</th><td>${sc.cuts.map(c => `<div class="bcut">${cutState(sc, c.id).ok ? '☑' : pbox}C${esc(c.no)}　${c.size ? `<b>${esc(c.size)}</b>　` : ''}${esc(c.desc)}${c.fig ? `<div class="bfig">${figSVG(sc.stage, c.fig, { small: true })}</div>` : ''}${c.cam ? `<div class="dir">カメラ${c.alts && c.alts.length ? '（案A）' : ''}：${esc(c.cam)}${c.fig && c.fig.mm ? `（${esc(c.fig.mm)}mm）` : ''}${c.why ? `<br>理由：${esc(c.why)}` : ''}${planBasis(c, c.fig, sc).length ? `<br>根拠：${planBasis(c, c.fig, sc).map(id => esc(GUIDE_BY[id].t.replace(/（.*$/, ''))).join('、')}` : ''}</div>` : ''}${(c.alts || []).map((a, i) => `<div class="dir">案${planLabel(i + 1)}（${esc(a.when)}）：${esc(a.cam)}${a.fig && a.fig.mm ? `（${esc(a.fig.mm)}mm）` : ''}${a.why ? `<br>理由：${esc(a.why)}` : ''}</div>`).join('')}</div>`).join('')}</td></tr>` : ''}
         ${sc.edit ? `<tr><th>編集へ</th><td>${esc(sc.edit)}</td></tr>` : ''}
       </tbody></table>
       ${imgs.length ? `<h2>参考画像</h2><div class="imgs">${imgs.map(id => `<figure data-a="viewImg" data-id="${id}" data-list="${imgs.join(',')}"><img src="${IMG[id]}" alt=""><figcaption>${esc(name(id))}</figcaption></figure>`).join('')}</div>` : ''}
@@ -1927,7 +2043,11 @@ function bookHtml() {
       ${sc.lines.length ? `<h2>台本</h2><div class="scr">${sc.lines.map(l => l.k === 'd' ? `<div><b>${esc(l.who)}</b>${l.p ? `（${esc(l.p)}）` : ''}「${esc(l.text)}」</div>` : `<div class="a">${esc(l.text)}</div>`).join('')}</div>` : ''}
     </section>`;
   };
-  return cover + scriptOrder().map(scene).join('');
+  const used = new Set();
+  for (const sc of P.scenes) for (const c of sc.cuts) { planBasis(c, c.fig, sc).forEach(id => used.add(id)); (c.alts || []).forEach(a => planBasis(a, a.fig, sc).forEach(id => used.add(id))); }
+  const refs = used.size ? `<section class="pg scn"><h1>撮り方の根拠と出典<small>${ttl}</small></h1><div class="ph">カメラ案に付いた「根拠」の原則。出典は目次・出版社の紹介・解説記事などで確かめたもの（原典の本文まで確かめていないものは注記あり）。</div>
+    ${GUIDE.filter(g => used.has(g.id)).map(g => `<div class="bref"><b>${esc(g.t)}</b><div>${esc(g.do)}　${esc(g.why)}</div>${g.note ? `<div class="small">※ ${esc(g.note)}</div>` : ''}<div class="small">出典：${g.src.map(k => SRC[k] ? esc(SRC[k].t) : '').filter(Boolean).join('／')}</div></div>`).join('')}</section>` : '';
+  return cover + scriptOrder().map(scene).join('') + refs;
 }
 function postCsv() {
   const rows = [['シーン', '場所', '種類', '内容', '編集へ']];
@@ -2174,7 +2294,7 @@ const SHEET = {
         <div class="ctlabel">${esc(cutLabel(sc, cut))}　テイク ${n}${c && (c.size || c.desc) ? `<br><small>${esc([c.size, c.desc].filter(Boolean).join('　'))}</small>` : ''}</div>
         ${(() => { const pl = plans(c); if (!pl.length) return ''; const k = Math.min(c.pick || 0, pl.length - 1), x = pl[k];
           return `${pl.length > 1 ? `<div class="chips planchips">${pl.map((p, i) => `<button class="chip" data-a="pickPlan" data-sc="${sc.id}" data-id="${c.id}" data-i="${i}" aria-pressed="${i === k}">案${planLabel(i)}<span class="small">${esc(p.when)}</span></button>`).join('')}</div>` : ''}
-            <div class="memo"><b>カメラ${pl.length > 1 ? `（案${planLabel(k)}）` : ''}</b>${esc(x.cam)}${mmLine(planFig(c, k))}${x.why ? `<span class="small">理由：${esc(x.why)}</span>` : ''}</div>
+            <div class="memo"><b>カメラ${pl.length > 1 ? `（案${planLabel(k)}）` : ''}</b>${esc(x.cam)}${mmLine(planFig(c, k))}${x.why ? `<span class="small">理由：${esc(x.why)}</span>` : ''}${basisHtml(k ? c.alts[k - 1] : c, planFig(c, k), sc)}</div>
             ${planFig(c, k) ? `<button class="figbtn" data-a="openFig" data-sc="${sc.id}" data-id="${c.id}">${figSVG(sc.stage, planFig(c, k))}</button>` : ''}`; })()}
         ${sc.axis ? `<div class="small"><b>画面の向き・軸：</b>${esc(sc.axis)}</div>` : ''}
         ${sc.dir ? `<div class="memo"><b>演出</b>${esc(sc.dir)}</div>` : ''}
@@ -2269,8 +2389,21 @@ const SHEET = {
     return sheetTop(`S#${esc(sc.no)} C${esc(c.no)} カメラ位置の図`) + `<div class="sheet-body"><div class="wrap">
       <p class="small">上から見た図（北が上）。赤い点線がイマジナリーライン、色の付いた側にカメラを置く。扇形が写る範囲、緑の丸が高峰、矢印は向きと動き。見取り図と写真からの想定なので、細かい向きは現地で合わせてください。</p>
       <div class="memo"><b>C${esc(c.no)}</b>${esc(c.desc)}</div>
-      ${pl.map((p, i) => `<section class="card"><h3>案${planLabel(i)}　${esc(p.when)}</h3>${planFig(c, i) ? figSVG(sc.stage, planFig(c, i)) : '<p class="small">図はありません</p>'}<div>${esc(p.cam)}</div>${mmLine(planFig(c, i))}${p.why ? `<div class="small">理由：${esc(p.why)}</div>` : ''}</section>`).join('')}
+      ${pl.map((p, i) => `<section class="card"><h3>案${planLabel(i)}　${esc(p.when)}</h3>${planFig(c, i) ? figSVG(sc.stage, planFig(c, i)) : '<p class="small">図はありません</p>'}<div>${esc(p.cam)}</div>${mmLine(planFig(c, i))}${p.why ? `<div class="small">理由：${esc(p.why)}</div>` : ''}${basisHtml(i ? c.alts[i - 1] : c, planFig(c, i), sc)}</section>`).join('')}
       <p class="small">レンズの mm はフルサイズ換算。APS-C は約0.67倍（35mm→約23mm）、マイクロフォーサーズは0.5倍（35mm→約17mm）、スマホは「×1」がおよそ24〜26mm。</p>
+    </div></div>`;
+  },
+  prin(s) {
+    const g = GUIDE_BY[s.id]; if (!g) return sheetTop('撮り方の手引き') + '<div class="sheet-body"></div>';
+    return sheetTop(esc(g.t)) + `<div class="sheet-body"><div class="wrap"><section class="card">${prinHtml(g, true)}</section>
+      <button class="btn wide" data-a="openGuide">撮り方の手引きをすべて見る</button></div></div>`;
+  },
+  guide() {
+    return sheetTop('撮り方の手引き') + `<div class="sheet-body"><div class="wrap">
+      <p class="lead">映画の撮り方の原則を、何をするか・なぜか・現場で確かめること・出典の順にまとめたもの。カメラ案に付いている「根拠」はここの原則です。新しい作品のカメラ案にも、言葉や図から自動で付きます。</p>
+      <p class="small">出典は、本の目次・出版社の紹介・解説記事・学習サイトなどで中身を確かめたもの。原典の本文まで確かめていないものは、その旨を書いています。</p>
+      <input class="inp" id="guideq" placeholder="さがす（例：イマジナリーライン、望遠、主観）" autocomplete="off">
+      ${GUIDE_CATS.map((cname, ci) => `<section class="card guidecat"><h3>${esc(cname)}</h3>${GUIDE.filter(g => g.cat === ci).map(g => `<div class="gitem" data-q="${esc(g.t + g.do + g.why)}">${prinHtml(g)}</div>`).join('')}</section>`).join('')}
     </div></div>`;
   },
   ask(s) { return `<div class="sheet-top"><div class="t">確認</div></div><div class="sheet-body"><div class="wrap"><section class="card"><p style="font-size:17px;font-weight:700">${esc(s.msg)}</p>
@@ -2287,6 +2420,7 @@ const SHEET = {
         <li><span>全部のカットに OK が付くと<b>撮了</b>になります（「撮了にする」で手でも付けられます）</span></li>
       </ol>`)}
       ${step('カメラワーク案', '<p>撮影のカードの<b>「カメラワーク案（アングルと理由）」</b>を押すと、そのシーンの画面の向き（イマジナリーライン）、前後のシーンとのつながり、カットごとのカメラの位置・サイズ・動きと理由が出ます。「記録する」の画面にも、今撮るカットの案が出ます。現場で人が多い・時間が押したなどのときは、記録の画面の<b>「案A・案B・案C」</b>を押すと別案に切り替わり、どの案で撮ったかがテイクに残ります（スクリプト表にも出ます）。作品全体の決まりごとは「撮影」の画面のいちばん上にあります。</p>')}
+      ${step('撮り方の根拠', '<p>カメラ案の下の<b>「根拠」</b>のボタンを押すと、その撮り方の原則（何をする・なぜ・現場で確かめること・出典）が開きます。「撮影」の画面の上と「資料」の画面の<b>「撮り方の手引き」</b>で、すべての原則を見て、さがせます。この作品以外の撮影でも使えます。</p>')}
       ${step('シーンのくわしい中身：「台本・詳細」', '<p>撮影のカードの「台本・詳細」、または「香盤」でシーンを押すと開きます。台本の本文、編集素材（写真・ＣＧ・字幕・ナレーションなど）、参考画像の追加、撮るものの書き直しができます。</p>')}
       ${step('全体の予定：「香盤」', '<p>「台本の順」で全シーン、「撮影日ごと」で日ごとの並び（↑↓で入れ替え）、「人物」で出番の表を見られます。</p>')}
       ${step('撮ったもの：「記録」', '<p>撮ったテイクの一覧です。「撮り残し」で OK の無いカットだけを出せます。テイクを押すとクリップ名やメモを直せます。</p>')}
@@ -2410,6 +2544,8 @@ const ACT = {
   askYes: () => answer(true),
   askNo: () => answer(false),
   help: () => openSheet({ t: 'help' }),
+  openPrin: b => openSheet({ t: 'prin', id: b.dataset.id }),
+  openGuide: () => openSheet({ t: 'guide' }),
   refreshWork: () => refreshWork(),
   hardUpdate: () => hardUpdate(),
   workUpdate: async () => { try { busy(true, '新しい資料を読み込んでいます…'); const j = await decryptWork(P.work.name, P.work.key); busy(false); await mergeProject(j); $('workbar').hidden = true; toast('資料を新しくしました（記録はそのままです）'); } catch (e) { busy(false); toast('新しい資料を読み込めませんでした。ネットにつながっているか確かめてください'); } },
@@ -2454,7 +2590,8 @@ function bindValue(t) {
   else if (kind === 'day') { const d = dayById(id); if (!d) return; d[a] = v; if (a === 'date') sortDays(); }
   save();
 }
-document.addEventListener('input', e => { const t = e.target; if (t.dataset.b && !t.dataset.list && t.tagName !== 'SELECT') bindValue(t); });
+document.addEventListener('input', e => { const t = e.target;
+  if (t.id === 'guideq') { const q = t.value.trim(); t.closest('.sheet-body').querySelectorAll('.gitem').forEach(el => { el.hidden = !!q && !el.dataset.q.includes(q); }); return; } if (t.dataset.b && !t.dataset.list && t.tagName !== 'SELECT') bindValue(t); });
 document.addEventListener('change', e => {
   const t = e.target;
   if (t.dataset.b) { bindValue(t); if (t.tagName === 'SELECT' || t.dataset.list || t.dataset.rerender) render(); else { const top = S.sheets[S.sheets.length - 1]; if (top && top.t === 'scene' && /\|(no|place|tod|io)$/.test(t.dataset.b)) { const el = document.querySelector('#sheets .sheet:last-child .sheet-top .t'); const sc = sceneById(top.id); if (el && sc) el.textContent = sceneTitle(sc); } RENDER[S.tab](); } return; }

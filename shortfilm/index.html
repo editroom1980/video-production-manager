@@ -215,6 +215,9 @@ table.mx { border-collapse: collapse; font-size: 13px; min-width: 100%; }
 .cam { margin-top: 3px; font-size: 13px; background: var(--surface2); border-radius: 8px; padding: 6px 8px; }
 .cam b { font-size: 12px; color: var(--muted); margin-right: 4px; }
 .cam .why { color: var(--muted); margin-top: 2px; }
+.mm { margin-top: 3px; font-size: 13px; }
+.mm b { color: var(--accent); font-size: 13px; margin-right: 0; }
+.memo .mm { margin: 4px 0 2px; }
 .camd > summary { font-size: 14px; color: var(--accent); }
 .camd .cutlist { margin-top: 6px; }
 .cutcam { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin: -2px 0 6px; }
@@ -410,7 +413,7 @@ pre.doc { white-space: pre-wrap; word-break: break-word; font-family: var(--font
 <script>
 (() => {
 'use strict';
-const VERSION = '2.0（11/3 カメラ位置の図）';
+const VERSION = '2.1（11/3 レンズの mm）';
 
 /* ───────── 基本 ───────── */
 const $ = id => document.getElementById(id);
@@ -630,7 +633,7 @@ function figSVG(stage, fig, opt = {}) {
     if (lp) o.push(T(lp[0], lp[1], 'イマジナリーライン', 'ft faxt', lp[2] || 'middle'));
   }
   // 写る範囲（扇形）
-  const fov = fig.fov || LENS_FOV[fig.lens] || 50;
+  const fov = fig.fov || (fig.mm ? 2 * Math.atan(18 / fig.mm) * 180 / Math.PI : 0) || LENS_FOV[fig.lens] || 50;
   for (const c of cams) {
     const [x, y, d] = c, R = fig.reach || 46, a = v2(d - fov / 2, R), b = v2(d + fov / 2, R);
     o.push(`<path d="M${f1(x)} ${f1(y)}L${f1(x + a[0])} ${f1(y + a[1])}A${R} ${R} 0 0 1 ${f1(x + b[0])} ${f1(y + b[1])}Z" class="ffov"/>`);
@@ -655,7 +658,7 @@ function figSVG(stage, fig, opt = {}) {
   const tilt = /見上げ|あおり|ティルトアップ/.test(fig.h || '') ? -1 : /見下ろし|俯瞰/.test(fig.h || '') ? 1 : 0;
   o.push(`<g transform="translate(0 104)"><line x1="2" y1="12" x2="22" y2="12" class="fground"/><line x1="15" y1="12" x2="15" y2="4" class="fperson"/><circle cx="15" cy="3" r="1.4" class="fperson"/>
     <rect x="3.5" y="${f1(12 - hv - 1.2)}" width="4" height="2.4" rx=".5" class="fcam"/><line x1="7.5" y1="${f1(12 - hv)}" x2="11.5" y2="${f1(12 - hv - tilt * 2.5)}" class="fpan" marker-end="url(#${uid2}c)"/>
-    ${(() => { const ls = [`高さ：${fig.h || '目の高さ'}`], sz = `サイズ：${fig.size || '—'}`, ln = `レンズ：${fig.lens || '標準'}${fig.pan ? '　パン' : ''}${fig.campath ? '　移動' : ''}`;
+    ${(() => { const ls = [`高さ：${fig.h || '目の高さ'}`], sz = `サイズ：${fig.size || '—'}`, ln = `レンズ：${fig.mm ? fig.mm + 'mm' : fig.lens || '標準'}${fig.pan ? '　パン' : ''}${fig.campath ? '　移動' : ''}`;
       if ((sz + ln).length > 17) ls.push(sz, ln); else ls.push(sz + '　' + ln);
       legendH = 6.5 * ls.length + (fig.note ? 6.5 : 0);
       return ls.map((t, i) => T(25, 5 + i * 6.5, t, 'ft fl', 'start')).join('') + (fig.note ? T(2, 5 + ls.length * 6.5, '※ ' + fig.note, 'ft fnote', 'start') : ''); })()}</g>`);
@@ -666,9 +669,10 @@ const planLabel = i => 'ABCDEFG'[i] || String(i + 1);
 const plans = c => (c && c.cam ? [{ when: '基本', cam: c.cam, why: c.why }] : []).concat((c && c.alts) || []);
 function altsHtml(c) {
   const al = (c && c.alts) || []; if (!al.length) return '';
-  return `<details class="alts"><summary>別案（${al.map((a, i) => `${planLabel(i + 1)}：${esc(a.when)}`).join('／')}）</summary>${al.map((a, i) => `<div class="cam alt"><b>案${planLabel(i + 1)}</b><span class="when">${esc(a.when)}</span><div>${esc(a.cam)}</div>${a.why ? `<div class="why">理由：${esc(a.why)}</div>` : ''}</div>`).join('')}</details>`;
+  return `<details class="alts"><summary>別案（${al.map((a, i) => `${planLabel(i + 1)}：${esc(a.when)}`).join('／')}）</summary>${al.map((a, i) => `<div class="cam alt"><b>案${planLabel(i + 1)}</b><span class="when">${esc(a.when)}</span><div>${esc(a.cam)}</div>${mmLine(a.fig)}${a.why ? `<div class="why">理由：${esc(a.why)}</div>` : ''}</div>`).join('')}</details>`;
 }
-function camHtml(c) { return c && c.cam ? `<div class="cam"><b>カメラ${c.alts && c.alts.length ? '（案A）' : ''}</b>${esc(c.cam)}${c.why ? `<div class="why">理由：${esc(c.why)}</div>` : ''}</div>${altsHtml(c)}` : ''; }
+const mmLine = f => (f && f.mm ? `<div class="mm"><b>レンズ ${esc(f.mm)}mm</b>${f.mmWhy ? `：${esc(f.mmWhy)}` : ''}</div>` : '');
+function camHtml(c) { return c && c.cam ? `<div class="cam"><b>カメラ${c.alts && c.alts.length ? '（案A）' : ''}</b>${esc(c.cam)}${mmLine(c.fig)}${c.why ? `<div class="why">理由：${esc(c.why)}</div>` : ''}</div>${altsHtml(c)}` : ''; }
 const hasCam = sc => !!(sc.axis || sc.link || sc.cuts.some(c => c.cam));
 function camBlock(sc) {
   return `${sc.axis ? `<div class="memo"><b>画面の向き・軸</b>${esc(sc.axis)}</div>` : ''}${sc.link ? `<div class="memo"><b>前後のつながり</b>${esc(sc.link)}</div>` : ''}
@@ -1692,7 +1696,7 @@ function sortTakes(sc, ts, mode) {
 }
 function takeRow(sc, t) {
   const cut = sc.cuts.find(c => c.id === t.cut);
-  const info = [t.plan ? `<span class="badge">${esc(t.plan)}</span>` : '', t.clip ? `<b>${esc(t.clip)}</b>` : '', t.note ? `<b style="color:var(--warn)">${esc(t.note)}</b>` : '', t.snd ? '音 ' + esc(t.snd) : '', t.tc ? 'TC ' + esc(t.tc) : '', !t.note && cut && cut.desc ? esc(cut.desc) : ''].filter(Boolean).join('　');
+  const info = [t.plan ? `<span class="badge">${esc(t.plan)}${t.mm ? ' ' + esc(t.mm) + 'mm' : ''}</span>` : t.mm ? `<span class="badge">${esc(t.mm)}mm</span>` : '', t.clip ? `<b>${esc(t.clip)}</b>` : '', t.note ? `<b style="color:var(--warn)">${esc(t.note)}</b>` : '', t.snd ? '音 ' + esc(t.snd) : '', t.tc ? 'TC ' + esc(t.tc) : '', !t.note && cut && cut.desc ? esc(cut.desc) : ''].filter(Boolean).join('　');
   return `<button class="take" data-a="openTake" data-id="${t.id}"><span class="ct">${esc(cutLabel(sc, t.cut))} T${t.n}</span><span class="badge r-${t.r || 'none'}">${esc(t.r || '—')}</span><span class="inf">${info || '&nbsp;'}</span><span class="sec">${fmtSec(t.sec)}</span></button>`;
 }
 function renderLog() {
@@ -1863,7 +1867,7 @@ function scriptHtml() {
   const okN = P.takes.filter(t => t.r === 'OK').length;
   const rows = data.map(({ sc, ts }) => {
     const head = `<tr class="sh"><td colspan="11">S#${esc(sc.no)}　${esc(sc.place)}${todLine(sc) ? `（${esc(todLine(sc))}）` : ''}${sc.loc ? `　ロケ：${esc(sc.loc)}` : ''}${sc.day ? `　撮影：${esc(dayLabel(dayById(sc.day)))}` : ''}${sc.secs ? `　台本の目安 ${estText(sc.secs)}` : ''}${sc.cont ? `<br>繋がり：${esc(sc.cont)}` : ''}${sc.edit ? `<br>編集へ：${esc(sc.edit)}` : ''}</td></tr>`;
-    const body = ts.length ? ts.map(t => { const c = sc.cuts.find(x => x.id === t.cut); return `<tr><td class="c">${esc(sc.no)}</td><td class="c">${esc(c ? c.no : '一連')}</td><td class="c">${t.n}${t.plan ? `<br><small>${esc(t.plan)}</small>` : ''}</td><td class="c ${t.r === 'OK' ? 'ok' : t.r === 'NG' ? 'ng' : ''}">${esc(t.r || '')}</td><td class="c">${fmtSec(t.sec)}</td><td>${esc(t.clip)}</td><td>${esc(t.snd)}</td><td>${esc(t.tc)}</td><td>${esc(c ? [c.size, c.desc].filter(Boolean).join(' ') : '')}</td><td>${esc(t.note)}</td><td class="c">${fmtAt(t.at)}</td></tr>`; }).join('') : `<tr><td colspan="11" class="ng">記録なし</td></tr>`;
+    const body = ts.length ? ts.map(t => { const c = sc.cuts.find(x => x.id === t.cut); return `<tr><td class="c">${esc(sc.no)}</td><td class="c">${esc(c ? c.no : '一連')}</td><td class="c">${t.n}${t.plan || t.mm ? `<br><small>${esc([t.plan, t.mm ? t.mm + 'mm' : ''].filter(Boolean).join(' '))}</small>` : ''}</td><td class="c ${t.r === 'OK' ? 'ok' : t.r === 'NG' ? 'ng' : ''}">${esc(t.r || '')}</td><td class="c">${fmtSec(t.sec)}</td><td>${esc(t.clip)}</td><td>${esc(t.snd)}</td><td>${esc(t.tc)}</td><td>${esc(c ? [c.size, c.desc].filter(Boolean).join(' ') : '')}</td><td>${esc(t.note)}</td><td class="c">${fmtAt(t.at)}</td></tr>`; }).join('') : `<tr><td colspan="11" class="ng">記録なし</td></tr>`;
     const pi = postItems(sc);
     const post = pi.length ? `<tr class="pm"><td colspan="11">${POST_ORDER.filter(k => pi.some(x => x.k === k)).map(k => `<b>${esc(postName(k))}</b> ${pi.filter(x => x.k === k).map(x => esc(x.t)).join('／')}`).join('<br>')}</td></tr>` : '';
     return head + post + body;
@@ -1915,7 +1919,7 @@ function bookHtml() {
         ${sc.notes ? `<tr><th>備考</th><td>${esc(sc.notes)}</td></tr>` : ''}
         ${sc.axis ? `<tr><th>軸</th><td>${esc(sc.axis)}</td></tr>` : ''}
         ${sc.link ? `<tr><th>前後</th><td>${esc(sc.link)}</td></tr>` : ''}
-        ${sc.cuts.length ? `<tr><th>撮るもの</th><td>${sc.cuts.map(c => `<div class="bcut">${cutState(sc, c.id).ok ? '☑' : pbox}C${esc(c.no)}　${c.size ? `<b>${esc(c.size)}</b>　` : ''}${esc(c.desc)}${c.fig ? `<div class="bfig">${figSVG(sc.stage, c.fig, { small: true })}</div>` : ''}${c.cam ? `<div class="dir">カメラ${c.alts && c.alts.length ? '（案A）' : ''}：${esc(c.cam)}${c.why ? `<br>理由：${esc(c.why)}` : ''}</div>` : ''}${(c.alts || []).map((a, i) => `<div class="dir">案${planLabel(i + 1)}（${esc(a.when)}）：${esc(a.cam)}${a.why ? `<br>理由：${esc(a.why)}` : ''}</div>`).join('')}</div>`).join('')}</td></tr>` : ''}
+        ${sc.cuts.length ? `<tr><th>撮るもの</th><td>${sc.cuts.map(c => `<div class="bcut">${cutState(sc, c.id).ok ? '☑' : pbox}C${esc(c.no)}　${c.size ? `<b>${esc(c.size)}</b>　` : ''}${esc(c.desc)}${c.fig ? `<div class="bfig">${figSVG(sc.stage, c.fig, { small: true })}</div>` : ''}${c.cam ? `<div class="dir">カメラ${c.alts && c.alts.length ? '（案A）' : ''}：${esc(c.cam)}${c.fig && c.fig.mm ? `（${esc(c.fig.mm)}mm）` : ''}${c.why ? `<br>理由：${esc(c.why)}` : ''}</div>` : ''}${(c.alts || []).map((a, i) => `<div class="dir">案${planLabel(i + 1)}（${esc(a.when)}）：${esc(a.cam)}${a.fig && a.fig.mm ? `（${esc(a.fig.mm)}mm）` : ''}${a.why ? `<br>理由：${esc(a.why)}` : ''}</div>`).join('')}</div>`).join('')}</td></tr>` : ''}
         ${sc.edit ? `<tr><th>編集へ</th><td>${esc(sc.edit)}</td></tr>` : ''}
       </tbody></table>
       ${imgs.length ? `<h2>参考画像</h2><div class="imgs">${imgs.map(id => `<figure data-a="viewImg" data-id="${id}" data-list="${imgs.join(',')}"><img src="${IMG[id]}" alt=""><figcaption>${esc(name(id))}</figcaption></figure>`).join('')}</div>` : ''}
@@ -1931,9 +1935,9 @@ function postCsv() {
   return rows;
 }
 function scriptCsv() {
-  const rows = [['シーン', '場所', '昼夜・内外', 'カット', 'サイズ', 'カット内容', 'カメラの案', 'テイク', '判定', '尺（秒）', '尺', 'クリップ', '音声', 'TC', 'メモ', '撮影日', '記録時刻', '繋がり', '編集へ']];
+  const rows = [['シーン', '場所', '昼夜・内外', 'カット', 'サイズ', 'カット内容', 'カメラの案', 'レンズ（mm）', 'テイク', '判定', '尺（秒）', '尺', 'クリップ', '音声', 'TC', 'メモ', '撮影日', '記録時刻', '繋がり', '編集へ']];
   for (const { sc, ts } of scriptData()) {
-    for (const t of ts) { const c = sc.cuts.find(x => x.id === t.cut); rows.push([sc.no, sc.place, todLine(sc), c ? c.no : '一連', c ? c.size : '', c ? c.desc : '', t.plan || '', t.n, t.r, t.sec || '', fmtSec(t.sec), t.clip, t.snd, t.tc, t.note, sc.day ? dayLabel(dayById(sc.day)) : '', fmtAt(t.at), sc.cont, sc.edit]); }
+    for (const t of ts) { const c = sc.cuts.find(x => x.id === t.cut); rows.push([sc.no, sc.place, todLine(sc), c ? c.no : '一連', c ? c.size : '', c ? c.desc : '', t.plan || '', t.mm || '', t.n, t.r, t.sec || '', fmtSec(t.sec), t.clip, t.snd, t.tc, t.note, sc.day ? dayLabel(dayById(sc.day)) : '', fmtAt(t.at), sc.cont, sc.edit]); }
   }
   return rows;
 }
@@ -2170,7 +2174,7 @@ const SHEET = {
         <div class="ctlabel">${esc(cutLabel(sc, cut))}　テイク ${n}${c && (c.size || c.desc) ? `<br><small>${esc([c.size, c.desc].filter(Boolean).join('　'))}</small>` : ''}</div>
         ${(() => { const pl = plans(c); if (!pl.length) return ''; const k = Math.min(c.pick || 0, pl.length - 1), x = pl[k];
           return `${pl.length > 1 ? `<div class="chips planchips">${pl.map((p, i) => `<button class="chip" data-a="pickPlan" data-sc="${sc.id}" data-id="${c.id}" data-i="${i}" aria-pressed="${i === k}">案${planLabel(i)}<span class="small">${esc(p.when)}</span></button>`).join('')}</div>` : ''}
-            <div class="memo"><b>カメラ${pl.length > 1 ? `（案${planLabel(k)}）` : ''}</b>${esc(x.cam)}${x.why ? `<br><span class="small">理由：${esc(x.why)}</span>` : ''}</div>
+            <div class="memo"><b>カメラ${pl.length > 1 ? `（案${planLabel(k)}）` : ''}</b>${esc(x.cam)}${mmLine(planFig(c, k))}${x.why ? `<span class="small">理由：${esc(x.why)}</span>` : ''}</div>
             ${planFig(c, k) ? `<button class="figbtn" data-a="openFig" data-sc="${sc.id}" data-id="${c.id}">${figSVG(sc.stage, planFig(c, k))}</button>` : ''}`; })()}
         ${sc.axis ? `<div class="small"><b>画面の向き・軸：</b>${esc(sc.axis)}</div>` : ''}
         ${sc.dir ? `<div class="memo"><b>演出</b>${esc(sc.dir)}</div>` : ''}
@@ -2200,6 +2204,7 @@ const SHEET = {
         <label class="field"><span>カット</span><select ${b('cut')}><option value="">一連</option>${sc ? sc.cuts.map(c => `<option value="${c.id}" ${t.cut === c.id ? 'selected' : ''}>C${esc(c.no)}</option>`).join('') : ''}</select></label>
         <label class="field"><span>テイク番号</span><input ${b('n')} value="${t.n}" inputmode="numeric"></label>
         <label class="field"><span>カメラの案</span><input ${b('plan')} value="${esc(t.plan || '')}" placeholder="案A"></label>
+        <label class="field"><span>レンズ（mm）</span><input ${b('mm')} value="${esc(t.mm || '')}" inputmode="numeric" placeholder="35"></label>
         <label class="field"><span>尺（例 1:05）</span><input ${b('sec')} value="${fmtSec(t.sec)}" inputmode="numeric"></label>
         <label class="field"><span>クリップ名</span><input ${b('clip')} value="${esc(t.clip)}"></label>
         <label class="field"><span>音声ファイル</span><input ${b('snd')} value="${esc(t.snd)}"></label>
@@ -2264,7 +2269,8 @@ const SHEET = {
     return sheetTop(`S#${esc(sc.no)} C${esc(c.no)} カメラ位置の図`) + `<div class="sheet-body"><div class="wrap">
       <p class="small">上から見た図（北が上）。赤い点線がイマジナリーライン、色の付いた側にカメラを置く。扇形が写る範囲、緑の丸が高峰、矢印は向きと動き。見取り図と写真からの想定なので、細かい向きは現地で合わせてください。</p>
       <div class="memo"><b>C${esc(c.no)}</b>${esc(c.desc)}</div>
-      ${pl.map((p, i) => `<section class="card"><h3>案${planLabel(i)}　${esc(p.when)}</h3>${planFig(c, i) ? figSVG(sc.stage, planFig(c, i)) : '<p class="small">図はありません</p>'}<div>${esc(p.cam)}</div>${p.why ? `<div class="small">理由：${esc(p.why)}</div>` : ''}</section>`).join('')}
+      ${pl.map((p, i) => `<section class="card"><h3>案${planLabel(i)}　${esc(p.when)}</h3>${planFig(c, i) ? figSVG(sc.stage, planFig(c, i)) : '<p class="small">図はありません</p>'}<div>${esc(p.cam)}</div>${mmLine(planFig(c, i))}${p.why ? `<div class="small">理由：${esc(p.why)}</div>` : ''}</section>`).join('')}
+      <p class="small">レンズの mm はフルサイズ換算。APS-C は約0.67倍（35mm→約23mm）、マイクロフォーサーズは0.5倍（35mm→約17mm）、スマホは「×1」がおよそ24〜26mm。</p>
     </div></div>`;
   },
   ask(s) { return `<div class="sheet-top"><div class="t">確認</div></div><div class="sheet-body"><div class="wrap"><section class="card"><p style="font-size:17px;font-weight:700">${esc(s.msg)}</p>
@@ -2315,8 +2321,9 @@ function recResult(scId, r) {
   const sc = sceneById(scId); const cut = S.recCut[scId] || '';
   if (S.run && S.run.sc === scId) recStop();
   const sec = S.last && S.last.sc === scId && S.last.cut === cut ? S.last.sec : 0;
-  const cc = sc.cuts.find(x => x.id === cut), plan = cc && cc.alts && cc.alts.length ? '案' + planLabel(Math.min(cc.pick || 0, cc.alts.length)) : '';
-  const t = { id: uid(), sc: scId, cut, plan, n: nextTakeNo(scId, cut), r, sec, clip: ($('rc-clip') || {}).value || '', snd: ($('rc-snd') || {}).value || '', tc: '', note: (($('rc-note') || {}).value || '').trim(), at: Date.now(), day: sc.day || '' };
+  const cc = sc.cuts.find(x => x.id === cut), pk = cc ? Math.min(cc.pick || 0, (cc.alts || []).length) : 0, plan = cc && cc.alts && cc.alts.length ? '案' + planLabel(pk) : '';
+  const pf = cc && planFig(cc, pk), mm = pf && pf.mm ? String(pf.mm) : '';
+  const t = { id: uid(), sc: scId, cut, plan, mm, n: nextTakeNo(scId, cut), r, sec, clip: ($('rc-clip') || {}).value || '', snd: ($('rc-snd') || {}).value || '', tc: '', note: (($('rc-note') || {}).value || '').trim(), at: Date.now(), day: sc.day || '' };
   P.takes.push(t); S.last = null; freshRec = true;
   if (r === 'OK' && sc.cuts.length) { // 次のカットへ
     const i = sc.cuts.findIndex(c => c.id === cut);

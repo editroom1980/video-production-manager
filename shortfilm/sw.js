@@ -1,5 +1,5 @@
 // 撮影現場で電波が弱くても使えるように、アプリと読み取り用の部品を端末に残す。
-const CACHE = 'satsueicho-v11';
+const CACHE = 'satsueicho-v12';
 const CORE = ['./', './index.html', './manifest.json', './apple-touch-icon.png', './icon-192.png', './icon-512.png'];
 const LIBS = ['./lib/xlsx.full.min.js', './lib/mammoth.browser.min.js', './lib/pdf.min.js', './lib/pdf.worker.min.js'];
 

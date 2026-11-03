@@ -55,6 +55,7 @@ b { font-weight: 800; }
 .top .ttl { flex: 1; min-width: 0; font-weight: 800; font-size: 17px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .top .ttl small { font-weight: 700; color: var(--muted); font-size: 12px; margin-right: 6px; }
 .clock { font-size: 20px; font-weight: 800; font-variant-numeric: tabular-nums; }
+#workbar button { display: block; width: 100%; background: var(--accent); color: var(--accent-ink); font-weight: 800; font-size: 14px; padding: 10px; text-align: center; }
 #updbar button { display: block; width: 100%; background: var(--ink); color: var(--surface); font-weight: 800; font-size: 14px; padding: 10px; text-align: center; }
 
 .views { flex: 1 1 auto; min-height: 0; position: relative; }
@@ -169,6 +170,14 @@ table.mx { border-collapse: collapse; font-size: 13px; min-width: 100%; }
 .cutpill.ok { border-color: var(--ok); background: var(--ok-bg); color: var(--ok); }
 .cutpill.tried { border-color: var(--keep); color: var(--keep); }
 .donebtn { margin-left: auto; }
+.cam { margin-top: 3px; font-size: 13px; background: var(--surface2); border-radius: 8px; padding: 6px 8px; }
+.cam b { font-size: 12px; color: var(--muted); margin-right: 4px; }
+.cam .why { color: var(--muted); margin-top: 2px; }
+.camd > summary { font-size: 14px; color: var(--accent); }
+.camd .cutlist { margin-top: 6px; }
+.cutcam { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin: -2px 0 6px; }
+.cutcam textarea { min-height: 56px; font-size: 14px; }
+@media (max-width: 520px) { .cutcam { grid-template-columns: 1fr; } }
 .cutlist { display: flex; flex-direction: column; gap: 5px; }
 .cutrowv { display: grid; grid-template-columns: auto 1fr; gap: 8px; align-items: start; font-size: 14px; }
 .cutrowv .cutpill { min-width: 46px; text-align: center; }
@@ -338,6 +347,7 @@ pre.doc { white-space: pre-wrap; word-break: break-word; font-family: var(--font
     <button class="btn small" data-a="help" id="helpbtn">使い方</button>
   </header>
   <div id="updbar" hidden></div>
+  <div id="workbar" hidden></div>
   <main class="views">
     <section class="view" id="v-docs" aria-label="資料"></section>
     <section class="view" id="v-plan" aria-label="香盤" hidden></section>
@@ -358,7 +368,7 @@ pre.doc { white-space: pre-wrap; word-break: break-word; font-family: var(--font
 <script>
 (() => {
 'use strict';
-const VERSION = '1.5（11/3 ホーム画面のアプリでもリンクを貼って作品を開ける）';
+const VERSION = '1.6（11/3 カメラワーク案、資料の更新）';
 
 /* ───────── 基本 ───────── */
 const $ = id => document.getElementById(id);
@@ -384,7 +394,7 @@ const MODE = { artifact: !!(PRESET && PRESET.artifact) }; // 印刷・ファイ�
 
 /* ───────── 保存 ───────── */
 const KEY = 'satsueicho.v1.project', UIKEY = 'satsueicho.v1.ui';
-function blank() { return { v: 1, title: '', draft: '', director: '', memo: '', chars: [], credits: [], rules: [], imgs: [], days: [], scenes: [], slots: [], events: [], takes: [], checks: {}, docs: [], gear: [], updated: 0 }; }
+function blank() { return { v: 1, title: '', draft: '', director: '', memo: '', chars: [], credits: [], rules: [], camPlan: [], imgs: [], days: [], scenes: [], slots: [], events: [], takes: [], checks: {}, docs: [], gear: [], updated: 0 }; }
 function load() { try { const j = JSON.parse(localStorage.getItem(KEY)); if (j && j.v) return Object.assign(blank(), j); } catch (e) {} return blank(); }
 let P = load();
 const S = Object.assign({ tab: 'docs', planView: 'script', logOrder: 'script', logFilter: 'all', day: null, sheets: [], run: null, last: null, recCut: {}, wake: false, scroll: {} },
@@ -453,7 +463,7 @@ function cmpScene(a, b) { return natCmp(a.no, b.no) || (a.seq ?? 1e9) - (b.seq ?
 function scriptOrder() { return P.scenes.slice().sort(cmpScene); }
 function findScene(no) { no = normNo(no); return P.scenes.find(s => s.no === no); }
 function newScene(no) {
-  const sc = { id: uid(), no: no ? normNo(no) : String(nextSceneNo()), place: '', tod: '', io: '', loc: '', summary: '', dir: '', cast: [], extras: '', props: [], costume: '', makeup: '', notes: '', day: '', start: '', mins: 0, order: 0, lines: [], secs: 0, cuts: [], refs: [], cont: '', edit: '', done: false, noshoot: false };
+  const sc = { id: uid(), no: no ? normNo(no) : String(nextSceneNo()), place: '', tod: '', io: '', loc: '', summary: '', dir: '', cast: [], extras: '', props: [], costume: '', makeup: '', notes: '', day: '', start: '', mins: 0, order: 0, lines: [], secs: 0, cuts: [], refs: [], axis: '', link: '', cont: '', edit: '', done: false, noshoot: false };
   P.scenes.push(sc); return sc;
 }
 function nextSceneNo() { return P.scenes.reduce((m, s) => Math.max(m, parseInt(s.no, 10) || 0), 0) + 1; }
@@ -532,6 +542,12 @@ function sceneProgress(sc) {
 function sceneDone(sc) { return sc.done || (P.takes.some(t => t.sc === sc.id) && sceneOk(sc)); }
 function missingCuts(sc) { if (sc.noshoot) return []; return missingCuts0(sc); }
 function missingCuts0(sc) { if (sc.cuts.length) return sc.cuts.filter(c => !cutState(sc, c.id).ok); return sceneOk(sc) ? [] : [null]; }
+function camHtml(c) { return c && c.cam ? `<div class="cam"><b>カメラ</b>${esc(c.cam)}${c.why ? `<div class="why">理由：${esc(c.why)}</div>` : ''}</div>` : ''; }
+const hasCam = sc => !!(sc.axis || sc.link || sc.cuts.some(c => c.cam));
+function camBlock(sc) {
+  return `${sc.axis ? `<div class="memo"><b>画面の向き・軸</b>${esc(sc.axis)}</div>` : ''}${sc.link ? `<div class="memo"><b>前後のつながり</b>${esc(sc.link)}</div>` : ''}
+    ${sc.cuts.filter(c => c.cam).map(c => `<div class="cutrowv"><span class="cutpill">C${esc(c.no)}</span><div>${esc(c.desc)}${camHtml(c)}</div></div>`).join('')}`;
+}
 function postItems(sc) {
   const out = [];
   for (const l of sc.lines || []) {
@@ -1302,7 +1318,7 @@ function renderDocs() {
   if (!P.scenes.length) h += `<section class="card" style="border-color:var(--accent)"><h2>作品を開く</h2>
     <p class="lead">送られてきた作品のリンク（<b>https://…/shortfilm/#open=…</b>）を、下の欄に長押しで貼り付けて「開く」を押してください。ファイルは要りません。</p>
     <p class="small">ホーム画面のアイコンから開いたアプリは、Safari とは保存場所が別です。アイコンから使うときは、ここで一度開いてください。</p>
-    <input class="inp" id="worklink" placeholder="ここにリンクを貼り付け" autocomplete="off" autocapitalize="off" spellcheck="false" inputmode="url">
+    <input class="inp worklink" placeholder="ここにリンクを貼り付け" autocomplete="off" autocapitalize="off" spellcheck="false" inputmode="url">
     <button class="btn primary wide" data-a="openPasted">開く</button></section>`;
   if (P.scenes.length) h += `<section class="card"><h2>${esc(P.title || 'この作品')}の資料を見る</h2>
     <div class="btns grid2">
@@ -1341,6 +1357,7 @@ function renderDocs() {
     <label class="field full"><span>作品名</span><input data-b="p||title" value="${esc(P.title)}" placeholder="例：雨上がりのバス停"></label>
     <label class="field"><span>稿</span><input data-b="p||draft" value="${esc(P.draft || '')}" placeholder="例：第2稿"></label>
     <label class="field full"><span>スタッフ・出演（1行に「役割：名前」）</span><textarea data-b="p||credits" rows="4" placeholder="監督：○○&#10;撮影：○○">${esc((P.credits || []).map(c => (c.role ? c.role + '：' : '') + c.name).join('\n'))}</textarea></label>
+    <label class="field full"><span>カメラの決まりごと（作品全体。1行に1つ）</span><textarea data-b="p||camPlan" rows="3">${esc((P.camPlan || []).join('\n'))}</textarea></label>
     <label class="field full"><span>現場の注意（1行に1つ。撮影の画面とチェックシートに出ます）</span><textarea data-b="p||rules" rows="3">${esc((P.rules || []).join('\n'))}</textarea></label>
     <label class="field full"><span>メモ（チェックシートの上に出ます）</span><textarea data-b="p||memo" rows="2">${esc(P.memo)}</textarea></label>
   </div></section>`;
@@ -1492,6 +1509,7 @@ function shootCard(sc, isNow, slot) {
     ${sc.notes ? `<div class="memo"><b>備考</b>${esc(sc.notes)}</div>` : ''}
     ${sc.cont ? `<div class="memo"><b>繋がり</b>${esc(sc.cont)}</div>` : ''}
     ${cuts ? (withDesc ? `<div class="cutlist"><span class="lbl">撮るもの</span>${cuts}</div>` : `<div class="cutline"><span class="lbl">カット</span>${cuts}</div>`) : ''}
+    ${hasCam(sc) ? `<details class="camd"><summary>カメラワーク案（アングルと理由）</summary><div class="cutlist">${camBlock(sc)}</div></details>` : ''}
     <div class="btns grid2"><button class="btn" data-a="openScene" data-id="${sc.id}">台本・詳細</button><button class="btn ${done ? '' : 'primary'}" data-a="openRec" data-id="${sc.id}">記録する${ts.length ? `（${ts.length}テイク）` : ''}</button></div>
   </article>`;
 }
@@ -1511,6 +1529,7 @@ function renderShoot() {
     ${d && (d.call || d.meet) ? `<div>集合 <b>${esc(d.call)}</b>　${esc(d.meet)}</div>` : ''}
     ${d && d.notes ? `<div class="memo">${esc(d.notes)}</div>` : ''}
     ${P.memo ? `<div class="memo">${esc(P.memo)}</div>` : ''}
+    ${(P.camPlan || []).length ? `<details><summary>カメラの決まりごと（作品全体）</summary><ul style="margin-left:1.2em;font-size:14px">${P.camPlan.map(r => `<li>${esc(r)}</li>`).join('')}</ul></details>` : ''}
     ${(P.rules || []).length ? `<details><summary>現場の注意（${P.rules.length}）</summary><ul style="margin-left:1.2em;font-size:14px">${P.rules.map(r => `<li>${esc(r)}</li>`).join('')}</ul></details>` : ''}
     <div class="sum"><div><b>${doneN}/${scs.length}</b><span>撮了シーン</span></div><div><b>${miss}</b><span>OKが無いカット</span></div><div><b>${takeN}</b><span>テイク</span></div></div>
     <div class="bar"><i style="width:${scs.length ? doneN / scs.length * 100 : 0}%"></i></div>
@@ -1658,7 +1677,7 @@ function checkSheetHtml(dayIds) {
       const sc = itemScene(it), sl = it.t === 'sl' ? it.o : null;
       if (sc.noshoot) return '';
       const prep = [sc.props.length ? '小道具：' + sc.props.map(p => pbox + esc(p)).join(' ') : '', sc.costume ? '衣装：' + costumeItems(sc).map(p => pbox + esc(p)).join(' ') : '', sc.makeup ? 'メイク：' + makeupItems(sc).map(p => pbox + esc(p)).join(' ') : ''].filter(Boolean).join('<br>');
-      const cuts = sc.cuts.map(c => `${cutState(sc, c.id).ok ? '☑' : pbox}C${esc(c.no)} ${esc(c.size)} ${esc(c.desc)}`).join('<br>');
+      const cuts = sc.cuts.map(c => `${cutState(sc, c.id).ok ? '☑' : pbox}C${esc(c.no)} ${esc(c.size)} ${esc(c.desc)}${c.cam ? `<div class="dir">カメラ：${esc(c.cam)}</div>` : ''}`).join('<br>');
       return `<tr><td class="c">${sceneDone(sc) ? '☑' : pbox}</td><td class="c">${esc(sl ? sl.start : sc.start)}${sc.mins && !sl ? `<br>${sc.mins}分` : ''}</td><td class="c"><b>${esc(sc.no)}</b></td><td>${esc(sc.place)}<br>${esc(todLine(sc))}</td><td>${esc(sl ? sl.loc || sc.loc : sc.loc)}</td><td>${esc(sl ? sl.summary || sc.summary : sc.summary)}${sc.dir ? `<div class="dir">演出：${esc(sc.dir)}</div>` : ''}</td><td>${sc.cast.map(n => pbox + esc(n)).join('<br>')}${sc.extras ? '<br>エキストラ：' + esc(sc.extras) : ''}</td>${hasPrep ? `<td>${prep}</td>` : ''}<td>${cuts}</td><td>${esc([sc.notes, sc.cont ? '繋がり：' + sc.cont : ''].filter(Boolean).join(' / '))}</td></tr>`;
     }).join('');
     const gear = id !== '' && P.gear.length ? `<div class="gear"><b>持ち物・機材</b>${P.gear.map((g, i) => `<div>${chk(`g|${id}|${g}`) ? '☑' : pbox}${esc(g)}</div>`).join('')}</div>` : '';
@@ -1745,6 +1764,7 @@ function bookHtml() {
     ${unset.length ? `<div class="ph"><b>日程未定：</b>${unset.map(s => 'S#' + esc(s.no) + ' ' + esc(s.place)).join('、')}</div>` : ''}
     ${noShoot.length ? `<div class="ph"><b>撮影なし：</b>${noShoot.map(s => 'S#' + esc(s.no) + ' ' + esc(s.place)).join('、')}</div>` : ''}
     ${P.gear.length ? `<div class="gear"><b>持ち物・機材</b>${P.gear.map(g => `<div>${pbox}${esc(g)}</div>`).join('')}</div>` : ''}
+    ${(P.camPlan || []).length ? `<div class="rules"><b>カメラの決まりごと（作品全体）</b><ul>${P.camPlan.map(r => `<li>${esc(r)}</li>`).join('')}</ul></div>` : ''}
     ${(P.rules || []).length ? `<div class="rules"><b>現場の注意</b><ul>${P.rules.map(r => `<li>${esc(r)}</li>`).join('')}</ul></div>` : ''}
     <div class="foot">次のページから、シーンごとの資料（台本の順）。出力 ${fmtAt(Date.now())}　撮影帳</div></section>`;
   const scene = sc => {
@@ -1760,7 +1780,9 @@ function bookHtml() {
         ${sc.cast.length ? `<tr><th>出演</th><td>${esc(listText(sc.cast))}</td></tr>` : ''}
         ${sc.dir ? `<tr><th>演出</th><td>${esc(sc.dir)}</td></tr>` : ''}
         ${sc.notes ? `<tr><th>備考</th><td>${esc(sc.notes)}</td></tr>` : ''}
-        ${sc.cuts.length ? `<tr><th>撮るもの</th><td>${sc.cuts.map(c => `<div>${cutState(sc, c.id).ok ? '☑' : pbox}C${esc(c.no)}　${c.size ? `<b>${esc(c.size)}</b>　` : ''}${esc(c.desc)}</div>`).join('')}</td></tr>` : ''}
+        ${sc.axis ? `<tr><th>軸</th><td>${esc(sc.axis)}</td></tr>` : ''}
+        ${sc.link ? `<tr><th>前後</th><td>${esc(sc.link)}</td></tr>` : ''}
+        ${sc.cuts.length ? `<tr><th>撮るもの</th><td>${sc.cuts.map(c => `<div class="bcut">${cutState(sc, c.id).ok ? '☑' : pbox}C${esc(c.no)}　${c.size ? `<b>${esc(c.size)}</b>　` : ''}${esc(c.desc)}${c.cam ? `<div class="dir">カメラ：${esc(c.cam)}${c.why ? `<br>理由：${esc(c.why)}` : ''}</div>` : ''}</div>`).join('')}</td></tr>` : ''}
         ${sc.edit ? `<tr><th>編集へ</th><td>${esc(sc.edit)}</td></tr>` : ''}
       </tbody></table>
       ${imgs.length ? `<h2>参考画像</h2><div class="imgs">${imgs.map(id => `<figure data-a="viewImg" data-id="${id}" data-list="${imgs.join(',')}"><img src="${IMG[id]}" alt=""><figcaption>${esc(name(id))}</figcaption></figure>`).join('')}</div>` : ''}
@@ -1832,24 +1854,54 @@ async function decryptWork(name, key) {
   const k = await crypto.subtle.deriveKey({ name: 'PBKDF2', salt: buf.slice(4, 20), iterations: 200000, hash: 'SHA-256' }, base, { name: 'AES-GCM', length: 256 }, false, ['decrypt']);
   return JSON.parse(new TextDecoder().decode(await crypto.subtle.decrypt({ name: 'AES-GCM', iv: buf.slice(20, 32) }, k, buf.slice(32))));
 }
+async function workIndex() { const idx = await (await fetch('works/index.json', { cache: 'no-cache' })).json(); return Array.isArray(idx) ? Object.fromEntries(idx.map(n => [n, {}])) : idx; }
+// 新しい版の作品データを、付けた記録（テイク・チェック・撮了・繋がりメモ）を残したまま取り込む
+async function mergeProject(j) {
+  const images = j.images || []; delete j.images;
+  for (const im of images) if (!IMG[im.id]) { IMG[im.id] = im.data; try { await IDB.put(im.id, im.data); } catch (e) {} }
+  const old = P;
+  for (const sc of j.scenes) {
+    const o = old.scenes.find(x => x.id === sc.id) || old.scenes.find(x => x.no === sc.no);
+    if (!o) continue;
+    sc.id = o.id; if (o.done) sc.done = true; if (o.cont) sc.cont = o.cont;
+    for (const c of sc.cuts) { const oc = o.cuts.find(x => x.id === c.id) || o.cuts.find(x => x.no === c.no); if (oc) c.id = oc.id; }
+  }
+  P = Object.assign(blank(), j, { takes: old.takes, checks: old.checks, work: old.work });
+  save(true); render();
+}
 async function openWork(name, key) {
   try {
     busy(true, '作品を開いています…');
     let j = null;
     if (name) j = await decryptWork(name, key);
     else { // 鍵だけ貼られたときは、置いてある作品を順に試す
-      const names = await (await fetch('works/index.json', { cache: 'no-cache' })).json();
-      for (const n of names) { try { j = await decryptWork(n, key); break; } catch (e) {} }
+      for (const n of Object.keys(await workIndex())) { try { j = await decryptWork(n, key); name = n; break; } catch (e) {} }
       if (!j) throw new Error('鍵');
     }
     busy(false);
-    if (P.scenes.length && P.title === j.title) { toast(`「${j.title}」はもう開いています（記録はそのままです）`); return true; }
+    if (P.scenes.length && P.title === j.title) {
+      P.work = { name, key }; save(true);
+      if ((j.rev || 1) > (P.rev || 1)) { if (await ask(`「${j.title}」の資料が新しくなっています${j.revNote ? `（${j.revNote}）` : ''}。付けた記録はそのままで、資料だけ新しくしますか？`, '新しくする')) { await mergeProject(j); $('workbar').hidden = true; toast('資料を新しくしました（記録はそのままです）'); } }
+      else toast(`「${j.title}」はもう開いています（記録はそのままです）`);
+      return true;
+    }
     if (P.scenes.length && !await ask(`「${j.title}」を開きます。今の内容（${P.title || '作品'}）と入れ替わります。よろしいですか？`, '開く')) return false;
     await loadProject(j);
+    P.work = { name, key }; save(true);
     toast(`「${j.title}」を開きました`);
     S.helpSeen = true; persist(); openSheet({ t: 'help' });
     return true;
   } catch (e) { busy(false); toast('作品を開けませんでした。リンクが全部貼れているか、ネットにつながっているか確かめてください'); return false; }
+}
+// 置いてある作品データが新しくなったら知らせる（鍵はこの端末に覚えておく）
+async function checkWorkUpdate() {
+  if (!P.work || MODE.artifact || location.protocol === 'file:') return;
+  try {
+    const info = (await workIndex())[P.work.name];
+    if (!info || !((info.rev || 1) > (P.rev || 1))) return;
+    const bar = $('workbar'); bar.hidden = false;
+    bar.innerHTML = `<button data-a="workUpdate">「${esc(P.title)}」の資料が新しくなりました${info.note ? `（${esc(info.note)}）` : ''}。タップで更新（記録はそのまま）</button>`;
+  } catch (e) {}
 }
 async function openFromLink() {
   const w = parseWorkLink(location.hash);
@@ -1857,8 +1909,9 @@ async function openFromLink() {
   try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {}
   await openWork(w.name, w.key);
 }
-async function openPasted() {
-  const v = ($('worklink') || {}).value || '';
+async function openPasted(el) {
+  const box = el && el.closest('.card'), inp = box && box.querySelector('input');
+  const v = (inp || {}).value || '';
   const w = parseWorkLink(v), key = v.trim();
   if (!w && !/^[\w-]{12,}$/.test(key)) { toast('送られてきた作品のリンクを、そのまま貼り付けてください'); return; }
   await openWork(w ? w.name : '', w ? w.key : key);
@@ -1928,8 +1981,13 @@ const SHEET = {
       ${(() => { const pi = postItems(sc); return pi.length ? `<section class="card"><details><summary>編集素材（台本から）<span class="small">${pi.length}</span></summary><div class="list" style="margin-top:6px">${POST_ORDER.filter(k => pi.some(x => x.k === k)).map(k => `<div><span class="badge">${esc(postName(k))}</span> ${pi.filter(x => x.k === k).map(x => esc(x.t)).join('<br>')}</div>`).join('')}</div></details></section>` : ''; })()}
       <section class="card"><div class="row-h"><h3 class="grow">カット割り</h3><span class="small">${sc.cuts.length}カット</span></div>
         ${sc.cuts.length ? `<div class="cutrow small"><span>番号</span><span>サイズ</span><span>内容</span><span></span></div>` : '<p class="small">カットを分けない（一連で撮る）なら空のままで大丈夫です。</p>'}
-        ${sc.cuts.map(c => `<div class="cutrow"><input data-b="cut|${sc.id}|${c.id}|no" value="${esc(c.no)}" aria-label="カット番号"><input data-b="cut|${sc.id}|${c.id}|size" value="${esc(c.size)}" list="sizelist" aria-label="サイズ"><input data-b="cut|${sc.id}|${c.id}|desc" value="${esc(c.desc)}" aria-label="内容"><button class="x" style="width:36px;height:36px;font-size:16px" data-a="delCut" data-sc="${sc.id}" data-id="${c.id}" aria-label="消す">×</button></div>`).join('')}
+        ${sc.cuts.map(c => `<div class="cutrow"><input data-b="cut|${sc.id}|${c.id}|no" value="${esc(c.no)}" aria-label="カット番号"><input data-b="cut|${sc.id}|${c.id}|size" value="${esc(c.size)}" list="sizelist" aria-label="サイズ"><input data-b="cut|${sc.id}|${c.id}|desc" value="${esc(c.desc)}" aria-label="内容"><button class="x" style="width:36px;height:36px;font-size:16px" data-a="delCut" data-sc="${sc.id}" data-id="${c.id}" aria-label="消す">×</button></div>
+          <div class="cutcam"><textarea class="inp" rows="2" data-b="cut|${sc.id}|${c.id}|cam" placeholder="カメラの位置・サイズ・動き">${esc(c.cam || '')}</textarea><textarea class="inp" rows="2" data-b="cut|${sc.id}|${c.id}|why" placeholder="そのアングルにする理由">${esc(c.why || '')}</textarea></div>`).join('')}
         <button class="btn small" data-a="addCut" data-id="${sc.id}" style="align-self:flex-start">＋ カットを足す</button></section>
+      <section class="card"><h3>カメラワーク（シーン全体）</h3>
+        <label class="field"><span>画面の向き・軸（イマジナリーライン。カメラをどちら側に置くか）</span><textarea ${b('axis')} rows="2">${esc(sc.axis || '')}</textarea></label>
+        <label class="field"><span>前後のシーンとのつながり</span><textarea ${b('link')} rows="2">${esc(sc.link || '')}</textarea></label>
+        <p class="small">カットごとのカメラ案と理由は、上の「カット割り」の各カットの下に書けます。</p></section>
       <section class="card"><h3>現場のメモ</h3>
         <label class="field"><span>繋がりメモ（衣装の乱れ、小道具の位置、天気など）</span><textarea ${b('cont')} rows="2">${esc(sc.cont)}</textarea></label>
         <label class="field"><span>編集への申し送り</span><textarea ${b('edit')} rows="2">${esc(sc.edit)}</textarea></label></section>
@@ -1951,6 +2009,8 @@ const SHEET = {
       <div class="chips">${chips}<button class="chip ${!sc.cuts.length ? '' : 'dash'}" data-a="recCut" data-id="" aria-pressed="${cut === ''}">一連</button><button class="chip dash" data-a="addCutRec" data-id="${sc.id}">＋カット</button></div>
       <section class="card rec-top">
         <div class="ctlabel">${esc(cutLabel(sc, cut))}　テイク ${n}${c && (c.size || c.desc) ? `<br><small>${esc([c.size, c.desc].filter(Boolean).join('　'))}</small>` : ''}</div>
+        ${c && c.cam ? `<div class="memo"><b>カメラ</b>${esc(c.cam)}${c.why ? `<br><span class="small">理由：${esc(c.why)}</span>` : ''}</div>` : ''}
+        ${sc.axis ? `<div class="small"><b>画面の向き・軸：</b>${esc(sc.axis)}</div>` : ''}
         ${sc.dir ? `<div class="memo"><b>演出</b>${esc(sc.dir)}</div>` : ''}
         ${(sc.refs || []).some(id => IMG[id]) ? `<div class="thumbs">${thumbs(sc.refs)}</div>` : ''}
         <div class="timer ${running ? 'run' : ''}" id="timer">${running ? '0:00.0' : last ? fmtSec(last) : '0:00'}</div>
@@ -2033,7 +2093,7 @@ const SHEET = {
   openlink() { return sheetTop('リンクで作品を開く') + `<div class="sheet-body"><div class="wrap"><section class="card" style="border-color:var(--accent)"><h2>作品を開く</h2>
     <p class="lead">送られてきた作品のリンク（<b>https://…/shortfilm/#open=…</b>）を、下の欄に長押しで貼り付けて「開く」を押してください。ファイルは要りません。</p>
     <p class="small">ホーム画面のアイコンから開いたアプリは、Safari とは保存場所が別です。アイコンから使うときは、ここで一度開いてください。</p>
-    <input class="inp" id="worklink" placeholder="ここにリンクを貼り付け" autocomplete="off" autocapitalize="off" spellcheck="false" inputmode="url">
+    <input class="inp worklink" placeholder="ここにリンクを貼り付け" autocomplete="off" autocapitalize="off" spellcheck="false" inputmode="url">
     <button class="btn primary wide" data-a="openPasted">開く</button></section></div></div>`; },
   ask(s) { return `<div class="sheet-top"><div class="t">確認</div></div><div class="sheet-body"><div class="wrap"><section class="card"><p style="font-size:17px;font-weight:700">${esc(s.msg)}</p>
       <div class="btns grid2"><button class="btn" data-a="askNo">やめる</button><button class="btn primary" data-a="askYes">${esc(s.ok)}</button></div></section></div></div>`; },
@@ -2048,6 +2108,7 @@ const SHEET = {
         <li><span>赤い<b>「記録する」</b>を押すと記録の画面。上の C1・C2 で撮るカットを選び、<b>スタート</b>→<b>カット</b>で長さを計って、<b>OK・KEEP・NG</b> を押す。OK を押すと次のカットに進みます</span></li>
         <li><span>全部のカットに OK が付くと<b>撮了</b>になります（「撮了にする」で手でも付けられます）</span></li>
       </ol>`)}
+      ${step('カメラワーク案', '<p>撮影のカードの<b>「カメラワーク案（アングルと理由）」</b>を押すと、そのシーンの画面の向き（イマジナリーライン）、前後のシーンとのつながり、カットごとのカメラの位置・サイズ・動きと理由が出ます。「記録する」の画面にも、今撮るカットの案が出ます。作品全体の決まりごとは「撮影」の画面のいちばん上にあります。</p>')}
       ${step('シーンのくわしい中身：「台本・詳細」', '<p>撮影のカードの「台本・詳細」、または「香盤」でシーンを押すと開きます。台本の本文、編集素材（写真・ＣＧ・字幕・ナレーションなど）、参考画像の追加、撮るものの書き直しができます。</p>')}
       ${step('全体の予定：「香盤」', '<p>「台本の順」で全シーン、「撮影日ごと」で日ごとの並び（↑↓で入れ替え）、「人物」で出番の表を見られます。</p>')}
       ${step('撮ったもの：「記録」', '<p>撮ったテイクの一覧です。「撮り残し」で OK の無いカットだけを出せます。テイクを押すとクリップ名やメモを直せます。</p>')}
@@ -2167,7 +2228,8 @@ const ACT = {
   askYes: () => answer(true),
   askNo: () => answer(false),
   help: () => openSheet({ t: 'help' }),
-  openPasted: () => openPasted(),
+  workUpdate: async () => { try { busy(true, '新しい資料を読み込んでいます…'); const j = await decryptWork(P.work.name, P.work.key); busy(false); await mergeProject(j); $('workbar').hidden = true; toast('資料を新しくしました（記録はそのままです）'); } catch (e) { busy(false); toast('新しい資料を読み込めませんでした。ネットにつながっているか確かめてください'); } },
+  openPasted: b => openPasted(b),
   openLinkBox: () => openSheet({ t: 'openlink' }),
   view: b => { if (b.dataset.k === 'check' && $('outDay')) outDays(); openSheet({ t: 'view', k: b.dataset.k }); },
   wake: () => { S.wake = !S.wake; persist(); applyWake(); render(); toast(S.wake ? '撮影中は画面を消しません' : '画面は自動で消えます'); },
@@ -2199,7 +2261,7 @@ function bindValue(t) {
   let v = t.type === 'checkbox' ? t.checked : t.value;
   if (kind === 'p') {
     if (a === 'credits') v = String(v).split('\n').map(l => l.trim()).filter(Boolean).map(l => { const m = /^(.+?)[：:]\s*(.*)$/.exec(l); return m ? { role: m[1].trim(), name: m[2].trim() } : { role: '', name: l }; });
-    if (a === 'rules') v = String(v).split('\n').map(l => l.trim()).filter(Boolean);
+    if (a === 'rules' || a === 'camPlan') v = String(v).split('\n').map(l => l.trim()).filter(Boolean);
     P[a] = v; if (a === 'title') renderTop();
   }
   else if (kind === 'sc') { const sc = sceneById(id); if (!sc) return; if (t.dataset.list) v = splitList(v, a === 'cast'); if (a === 'no') v = normNo(v) || v; if (a === 'mins') v = +half(v).replace(/[^\d]/g, '') || 0; if (a === 'start') v = normTime(v) || v; if (a === 'day' && v !== sc.day) sc.order = nextOrder(v); sc[a] = v; }
@@ -2226,7 +2288,7 @@ document.addEventListener('change', e => {
 });
 document.addEventListener('keydown', e => {
   if (e.key === 'Enter' && e.target.id === 'gearInput') { e.preventDefault(); ACT.gearAdd(); }
-  if (e.key === 'Enter' && e.target.id === 'worklink') { e.preventDefault(); openPasted(); }
+  if (e.key === 'Enter' && e.target.classList.contains('worklink')) { e.preventDefault(); openPasted(e.target); }
   if (e.key === 'Escape' && S.sheets.length) closeSheet();
   if ((e.key === 'Enter' || e.key === ' ') && e.target.id === 'drop') { e.preventDefault(); $('file').click(); }
 });
@@ -2244,7 +2306,7 @@ async function applyWake() {
     else if (lock) { await lock.release(); lock = null; }
   } catch (e) { lock = null; }
 }
-document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') { save(true); persist(); } else { applyWake(); renderTop(); checkUpdate(); } });
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') { save(true); persist(); } else { applyWake(); renderTop(); checkUpdate(); checkWorkUpdate(); } });
 window.addEventListener('pagehide', () => { save(true); persist(); });
 setInterval(renderTop, 15000);
 
@@ -2273,6 +2335,7 @@ async function boot() {
   }
   if (!P.scenes.length) S.tab = 'docs';
   render();
+  checkWorkUpdate();
   if (!S.helpSeen && P.scenes.length) { S.helpSeen = true; persist(); openSheet({ t: 'help' }); }
 }
 render();

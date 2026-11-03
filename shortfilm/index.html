@@ -170,6 +170,14 @@ table.mx { border-collapse: collapse; font-size: 13px; min-width: 100%; }
 .cutpill.ok { border-color: var(--ok); background: var(--ok-bg); color: var(--ok); }
 .cutpill.tried { border-color: var(--keep); color: var(--keep); }
 .donebtn { margin-left: auto; }
+.alts { margin-top: 3px; }
+.alts > summary { font-size: 13px; font-weight: 700; color: var(--accent); min-height: 32px; }
+.cam.alt b { color: var(--accent); }
+.cam .when { display: inline-block; font-size: 12px; font-weight: 800; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 0 6px; margin-right: 4px; }
+.planchips .chip { flex-direction: column; align-items: flex-start; gap: 0; line-height: 1.2; padding: 5px 10px; }
+.planchips .chip .small { font-size: 11px; font-weight: 700; }
+.planchips .chip[aria-pressed="true"] .small { color: var(--sel-ink); }
+.cutcam .full { grid-column: 1 / -1; }
 .cam { margin-top: 3px; font-size: 13px; background: var(--surface2); border-radius: 8px; padding: 6px 8px; }
 .cam b { font-size: 12px; color: var(--muted); margin-right: 4px; }
 .cam .why { color: var(--muted); margin-top: 2px; }
@@ -368,7 +376,7 @@ pre.doc { white-space: pre-wrap; word-break: break-word; font-family: var(--font
 <script>
 (() => {
 'use strict';
-const VERSION = '1.7（11/3 カメラワーク案をカードに表示、古いデータにも更新の知らせ）';
+const VERSION = '1.8（11/3 カメラワークの別案を切り替えて記録）';
 
 /* ───────── 基本 ───────── */
 const $ = id => document.getElementById(id);
@@ -542,7 +550,13 @@ function sceneProgress(sc) {
 function sceneDone(sc) { return sc.done || (P.takes.some(t => t.sc === sc.id) && sceneOk(sc)); }
 function missingCuts(sc) { if (sc.noshoot) return []; return missingCuts0(sc); }
 function missingCuts0(sc) { if (sc.cuts.length) return sc.cuts.filter(c => !cutState(sc, c.id).ok); return sceneOk(sc) ? [] : [null]; }
-function camHtml(c) { return c && c.cam ? `<div class="cam"><b>カメラ</b>${esc(c.cam)}${c.why ? `<div class="why">理由：${esc(c.why)}</div>` : ''}</div>` : ''; }
+const planLabel = i => 'ABCDEFG'[i] || String(i + 1);
+const plans = c => (c && c.cam ? [{ when: '基本', cam: c.cam, why: c.why }] : []).concat((c && c.alts) || []);
+function altsHtml(c) {
+  const al = (c && c.alts) || []; if (!al.length) return '';
+  return `<details class="alts"><summary>別案（${al.map((a, i) => `${planLabel(i + 1)}：${esc(a.when)}`).join('／')}）</summary>${al.map((a, i) => `<div class="cam alt"><b>案${planLabel(i + 1)}</b><span class="when">${esc(a.when)}</span><div>${esc(a.cam)}</div>${a.why ? `<div class="why">理由：${esc(a.why)}</div>` : ''}</div>`).join('')}</details>`;
+}
+function camHtml(c) { return c && c.cam ? `<div class="cam"><b>カメラ${c.alts && c.alts.length ? '（案A）' : ''}</b>${esc(c.cam)}${c.why ? `<div class="why">理由：${esc(c.why)}</div>` : ''}</div>${altsHtml(c)}` : ''; }
 const hasCam = sc => !!(sc.axis || sc.link || sc.cuts.some(c => c.cam));
 function camBlock(sc) {
   return `${sc.axis ? `<div class="memo"><b>画面の向き・軸</b>${esc(sc.axis)}</div>` : ''}${sc.link ? `<div class="memo"><b>前後のつながり</b>${esc(sc.link)}</div>` : ''}
@@ -1561,7 +1575,7 @@ function sortTakes(sc, ts, mode) {
 }
 function takeRow(sc, t) {
   const cut = sc.cuts.find(c => c.id === t.cut);
-  const info = [t.clip ? `<b>${esc(t.clip)}</b>` : '', t.note ? `<b style="color:var(--warn)">${esc(t.note)}</b>` : '', t.snd ? '音 ' + esc(t.snd) : '', t.tc ? 'TC ' + esc(t.tc) : '', !t.note && cut && cut.desc ? esc(cut.desc) : ''].filter(Boolean).join('　');
+  const info = [t.plan ? `<span class="badge">${esc(t.plan)}</span>` : '', t.clip ? `<b>${esc(t.clip)}</b>` : '', t.note ? `<b style="color:var(--warn)">${esc(t.note)}</b>` : '', t.snd ? '音 ' + esc(t.snd) : '', t.tc ? 'TC ' + esc(t.tc) : '', !t.note && cut && cut.desc ? esc(cut.desc) : ''].filter(Boolean).join('　');
   return `<button class="take" data-a="openTake" data-id="${t.id}"><span class="ct">${esc(cutLabel(sc, t.cut))} T${t.n}</span><span class="badge r-${t.r || 'none'}">${esc(t.r || '—')}</span><span class="inf">${info || '&nbsp;'}</span><span class="sec">${fmtSec(t.sec)}</span></button>`;
 }
 function renderLog() {
@@ -1732,7 +1746,7 @@ function scriptHtml() {
   const okN = P.takes.filter(t => t.r === 'OK').length;
   const rows = data.map(({ sc, ts }) => {
     const head = `<tr class="sh"><td colspan="11">S#${esc(sc.no)}　${esc(sc.place)}${todLine(sc) ? `（${esc(todLine(sc))}）` : ''}${sc.loc ? `　ロケ：${esc(sc.loc)}` : ''}${sc.day ? `　撮影：${esc(dayLabel(dayById(sc.day)))}` : ''}${sc.secs ? `　台本の目安 ${estText(sc.secs)}` : ''}${sc.cont ? `<br>繋がり：${esc(sc.cont)}` : ''}${sc.edit ? `<br>編集へ：${esc(sc.edit)}` : ''}</td></tr>`;
-    const body = ts.length ? ts.map(t => { const c = sc.cuts.find(x => x.id === t.cut); return `<tr><td class="c">${esc(sc.no)}</td><td class="c">${esc(c ? c.no : '一連')}</td><td class="c">${t.n}</td><td class="c ${t.r === 'OK' ? 'ok' : t.r === 'NG' ? 'ng' : ''}">${esc(t.r || '')}</td><td class="c">${fmtSec(t.sec)}</td><td>${esc(t.clip)}</td><td>${esc(t.snd)}</td><td>${esc(t.tc)}</td><td>${esc(c ? [c.size, c.desc].filter(Boolean).join(' ') : '')}</td><td>${esc(t.note)}</td><td class="c">${fmtAt(t.at)}</td></tr>`; }).join('') : `<tr><td colspan="11" class="ng">記録なし</td></tr>`;
+    const body = ts.length ? ts.map(t => { const c = sc.cuts.find(x => x.id === t.cut); return `<tr><td class="c">${esc(sc.no)}</td><td class="c">${esc(c ? c.no : '一連')}</td><td class="c">${t.n}${t.plan ? `<br><small>${esc(t.plan)}</small>` : ''}</td><td class="c ${t.r === 'OK' ? 'ok' : t.r === 'NG' ? 'ng' : ''}">${esc(t.r || '')}</td><td class="c">${fmtSec(t.sec)}</td><td>${esc(t.clip)}</td><td>${esc(t.snd)}</td><td>${esc(t.tc)}</td><td>${esc(c ? [c.size, c.desc].filter(Boolean).join(' ') : '')}</td><td>${esc(t.note)}</td><td class="c">${fmtAt(t.at)}</td></tr>`; }).join('') : `<tr><td colspan="11" class="ng">記録なし</td></tr>`;
     const pi = postItems(sc);
     const post = pi.length ? `<tr class="pm"><td colspan="11">${POST_ORDER.filter(k => pi.some(x => x.k === k)).map(k => `<b>${esc(postName(k))}</b> ${pi.filter(x => x.k === k).map(x => esc(x.t)).join('／')}`).join('<br>')}</td></tr>` : '';
     return head + post + body;
@@ -1784,7 +1798,7 @@ function bookHtml() {
         ${sc.notes ? `<tr><th>備考</th><td>${esc(sc.notes)}</td></tr>` : ''}
         ${sc.axis ? `<tr><th>軸</th><td>${esc(sc.axis)}</td></tr>` : ''}
         ${sc.link ? `<tr><th>前後</th><td>${esc(sc.link)}</td></tr>` : ''}
-        ${sc.cuts.length ? `<tr><th>撮るもの</th><td>${sc.cuts.map(c => `<div class="bcut">${cutState(sc, c.id).ok ? '☑' : pbox}C${esc(c.no)}　${c.size ? `<b>${esc(c.size)}</b>　` : ''}${esc(c.desc)}${c.cam ? `<div class="dir">カメラ：${esc(c.cam)}${c.why ? `<br>理由：${esc(c.why)}` : ''}</div>` : ''}</div>`).join('')}</td></tr>` : ''}
+        ${sc.cuts.length ? `<tr><th>撮るもの</th><td>${sc.cuts.map(c => `<div class="bcut">${cutState(sc, c.id).ok ? '☑' : pbox}C${esc(c.no)}　${c.size ? `<b>${esc(c.size)}</b>　` : ''}${esc(c.desc)}${c.cam ? `<div class="dir">カメラ${c.alts && c.alts.length ? '（案A）' : ''}：${esc(c.cam)}${c.why ? `<br>理由：${esc(c.why)}` : ''}</div>` : ''}${(c.alts || []).map((a, i) => `<div class="dir">案${planLabel(i + 1)}（${esc(a.when)}）：${esc(a.cam)}${a.why ? `<br>理由：${esc(a.why)}` : ''}</div>`).join('')}</div>`).join('')}</td></tr>` : ''}
         ${sc.edit ? `<tr><th>編集へ</th><td>${esc(sc.edit)}</td></tr>` : ''}
       </tbody></table>
       ${imgs.length ? `<h2>参考画像</h2><div class="imgs">${imgs.map(id => `<figure data-a="viewImg" data-id="${id}" data-list="${imgs.join(',')}"><img src="${IMG[id]}" alt=""><figcaption>${esc(name(id))}</figcaption></figure>`).join('')}</div>` : ''}
@@ -1800,9 +1814,9 @@ function postCsv() {
   return rows;
 }
 function scriptCsv() {
-  const rows = [['シーン', '場所', '昼夜・内外', 'カット', 'サイズ', 'カット内容', 'テイク', '判定', '尺（秒）', '尺', 'クリップ', '音声', 'TC', 'メモ', '撮影日', '記録時刻', '繋がり', '編集へ']];
+  const rows = [['シーン', '場所', '昼夜・内外', 'カット', 'サイズ', 'カット内容', 'カメラの案', 'テイク', '判定', '尺（秒）', '尺', 'クリップ', '音声', 'TC', 'メモ', '撮影日', '記録時刻', '繋がり', '編集へ']];
   for (const { sc, ts } of scriptData()) {
-    for (const t of ts) { const c = sc.cuts.find(x => x.id === t.cut); rows.push([sc.no, sc.place, todLine(sc), c ? c.no : '一連', c ? c.size : '', c ? c.desc : '', t.n, t.r, t.sec || '', fmtSec(t.sec), t.clip, t.snd, t.tc, t.note, sc.day ? dayLabel(dayById(sc.day)) : '', fmtAt(t.at), sc.cont, sc.edit]); }
+    for (const t of ts) { const c = sc.cuts.find(x => x.id === t.cut); rows.push([sc.no, sc.place, todLine(sc), c ? c.no : '一連', c ? c.size : '', c ? c.desc : '', t.plan || '', t.n, t.r, t.sec || '', fmtSec(t.sec), t.clip, t.snd, t.tc, t.note, sc.day ? dayLabel(dayById(sc.day)) : '', fmtAt(t.at), sc.cont, sc.edit]); }
   }
   return rows;
 }
@@ -1813,7 +1827,7 @@ function scriptText() {
     L.push('', `■ ${sceneTitle(sc)}`);
     if (sc.cont) L.push(`　繋がり：${sc.cont}`);
     if (sc.edit) L.push(`　編集へ：${sc.edit}`);
-    for (const t of ts) L.push(`${cutLabel(sc, t.cut)} T${t.n} ${t.r || '—'} ${fmtSec(t.sec)} ${t.clip || ''} ${t.snd ? '音' + t.snd : ''} ${t.note || ''}`.replace(/\s+/g, ' ').trim());
+    for (const t of ts) L.push(`${cutLabel(sc, t.cut)} T${t.n}${t.plan ? ' ' + t.plan : ''} ${t.r || '—'} ${fmtSec(t.sec)} ${t.clip || ''} ${t.snd ? '音' + t.snd : ''} ${t.note || ''}`.replace(/\s+/g, ' ').trim());
   }
   return L.join('\n');
 }
@@ -1866,7 +1880,7 @@ async function mergeProject(j) {
     const o = old.scenes.find(x => x.id === sc.id) || old.scenes.find(x => x.no === sc.no);
     if (!o) continue;
     sc.id = o.id; if (o.done) sc.done = true; if (o.cont) sc.cont = o.cont;
-    for (const c of sc.cuts) { const oc = o.cuts.find(x => x.id === c.id) || o.cuts.find(x => x.no === c.no); if (oc) c.id = oc.id; }
+    for (const c of sc.cuts) { const oc = o.cuts.find(x => x.id === c.id) || o.cuts.find(x => x.no === c.no); if (oc) { c.id = oc.id; if (oc.pick) c.pick = oc.pick; } }
   }
   P = Object.assign(blank(), j, { takes: old.takes, checks: old.checks, work: old.work });
   save(true); render();
@@ -1988,7 +2002,8 @@ const SHEET = {
       <section class="card"><div class="row-h"><h3 class="grow">カット割り</h3><span class="small">${sc.cuts.length}カット</span></div>
         ${sc.cuts.length ? `<div class="cutrow small"><span>番号</span><span>サイズ</span><span>内容</span><span></span></div>` : '<p class="small">カットを分けない（一連で撮る）なら空のままで大丈夫です。</p>'}
         ${sc.cuts.map(c => `<div class="cutrow"><input data-b="cut|${sc.id}|${c.id}|no" value="${esc(c.no)}" aria-label="カット番号"><input data-b="cut|${sc.id}|${c.id}|size" value="${esc(c.size)}" list="sizelist" aria-label="サイズ"><input data-b="cut|${sc.id}|${c.id}|desc" value="${esc(c.desc)}" aria-label="内容"><button class="x" style="width:36px;height:36px;font-size:16px" data-a="delCut" data-sc="${sc.id}" data-id="${c.id}" aria-label="消す">×</button></div>
-          <div class="cutcam"><textarea class="inp" rows="2" data-b="cut|${sc.id}|${c.id}|cam" placeholder="カメラの位置・サイズ・動き">${esc(c.cam || '')}</textarea><textarea class="inp" rows="2" data-b="cut|${sc.id}|${c.id}|why" placeholder="そのアングルにする理由">${esc(c.why || '')}</textarea></div>`).join('')}
+          <div class="cutcam"><textarea class="inp" rows="2" data-b="cut|${sc.id}|${c.id}|cam" placeholder="カメラの位置・サイズ・動き">${esc(c.cam || '')}</textarea><textarea class="inp" rows="2" data-b="cut|${sc.id}|${c.id}|why" placeholder="そのアングルにする理由">${esc(c.why || '')}</textarea>
+            <textarea class="inp full" rows="3" data-b="cut|${sc.id}|${c.id}|alts" data-list="1" placeholder="別案（1行に1案）：どんなとき｜カメラ｜理由">${esc((c.alts || []).map(a => [a.when, a.cam, a.why].join('｜')).join('\n'))}</textarea></div>`).join('')}
         <button class="btn small" data-a="addCut" data-id="${sc.id}" style="align-self:flex-start">＋ カットを足す</button></section>
       <section class="card"><h3>カメラワーク（シーン全体）</h3>
         <label class="field"><span>画面の向き・軸（イマジナリーライン。カメラをどちら側に置くか）</span><textarea ${b('axis')} rows="2">${esc(sc.axis || '')}</textarea></label>
@@ -2015,7 +2030,9 @@ const SHEET = {
       <div class="chips">${chips}<button class="chip ${!sc.cuts.length ? '' : 'dash'}" data-a="recCut" data-id="" aria-pressed="${cut === ''}">一連</button><button class="chip dash" data-a="addCutRec" data-id="${sc.id}">＋カット</button></div>
       <section class="card rec-top">
         <div class="ctlabel">${esc(cutLabel(sc, cut))}　テイク ${n}${c && (c.size || c.desc) ? `<br><small>${esc([c.size, c.desc].filter(Boolean).join('　'))}</small>` : ''}</div>
-        ${c && c.cam ? `<div class="memo"><b>カメラ</b>${esc(c.cam)}${c.why ? `<br><span class="small">理由：${esc(c.why)}</span>` : ''}</div>` : ''}
+        ${(() => { const pl = plans(c); if (!pl.length) return ''; const k = Math.min(c.pick || 0, pl.length - 1), x = pl[k];
+          return `${pl.length > 1 ? `<div class="chips planchips">${pl.map((p, i) => `<button class="chip" data-a="pickPlan" data-sc="${sc.id}" data-id="${c.id}" data-i="${i}" aria-pressed="${i === k}">案${planLabel(i)}<span class="small">${esc(p.when)}</span></button>`).join('')}</div>` : ''}
+            <div class="memo"><b>カメラ${pl.length > 1 ? `（案${planLabel(k)}）` : ''}</b>${esc(x.cam)}${x.why ? `<br><span class="small">理由：${esc(x.why)}</span>` : ''}</div>`; })()}
         ${sc.axis ? `<div class="small"><b>画面の向き・軸：</b>${esc(sc.axis)}</div>` : ''}
         ${sc.dir ? `<div class="memo"><b>演出</b>${esc(sc.dir)}</div>` : ''}
         ${(sc.refs || []).some(id => IMG[id]) ? `<div class="thumbs">${thumbs(sc.refs)}</div>` : ''}
@@ -2043,6 +2060,7 @@ const SHEET = {
       <div class="fields">
         <label class="field"><span>カット</span><select ${b('cut')}><option value="">一連</option>${sc ? sc.cuts.map(c => `<option value="${c.id}" ${t.cut === c.id ? 'selected' : ''}>C${esc(c.no)}</option>`).join('') : ''}</select></label>
         <label class="field"><span>テイク番号</span><input ${b('n')} value="${t.n}" inputmode="numeric"></label>
+        <label class="field"><span>カメラの案</span><input ${b('plan')} value="${esc(t.plan || '')}" placeholder="案A"></label>
         <label class="field"><span>尺（例 1:05）</span><input ${b('sec')} value="${fmtSec(t.sec)}" inputmode="numeric"></label>
         <label class="field"><span>クリップ名</span><input ${b('clip')} value="${esc(t.clip)}"></label>
         <label class="field"><span>音声ファイル</span><input ${b('snd')} value="${esc(t.snd)}"></label>
@@ -2114,7 +2132,7 @@ const SHEET = {
         <li><span>赤い<b>「記録する」</b>を押すと記録の画面。上の C1・C2 で撮るカットを選び、<b>スタート</b>→<b>カット</b>で長さを計って、<b>OK・KEEP・NG</b> を押す。OK を押すと次のカットに進みます</span></li>
         <li><span>全部のカットに OK が付くと<b>撮了</b>になります（「撮了にする」で手でも付けられます）</span></li>
       </ol>`)}
-      ${step('カメラワーク案', '<p>撮影のカードの<b>「カメラワーク案（アングルと理由）」</b>を押すと、そのシーンの画面の向き（イマジナリーライン）、前後のシーンとのつながり、カットごとのカメラの位置・サイズ・動きと理由が出ます。「記録する」の画面にも、今撮るカットの案が出ます。作品全体の決まりごとは「撮影」の画面のいちばん上にあります。</p>')}
+      ${step('カメラワーク案', '<p>撮影のカードの<b>「カメラワーク案（アングルと理由）」</b>を押すと、そのシーンの画面の向き（イマジナリーライン）、前後のシーンとのつながり、カットごとのカメラの位置・サイズ・動きと理由が出ます。「記録する」の画面にも、今撮るカットの案が出ます。現場で人が多い・時間が押したなどのときは、記録の画面の<b>「案A・案B・案C」</b>を押すと別案に切り替わり、どの案で撮ったかがテイクに残ります（スクリプト表にも出ます）。作品全体の決まりごとは「撮影」の画面のいちばん上にあります。</p>')}
       ${step('シーンのくわしい中身：「台本・詳細」', '<p>撮影のカードの「台本・詳細」、または「香盤」でシーンを押すと開きます。台本の本文、編集素材（写真・ＣＧ・字幕・ナレーションなど）、参考画像の追加、撮るものの書き直しができます。</p>')}
       ${step('全体の予定：「香盤」', '<p>「台本の順」で全シーン、「撮影日ごと」で日ごとの並び（↑↓で入れ替え）、「人物」で出番の表を見られます。</p>')}
       ${step('撮ったもの：「記録」', '<p>撮ったテイクの一覧です。「撮り残し」で OK の無いカットだけを出せます。テイクを押すとクリップ名やメモを直せます。</p>')}
@@ -2149,7 +2167,8 @@ function recResult(scId, r) {
   const sc = sceneById(scId); const cut = S.recCut[scId] || '';
   if (S.run && S.run.sc === scId) recStop();
   const sec = S.last && S.last.sc === scId && S.last.cut === cut ? S.last.sec : 0;
-  const t = { id: uid(), sc: scId, cut, n: nextTakeNo(scId, cut), r, sec, clip: ($('rc-clip') || {}).value || '', snd: ($('rc-snd') || {}).value || '', tc: '', note: (($('rc-note') || {}).value || '').trim(), at: Date.now(), day: sc.day || '' };
+  const cc = sc.cuts.find(x => x.id === cut), plan = cc && cc.alts && cc.alts.length ? '案' + planLabel(Math.min(cc.pick || 0, cc.alts.length)) : '';
+  const t = { id: uid(), sc: scId, cut, plan, n: nextTakeNo(scId, cut), r, sec, clip: ($('rc-clip') || {}).value || '', snd: ($('rc-snd') || {}).value || '', tc: '', note: (($('rc-note') || {}).value || '').trim(), at: Date.now(), day: sc.day || '' };
   P.takes.push(t); S.last = null; freshRec = true;
   if (r === 'OK' && sc.cuts.length) { // 次のカットへ
     const i = sc.cuts.findIndex(c => c.id === cut);
@@ -2200,6 +2219,7 @@ const ACT = {
   viewImg: b => { const list = (b.dataset.list || b.dataset.id).split(',').filter(Boolean); openSheet({ t: 'img', list, i: Math.max(0, list.indexOf(b.dataset.id)) }); },
   imgStep: b => { const top = S.sheets[S.sheets.length - 1]; top.i = (top.i + +b.dataset.dir + top.list.length) % top.list.length; persist(); renderSheets(); },
   imgZoom: () => { S.zoom = !S.zoom; renderSheets(); },
+  pickPlan: b => { const sc = sceneById(b.dataset.sc), c = sc && sc.cuts.find(x => x.id === b.dataset.id); if (!c) return; c.pick = +b.dataset.i; save(); renderSheets(); RENDER[S.tab](); },
   pickImgs: b => openSheet({ t: 'pick', id: b.dataset.id }),
   pickToggle: b => { const sc = sceneById(S.sheets[S.sheets.length - 1].id); sc.refs = sc.refs || []; const id = b.dataset.id; if (sc.refs.includes(id)) sc.refs = sc.refs.filter(x => x !== id); else sc.refs.push(id); save(); b.setAttribute('aria-pressed', String(sc.refs.includes(id))); },
   addImg: b => { const f = $('imgfile'); f.dataset.sc = b.dataset.id; f.click(); },
@@ -2271,7 +2291,7 @@ function bindValue(t) {
     P[a] = v; if (a === 'title') renderTop();
   }
   else if (kind === 'sc') { const sc = sceneById(id); if (!sc) return; if (t.dataset.list) v = splitList(v, a === 'cast'); if (a === 'no') v = normNo(v) || v; if (a === 'mins') v = +half(v).replace(/[^\d]/g, '') || 0; if (a === 'start') v = normTime(v) || v; if (a === 'day' && v !== sc.day) sc.order = nextOrder(v); sc[a] = v; }
-  else if (kind === 'cut') { const sc = sceneById(id); const c = sc && sc.cuts.find(x => x.id === a); if (c) c[b] = v; }
+  else if (kind === 'cut') { const sc = sceneById(id); const c = sc && sc.cuts.find(x => x.id === a); if (!c) return; if (b === 'alts') v = String(v).split('\n').map(l => l.trim()).filter(Boolean).map(l => { const [when, cam, why] = l.split(/[｜|]/).map(x => (x || '').trim()); return { when: when || '別案', cam: cam || '', why: why || '' }; }); c[b] = v; }
   else if (kind === 'tk') { const tk = P.takes.find(x => x.id === id); if (!tk) return; if (a === 'n') v = +half(v).replace(/\D/g, '') || tk.n; if (a === 'sec') v = parseSec(v); tk[a] = v; }
   else if (kind === 'day') { const d = dayById(id); if (!d) return; d[a] = v; if (a === 'date') sortDays(); }
   save();

@@ -293,6 +293,13 @@ h3 { font-size: 13px; letter-spacing: .06em; color: var(--muted); margin-top: 6p
 .updbar { position: fixed; left: 0; right: 0; top: 0; z-index: 30; padding: calc(env(safe-area-inset-top, 0px) + 6px) 12px 6px; }
 .updbar[hidden] { display: none; }
 .updbar button { width: 100%; min-height: 48px; border-radius: 12px; background: var(--leg2); color: #fff; font-weight: 800; font-size: 15px; box-shadow: 0 4px 12px rgba(0,0,0,.25); }
+.export { background: var(--surface); border: 2px solid var(--leg2); border-radius: 14px; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+.export b { font-size: 17px; font-weight: 800; }
+.export span { font-size: 13px; color: var(--muted); }
+.exbtns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.exbtns button { min-height: 52px; border-radius: 12px; font-weight: 800; font-size: 16px; background: var(--leg2); color: #fff; }
+.exbtns button + button { background: var(--bg); color: var(--ink); border: 1.5px solid var(--line) !important; }
+.export textarea { width: 100%; height: 220px; font: 12px/1.5 ui-monospace, Menlo, monospace; border: 1px solid var(--line); border-radius: 8px; padding: 8px; background: var(--bg); color: var(--ink); }
 </style>
 </head>
 <body>
@@ -326,7 +333,7 @@ h3 { font-size: 13px; letter-spacing: .06em; color: var(--muted); margin-top: 6p
 <script>
 (() => {
 'use strict';
-const VERSION = '3.2（11/1 2:40更新）';
+const VERSION = '3.3（11/3 結果の書き出しを追加）';
 const TICK = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3.2 3L13 4.5" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 const fmt = s => esc(s).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>');
@@ -858,6 +865,7 @@ function renderPrep() {
   const standalone = window.navigator.standalone || matchMedia('(display-mode: standalone)').matches;
   $('v-prep').innerHTML = `<div class="stack">
     ${standalone ? '' : `<div class="install"><b>全画面で使うには</b>：Safariの共有ボタン（四角に上向き矢印）→「ホーム画面に追加」。ホーム画面のアイコンから開くと全画面になり、閉じても同じ画面に戻ります。</div>`}
+    <div class="export"><b>撮影結果を書き出す</b><span>チェックした内容を文章にして、LINE・メール・メモなどに送れます。編集用の構成表づくりに使います。</span><div class="exbtns"><button data-share="1">送る（共有）</button><button data-copy="1">コピー</button></div><textarea id="extext" readonly hidden></textarea></div>
     <div class="box setrow"><span>アプリの版</span><b>${VERSION}</b></div>
     <h2>使い方</h2>
     <div class="box"><ul>
@@ -923,6 +931,33 @@ function alertCheck() {
   }
 }
 
+
+// ----- export the results as plain text (read back by Claude to build the edit plan) -----
+function exportText() {
+  const L = [], mark = k => (done.has(k) ? '済' : '未');
+  const t = jst();
+  L.push(`JOB HEROES SHISO 撮影結果（${t.mo}/${t.d} ${t.h}:${String(t.mi).padStart(2, '0')} 書き出し・版${VERSION}）`);
+  ['eve', 'day'].forEach(mode => {
+    L.push('', `■必須（${mode === 'eve' ? '前日 10/31' : '当日 11/1'}）`);
+    EV[mode].forEach(e => {
+      L.push(`${mark(e.key)}${S.skip[e.key] ? '（あきらめ）' : ''} ${e.at} ${e.title}`);
+      if (e.shots) L.push('   カット：' + SHOTS[e.shots].map((x, k) => `${done.has(shotKeys(e.shots)[k]) ? '○' : '×'}${x}`).join(' / '));
+    });
+    L.push('', `■体験・場面（${mode === 'eve' ? '前日' : '当日'}）`);
+    SPOTS[mode].forEach(s => {
+      const pr = spotProgress(s);
+      L.push(`${spotDone(s) ? '済' : '未'} ${s.name}${pr.items ? `（${pr.got}/${pr.items}カット）` : ''}`);
+      if (s.shots) L.push('   カット：' + SHOTS[s.shots].map((x, k) => `${done.has(shotKeys(s.shots)[k]) ? '○' : '×'}${x}`).join(' / '));
+    });
+  });
+  L.push('', '■会社ごとの5カット（会社名・手元・顔・笑顔・一問）');
+  FIRMS.forEach((f, i) => L.push(`${CUTS.map(([c]) => (done.has(`f${i}-${c}`) ? '○' : '×')).join('')} ${f[1]}（${f[2]}）`));
+  const other = [['必ず押さえる（旧）', MUST, 'm'], ['設営中に聞くこと', ASK, 'k'], ['振り返りインタビュー', QUESTIONS, 'q'], ['持ち物', GEAR, 'g']];
+  other.forEach(([h, arr, p]) => { if (arr.some((_, i) => done.has(p + i))) { L.push('', `■${h}`); arr.forEach((x, i) => L.push(`${mark(p + i)} ${String(x).replace(/\*\*/g, '')}`)); } });
+  L.push('', '■データ（そのまま貼ってください）', 'JHDATA:' + [...done].sort().join(','));
+  return L.join('\n');
+}
+function showExport(text) { const a = $('extext'); if (!a) return; a.hidden = false; a.value = text; a.focus(); a.select(); }
 // ================= actions =================
 function setTab(tab) { rememberScroll(); S.tab = tab; persist(); render(); restoreScroll(); }
 function toggle(k) { if (done.has(k)) done.delete(k); else done.add(k); save(); buzz(); }
@@ -955,6 +990,8 @@ document.addEventListener('click', e => {
   if (d.toggleMust) { S.showMust = !S.showMust; keepScroll(render); return; }
   if (d.openMust) { S.open = S.open === 'must:' + d.openMust ? null : 'must:' + d.openMust; persist(); keepScroll(render); return; }
   if (d.reload) { location.reload(); return; }
+  if (d.share) { const text = exportText(); if (navigator.share) { navigator.share({ title: 'JOB HEROES 撮影結果', text }).catch(() => showExport(text)); } else { showExport(text); toast('共有できないので、下の文章をコピーしてください'); } return; }
+  if (d.copy) { const text = exportText(); showExport(text); try { navigator.clipboard.writeText(text).then(() => toast('コピーしました'), () => toast('下の文章を長押ししてコピーしてください')); } catch (err) { toast('下の文章を長押ししてコピーしてください'); } return; }
   if (d.toggleMissed) { S.showMissed = !S.showMissed; keepScroll(render); return; }
   if (d.showAll) { S.showAll = true; keepScroll(render); return; }
   if (d.buffer) { S.buffer = Math.max(0, Math.min(15, S.buffer + +d.buffer)); persist(); keepScroll(render); return; }

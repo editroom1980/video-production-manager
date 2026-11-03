@@ -357,6 +357,11 @@ pre.doc { white-space: pre-wrap; word-break: break-word; font-family: var(--font
 .pk[aria-pressed="true"] { border-color: var(--ok); background: var(--ok-bg); color: var(--ok); }
 #toast { position: fixed; left: 50%; bottom: calc(var(--tabbar) + var(--sab) + 14px); transform: translateX(-50%) translateY(20px); background: var(--sel); color: var(--sel-ink); font-weight: 800; font-size: 14px; padding: 10px 16px; border-radius: 12px; opacity: 0; pointer-events: none; transition: .2s; z-index: 60; max-width: calc(100% - 32px); text-align: center; }
 #toast.show { opacity: 1; transform: translateX(-50%); }
+#toast { width: max-content; }
+body.has-sheet #toast { bottom: auto; top: calc(env(safe-area-inset-top, 0px) + 74px); transform: translateX(-50%) translateY(-12px); }
+body.has-sheet #toast.show { transform: translateX(-50%); }
+#toast.act { pointer-events: auto; display: flex; align-items: center; gap: 12px; padding: 8px 8px 8px 16px; }
+#toast .undo { flex: 0 0 auto; background: var(--sel-ink); color: var(--sel); font-weight: 900; font-size: 14px; padding: 8px 14px; border-radius: 9px; text-align: center; }
 #busy { position: fixed; inset: 0; background: rgba(0,0,0,.35); z-index: 70; display: grid; place-items: center; }
 #busy div { background: var(--surface); padding: 16px 20px; border-radius: 14px; font-weight: 800; }
 
@@ -535,7 +540,8 @@ h3 { font-size: 12px; letter-spacing: .16em; }
 .tk input { width: 100%; min-width: 0; background: transparent; border: 0; border-bottom: 1.5px dashed #5a5d63; color: #f2a93b; font-family: var(--display); font-size: 64px; line-height: .92; text-align: center; padding: 0; border-radius: 0; }
 .tk input:focus { outline: none; border-bottom-color: #f2a93b; }
 .tk button { flex: 0 0 auto; width: 30px; height: 30px; border-radius: 50%; border: 1px solid #4a4e55; color: #f3efe6; font-size: 18px; font-weight: 800; display: grid; place-items: center; text-align: center; }
-.sl-files { display: grid; grid-template-columns: 1.5fr 1fr; gap: 8px; }
+.sl-files { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.sl-file.full { grid-column: 1 / -1; }
 .sl-file { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
 .sl-file span { font-size: 11px; font-weight: 800; color: #a39e94; letter-spacing: .12em; }
 .sl-file input { width: 100%; min-width: 0; min-height: 46px; background: #17181b; border: 1px solid #3a3d43; border-radius: 8px; color: #fff; font-family: var(--mono); font-weight: 700; font-size: 19px; padding: 6px 10px; letter-spacing: .02em; }
@@ -578,6 +584,8 @@ details.card > summary { font-size: 17px; }
 .cutchips::-webkit-scrollbar { display: none; }
 .cutchips .chip { flex: 0 0 auto; }
 details.rec-top > summary { font-size: 13px; font-weight: 800; letter-spacing: .16em; color: var(--muted); }
+.fields2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.fields2 select { min-height: 42px; font-size: 15px; }
 .btns.grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
 .btns.grid3 .btn { padding: 8px 6px; font-size: 14px; }
 .btn.big { min-height: 56px; font-size: 17px; }
@@ -620,7 +628,7 @@ details.rec-top > summary { font-size: 13px; font-weight: 800; letter-spacing: .
 <script>
 (() => {
 'use strict';
-const VERSION = '3.4（11/3 画面をまとめて短くした）';
+const VERSION = '3.5（11/3 取り消し・画面を消さない・PDF の絞り込み・欄の設定・タイムコード・B カメ・撮影の終わりの控え）';
 
 /* ───────── 基本 ───────── */
 const $ = id => document.getElementById(id);
@@ -629,7 +637,12 @@ const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 
 const half = s => String(s ?? '').replace(/[！-～]/g, c => String.fromCharCode(c.charCodeAt(0) - 0xFEE0)).replace(/　/g, ' ');
 const uniq = a => [...new Set(a.filter(Boolean))];
 const pad2 = n => String(n).padStart(2, '0');
-function toast(msg) { const t = $('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toast.h); toast.h = setTimeout(() => t.classList.remove('show'), 2200); }
+function toast(msg) { const t = $('toast'); t.textContent = msg; t.classList.remove('act'); toastUndo.fn = null; t.classList.add('show'); clearTimeout(toast.h); toast.h = setTimeout(() => t.classList.remove('show'), 2200); }
+// 取り消しのボタンつきの知らせ（押し間違いをすぐ戻す）
+function toastUndo(msg, fn) { const t = $('toast'); t.innerHTML = `<span>${esc(msg)}</span><button class="undo" data-a="undo">取り消す</button>`; t.classList.add('show', 'act'); toastUndo.fn = fn; clearTimeout(toast.h); toast.h = setTimeout(() => { t.classList.remove('show', 'act'); toastUndo.fn = null; }, 6000); }
+const FLD_DEF = { snd: true, tc: true, cam2: false };
+const fld = k => (S.fld && S.fld[k] !== undefined ? S.fld[k] : FLD_DEF[k]);
+const isoOf = ts => { const d = new Date(ts); return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`; };
 function buzz(p = 15) { try { navigator.vibrate && navigator.vibrate(p); } catch (e) {} }
 function busy(on, text) { $('busy').hidden = !on; if (text) $('busytext').textContent = text; }
 function todayISO() { const d = new Date(); return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`; }
@@ -2016,7 +2029,7 @@ function sortTakes(sc, ts, mode) {
 }
 function takeRow(sc, t) {
   const cut = sc.cuts.find(c => c.id === t.cut);
-  const info = [t.plan ? `<span class="badge">${esc(t.plan)}${t.mm ? ' ' + esc(t.mm) + 'mm' : ''}</span>` : t.mm ? `<span class="badge">${esc(t.mm)}mm</span>` : '', t.clip ? `<b>${esc(t.clip)}</b>` : '', t.note ? `<b style="color:var(--warn)">${esc(t.note)}</b>` : '', t.snd ? '音 ' + esc(t.snd) : '', t.tc ? 'TC ' + esc(t.tc) : '', !t.note && cut && cut.desc ? esc(cut.desc) : ''].filter(Boolean).join('　');
+  const info = [t.plan ? `<span class="badge">${esc(t.plan)}${t.mm ? ' ' + esc(t.mm) + 'mm' : ''}</span>` : t.mm ? `<span class="badge">${esc(t.mm)}mm</span>` : '', t.clip ? `<b>${esc(t.clip)}</b>` : '', t.clip2 ? `<b>B ${esc(t.clip2)}</b>` : '', t.note ? `<b style="color:var(--warn)">${esc(t.note)}</b>` : '', t.snd ? '音 ' + esc(t.snd) : '', t.tc ? 'TC ' + esc(t.tc) : '', !t.note && cut && cut.desc ? esc(cut.desc) : ''].filter(Boolean).join('　');
   return `<button class="take" data-a="openTake" data-id="${t.id}"><span class="ct">${esc(cutLabel(sc, t.cut))} T${t.n}</span><span class="badge r-${t.r || 'none'}">${esc(t.r || '—')}</span><span class="inf">${info || '&nbsp;'}</span><span class="sec">${fmtSec(t.sec)}</span></button>`;
 }
 function renderLog() {
@@ -2079,8 +2092,13 @@ function renderOut() {
   const L = { print: '印刷・PDF', copy: '表をコピー', share: '文字で送る', csv: 'Excel用（CSV）' };
   $('v-out').innerHTML = `<div class="wrap">
     <section class="card outhero"><h2>スクリプトシート</h2><p class="lead">シーン・カット・テイクごとの判定・尺・カメラと音声のファイル名・メモ。撮影のあと、監督と編集に渡します。</p>
-      <div class="seg">${[['script', '台本の順'], ['shoot', '撮影の順']].map(([x, l]) => `<button data-a="outOrder" data-k="${x}" aria-pressed="${(S.outOrder || 'script') === x}">${l}</button>`).join('')}</div>
-      <div class="seg">${[['all', 'すべてのテイク'], ['ok', 'OK・KEEPだけ']].map(([x, l]) => `<button data-a="outFilter" data-k="${x}" aria-pressed="${(S.outFilter || 'all') === x}">${l}</button>`).join('')}</div>
+      <div class="fields2">
+        <label class="field"><span>撮影日</span><select id="outDayF"><option value="all">すべての日</option>${P.days.map(d => `<option value="${d.id}" ${S.outDayF === d.id ? 'selected' : ''}>${esc(dayLabel(d))}</option>`).join('')}</select></label>
+        <label class="field"><span>シーン</span><select id="outScenes"><option value="shot">撮ったシーンだけ</option><option value="all" ${(S.outScenes || 'shot') === 'all' ? 'selected' : ''}>撮っていないシーンも</option></select></label>
+        <label class="field"><span>テイク</span><select id="outFilter"><option value="all">すべて</option><option value="ok" ${(S.outFilter || 'all') === 'ok' ? 'selected' : ''}>OK・KEEPだけ</option></select></label>
+        <label class="field"><span>並び順</span><select id="outOrder"><option value="script">台本の順</option><option value="shoot" ${(S.outOrder || 'script') === 'shoot' ? 'selected' : ''}>撮影の順</option></select></label>
+      </div>
+      <p class="small">いま入るのは ${(() => { const dd = scriptData(); return `${dd.filter(x => x.ts.length).length}シーン・${dd.reduce((m, x) => m + x.ts.length, 0)}テイク`; })()}です。</p>
       ${MODE.artifact ? '' : '<button class="btn primary wide big" data-a="pdfScript">PDF で監督に送る</button><p class="small" style="text-align:center;margin-top:-4px">メール・AirDrop・LINE などで送れます</p>'}
       <div class="btns grid3">${B('view', '画面で見る', '', 'script')}${B('copyScript', '表をコピー')}${MODE.artifact ? B('shareScript', '文字で送る') : B('csvScript', 'Excel用')}</div></section>
     <section class="card"><h2>ほかの資料を渡す</h2>
@@ -2092,6 +2110,9 @@ function renderOut() {
       <h3>表示</h3>
       <div class="seg">${[['dark', '暗い'], ['light', '明るい'], ['auto', '端末に合わせる']].map(([x, l]) => `<button data-a="theme" data-k="${x}" aria-pressed="${(S.theme || 'dark') === x}">${l}</button>`).join('')}</div>
       <p class="small">暗い表示は夜や屋内、明るい表示は日なたの屋外で見やすくなります。</p>
+      <h3>記録の画面の欄</h3>
+      <div class="chips">${[['snd', '音声のファイル名'], ['tc', 'タイムコード'], ['cam2', 'B カメのファイル名']].map(([x, l]) => `<button class="chip" role="checkbox" aria-checked="${fld(x)}" data-a="fld" data-k="${x}"><span class="tk"></span>${l}</button>`).join('')}</div>
+      <p class="small">使わない欄は外すと、カチンコがすっきりします。音声をカメラ本体で録っているなら「音声のファイル名」は外してかまいません。</p>
       <h3>作品データ</h3>
       <div class="btns grid2">${MODE.artifact ? '' : '<button class="btn" data-a="backup">作品データを保存</button>'}<button class="btn" data-a="restore">作品データを読み込む</button><button class="btn" data-a="openLinkBox">リンクで作品を開く</button><button class="btn danger" data-a="wipe">全部消して始める</button></div>
       <p class="small">別の端末に移す、念のため残すときは「作品データを保存」。読み込むと、今の内容と入れ替わります。</p></section>
@@ -2189,16 +2210,21 @@ function checkText(dayIds) {
   }
   return L.join('\n');
 }
+function scriptDay() { const id = S.outDayF || 'all'; return id !== 'all' ? dayById(id) : null; }
+// テイクがその撮影日のものか：記録した日付で見る。どの撮影日の日付とも合わないとき（予定と違う日に撮ったなど）は、シーンの撮影日で見る
+function takeOnDay(t, d) { if (!d) return true; const iso = isoOf(t.at); if (d.date && iso === d.date) return true; if (P.days.some(x => x.date && x.date === iso)) return false; return t.day === d.id; }
 function scriptData() {
-  const mode = S.outOrder || 'script', okOnly = (S.outFilter || 'all') === 'ok';
-  return orderedScenes(mode).map(sc => { let ts = takesOf(sc.id); if (okOnly) ts = ts.filter(t => t.r === 'OK' || t.r === 'KEEP'); return { sc, ts: sortTakes(sc, ts, mode) }; }).filter(x => x.ts.length || !okOnly);
+  const mode = S.outOrder || 'script', okOnly = (S.outFilter || 'all') === 'ok', shotOnly = (S.outScenes || 'shot') === 'shot', d = scriptDay();
+  const sched = d ? new Set(dayScenes(d.id).map(x => x.id)) : null;
+  return orderedScenes(mode).map(sc => { let ts = takesOf(sc.id).filter(t => takeOnDay(t, d)); if (okOnly) ts = ts.filter(t => t.r === 'OK' || t.r === 'KEEP'); return { sc, ts: sortTakes(sc, ts, mode) }; })
+    .filter(x => x.ts.length || (!okOnly && !shotOnly && (!sched || sched.has(x.sc.id))));
 }
 function scriptHtml() {
   const data = scriptData();
   const okN = P.takes.filter(t => t.r === 'OK').length;
   const rows = data.map(({ sc, ts }) => {
     const head = `<tr class="sh"><td colspan="11">S#${esc(sc.no)}　${esc(sc.place)}${todLine(sc) ? `（${esc(todLine(sc))}）` : ''}${sc.loc ? `　ロケ：${esc(sc.loc)}` : ''}${sc.day ? `　撮影：${esc(dayLabel(dayById(sc.day)))}` : ''}${sc.secs ? `　台本の目安 ${estText(sc.secs)}` : ''}${sc.cont ? `<br>繋がり：${esc(sc.cont)}` : ''}${sc.edit ? `<br>編集へ：${esc(sc.edit)}` : ''}</td></tr>`;
-    const body = ts.length ? ts.map(t => { const c = sc.cuts.find(x => x.id === t.cut); return `<tr><td class="c">${esc(sc.no)}</td><td class="c">${esc(c ? c.no : '一連')}</td><td class="c">${t.n}${t.plan || t.mm ? `<br><small>${esc([t.plan, t.mm ? t.mm + 'mm' : ''].filter(Boolean).join(' '))}</small>` : ''}</td><td class="c ${t.r === 'OK' ? 'ok' : t.r === 'NG' ? 'ng' : ''}">${esc(t.r || '')}</td><td class="c">${fmtSec(t.sec)}</td><td>${esc(t.clip)}</td><td>${esc(t.snd)}</td><td>${esc(t.tc)}</td><td>${esc(c ? [c.size, c.desc].filter(Boolean).join(' ') : '')}</td><td>${esc(t.note)}</td><td class="c">${fmtAt(t.at)}</td></tr>`; }).join('') : `<tr><td colspan="11" class="ng">記録なし</td></tr>`;
+    const body = ts.length ? ts.map(t => { const c = sc.cuts.find(x => x.id === t.cut); return `<tr><td class="c">${esc(sc.no)}</td><td class="c">${esc(c ? c.no : '一連')}</td><td class="c">${t.n}${t.plan || t.mm ? `<br><small>${esc([t.plan, t.mm ? t.mm + 'mm' : ''].filter(Boolean).join(' '))}</small>` : ''}</td><td class="c ${t.r === 'OK' ? 'ok' : t.r === 'NG' ? 'ng' : ''}">${esc(t.r || '')}</td><td class="c">${fmtSec(t.sec)}</td><td>${esc(t.clip)}${t.clip2 ? `<br>B ${esc(t.clip2)}` : ''}</td><td>${esc(t.snd)}</td><td>${esc(t.tc)}</td><td>${esc(c ? [c.size, c.desc].filter(Boolean).join(' ') : '')}</td><td>${esc(t.note)}</td><td class="c">${fmtAt(t.at)}</td></tr>`; }).join('') : `<tr><td colspan="11" class="ng">記録なし</td></tr>`;
     const pi = postItems(sc);
     const post = pi.length ? `<tr class="pm"><td colspan="11">${POST_ORDER.filter(k => pi.some(x => x.k === k)).map(k => `<b>${esc(postName(k))}</b> ${pi.filter(x => x.k === k).map(x => esc(x.t)).join('／')}`).join('<br>')}</td></tr>` : '';
     return head + post + body;
@@ -2270,9 +2296,9 @@ function postCsv() {
   return rows;
 }
 function scriptCsv() {
-  const rows = [['シーン', '場所', '昼夜・内外', 'カット', 'サイズ', 'カット内容', 'カメラの案', 'レンズ（mm）', 'テイク', '判定', '尺（秒）', '尺', 'クリップ', '音声', 'TC', 'メモ', '撮影日', '記録時刻', '繋がり', '編集へ']];
+  const rows = [['シーン', '場所', '昼夜・内外', 'カット', 'サイズ', 'カット内容', 'カメラの案', 'レンズ（mm）', 'テイク', '判定', '尺（秒）', '尺', 'カメラのファイル名', 'Bカメのファイル名', '音声', 'タイムコード', 'メモ', '撮影日', '記録時刻', '繋がり', '編集へ']];
   for (const { sc, ts } of scriptData()) {
-    for (const t of ts) { const c = sc.cuts.find(x => x.id === t.cut); rows.push([sc.no, sc.place, todLine(sc), c ? c.no : '一連', c ? c.size : '', c ? c.desc : '', t.plan || '', t.mm || '', t.n, t.r, t.sec || '', fmtSec(t.sec), t.clip, t.snd, t.tc, t.note, sc.day ? dayLabel(dayById(sc.day)) : '', fmtAt(t.at), sc.cont, sc.edit]); }
+    for (const t of ts) { const c = sc.cuts.find(x => x.id === t.cut); rows.push([sc.no, sc.place, todLine(sc), c ? c.no : '一連', c ? c.size : '', c ? c.desc : '', t.plan || '', t.mm || '', t.n, t.r, t.sec || '', fmtSec(t.sec), t.clip, t.clip2 || '', t.snd, t.tc, t.note, sc.day ? dayLabel(dayById(sc.day)) : '', fmtAt(t.at), sc.cont, sc.edit]); }
   }
   return rows;
 }
@@ -2283,7 +2309,7 @@ function scriptText() {
     L.push('', `■ ${sceneTitle(sc)}`);
     if (sc.cont) L.push(`　繋がり：${sc.cont}`);
     if (sc.edit) L.push(`　編集へ：${sc.edit}`);
-    for (const t of ts) L.push(`${cutLabel(sc, t.cut)} T${t.n}${t.plan ? ' ' + t.plan : ''} ${t.r || '—'} ${fmtSec(t.sec)} ${t.clip || ''} ${t.snd ? '音' + t.snd : ''} ${t.note || ''}`.replace(/\s+/g, ' ').trim());
+    for (const t of ts) L.push(`${cutLabel(sc, t.cut)} T${t.n}${t.plan ? ' ' + t.plan : ''} ${t.r || '—'} ${fmtSec(t.sec)} ${t.clip || ''} ${t.clip2 ? 'B ' + t.clip2 : ''} ${t.snd ? '音' + t.snd : ''} ${t.tc ? 'TC ' + t.tc : ''} ${t.note || ''}`.replace(/\s+/g, ' ').trim());
   }
   return L.join('\n');
 }
@@ -2433,14 +2459,16 @@ function renderSheets() {
   const box = $('sheets');
   const ys = [...box.querySelectorAll('.sheet-body')].map(el => el.scrollTop);
   const keep = {};
-  if (!freshRec) for (const id of ['rc-clip', 'rc-snd', 'rc-note', 'rc-n']) { const el = $(id); if (el) keep[id] = { v: el.value, k: el.dataset.k || '' }; }
+  if (!freshRec) for (const id of ['rc-clip', 'rc-clip2', 'rc-snd', 'rc-tc', 'rc-note', 'rc-n']) { const el = $(id); if (el) keep[id] = { v: el.value, k: el.dataset.k || '' }; }
   freshRec = false;
-  S.sheets = S.sheets.filter(s => ((s.t !== 'scene' && s.t !== 'rec') || sceneById(s.id)) && (s.t !== 'ask' || askResolve) && (s.t !== 'pdf' || PDFOUT));
+  S.sheets = S.sheets.filter(s => ((s.t !== 'scene' && s.t !== 'rec') || sceneById(s.id)) && (s.t !== 'ask' || askResolve) && (s.t !== 'pdf' || PDFOUT) && (s.t !== 'dayend' || dayById(s.day)));
   box.innerHTML = S.sheets.map((s, i) => `<div class="sheet" role="dialog" aria-modal="true" style="z-index:${30 + i}">${SHEET[s.t] ? SHEET[s.t](s) : ''}</div>`).join('');
   [...box.querySelectorAll('.sheet-body')].forEach((el, i) => { if (ys[i]) el.scrollTop = ys[i]; });
   for (const id in keep) { const el = $(id); if (el && (el.dataset.k || '') === keep[id].k) el.value = keep[id].v; }
   document.body.style.overflow = S.sheets.length ? 'hidden' : '';
+  document.body.classList.toggle('has-sheet', S.sheets.length > 0);
   if (S.sheets.length && S.sheets[S.sheets.length - 1].t === 'rec') tickTimer();
+  applyWake();
 }
 const sheetTop = (title, extra = '') => `<div class="sheet-top perf-b"><button class="x" data-a="close" aria-label="閉じる">×</button><div class="t">${title}</div>${extra}</div>`;
 function scriptLinesHtml(sc) {
@@ -2511,8 +2539,10 @@ const SHEET = {
           <div class="sl-title"><span><b>${esc(P.title || '')}</b>${(() => { const d = ((P.credits || []).find(x => /監督/.test(x.role)) || {}).name; return d ? `　監督 ${esc(d)}` : ''; })()}</span><span>${(() => { const d = new Date(); return `${d.getMonth() + 1}/${d.getDate()}`; })()}</span></div>
           <div class="sl-grid"><div><span>シーン</span><b class="${String(sc.no).length > 2 ? 'long' : ''}">${esc(sc.no)}</b></div><div><span>カット</span><b class="${!c || String(c.no).length > 2 ? 'long' : ''}">${c ? esc(c.no) : '一連'}</b></div>
             <div><span>テイク</span><div class="tk"><button data-a="takeStep" data-d="-1" aria-label="テイク番号を一つ減らす">−</button><input id="rc-n" data-k="${sc.id}|${cut}" value="${n}" inputmode="numeric" aria-label="テイク番号"><button data-a="takeStep" data-d="1" aria-label="テイク番号を一つ増やす">＋</button></div></div></div>
-          <div class="sl-files"><label class="sl-file main"><span>カメラのファイル名</span><input id="rc-clip" value="${esc(suggest('clip'))}" placeholder="例：A001C001" autocapitalize="characters" autocomplete="off" spellcheck="false"></label>
-            <label class="sl-file"><span>音声のファイル名</span><input id="rc-snd" value="${esc(suggest('snd'))}" placeholder="例：ZOOM0001" autocapitalize="characters" autocomplete="off" spellcheck="false"></label></div>
+          <div class="sl-files"><label class="sl-file main full"><span>${fld('cam2') ? 'A カメのファイル名' : 'カメラのファイル名'}</span><input id="rc-clip" value="${esc(suggest('clip'))}" placeholder="例：A001C001" autocapitalize="characters" autocomplete="off" spellcheck="false"></label>
+            ${fld('cam2') ? `<label class="sl-file main full"><span>B カメのファイル名</span><input id="rc-clip2" value="${esc(suggest('clip2'))}" placeholder="例：B001C001" autocapitalize="characters" autocomplete="off" spellcheck="false"></label>` : ''}
+            ${fld('snd') ? `<label class="sl-file ${fld('tc') ? '' : 'full'}"><span>音声のファイル名</span><input id="rc-snd" value="${esc(suggest('snd'))}" placeholder="例：ZOOM0001" autocapitalize="characters" autocomplete="off" spellcheck="false"></label>` : ''}
+            ${fld('tc') ? `<label class="sl-file ${fld('snd') ? '' : 'full'}"><span>タイムコード</span><input id="rc-tc" placeholder="例：01:02:03:04" inputmode="numeric" autocomplete="off"></label>` : ''}</div>
           ${c && (c.size || c.desc) ? `<div class="sl-sub">${esc([c.size, c.desc].filter(Boolean).join('　'))}</div>` : ''}
           <div class="tcode ${running ? 'run' : ''}"><i class="recdot" aria-hidden="true"></i><span class="timer" id="timer">${running ? '0:00.0' : last ? fmtSec(last) : '0:00'}</span><span class="rectxt">${running ? '録画中' : last ? '計った長さ' : '待機'}</span></div>
           <button class="bigbtn ${running ? 'run' : ''}" data-a="${running ? 'recStop' : 'recStart'}">${running ? 'カット（止める）' : 'スタート（計る）'}</button>
@@ -2551,9 +2581,10 @@ const SHEET = {
         <label class="field"><span>カメラの案</span><input ${b('plan')} value="${esc(t.plan || '')}" placeholder="案A"></label>
         <label class="field"><span>レンズ（mm）</span><input ${b('mm')} value="${esc(t.mm || '')}" inputmode="numeric" placeholder="35"></label>
         <label class="field"><span>尺（例 1:05）</span><input ${b('sec')} value="${fmtSec(t.sec)}" inputmode="numeric"></label>
-        <label class="field"><span>クリップ名</span><input ${b('clip')} value="${esc(t.clip)}"></label>
-        <label class="field"><span>音声ファイル</span><input ${b('snd')} value="${esc(t.snd)}"></label>
-        <label class="field"><span>TC</span><input ${b('tc')} value="${esc(t.tc)}" placeholder="01:02:03:04"></label>
+        <label class="field"><span>${t.clip2 || fld('cam2') ? 'A カメのファイル名' : 'カメラのファイル名'}</span><input ${b('clip')} value="${esc(t.clip)}"></label>
+        ${t.clip2 || fld('cam2') ? `<label class="field"><span>B カメのファイル名</span><input ${b('clip2')} value="${esc(t.clip2 || '')}"></label>` : ''}
+        <label class="field"><span>音声のファイル名</span><input ${b('snd')} value="${esc(t.snd)}"></label>
+        <label class="field"><span>タイムコード</span><input ${b('tc')} value="${esc(t.tc)}" placeholder="01:02:03:04" inputmode="numeric"></label>
         <label class="field full"><span>メモ</span><textarea ${b('note')} rows="3">${esc(t.note)}</textarea></label>
       </div><p class="small">記録 ${fmtAt(t.at)}</p></section>
       <div class="btns"><button class="btn danger" data-a="delTake" data-id="${t.id}">このテイクを消す</button></div></div></div>`;
@@ -2649,6 +2680,8 @@ const SHEET = {
       ${step('シーンのくわしい中身：「台本・詳細」', '<p>撮影のカードの「台本・詳細」、または「香盤」でシーンを押すと開きます。台本の本文、編集素材（写真・ＣＧ・字幕・ナレーションなど）、参考画像の追加、撮るものの書き直しができます。</p>')}
       ${step('全体の予定：「香盤」', '<p>「台本の順」で全シーン、「撮影日ごと」で日ごとの並び（↑↓で入れ替え）、「人物」で出番の表を見られます。</p>')}
       ${step('カメラのファイル名とテイク番号', '<p>記録の画面のカチンコに、<b>カメラのファイル名</b>（カメラの画面に出ている名前。例：C0012）と<b>音声のファイル名</b>を書きます。前のテイクの番号を一つ進めて先に入れてあるので、カメラと違うときだけ直してください。<b>テイク番号</b>は自動で進みますが、「−」「＋」や数字の入力で直せます。</p>')}
+      ${step('押し間違えたとき・欄の出し入れ', '<p>OK・KEEP・NG を押したあと、下に出る知らせの<b>「取り消す」</b>を押すと、そのテイクを消して元に戻ります（6秒のあいだ）。記録の画面を開いている間は、画面が自動で消えません。カチンコの<b>音声のファイル名・タイムコード・B カメのファイル名</b>は、「出力」→「設定」の「記録の画面の欄」で出し入れできます。タイムコードは数字だけ打てば「:」が自動で入ります。</p>')}
+      ${step('撮影の終わり', '<p>その日のシーンがすべて撮了になると、<b>控えを残す</b>知らせが出ます。「この日のスクリプトシートを PDF で送る」か「作品データを保存」で、記録を iPhone の外にも残してください。</p>')}
       ${step('撮ったもの：「記録」', '<p>撮ったテイクの一覧です。「撮り残し」で OK の無いカットだけを出せます。テイクを押すとファイル名やメモを直せます。</p>')}
       ${step('監督に渡す：スクリプトシートの PDF', '<p>「記録」または「出力」の<b>「スクリプトシートを PDF で監督に送る」</b>を押すと、スクリプトシート（シーン・カット・テイク・判定・尺・カメラと音声のファイル名・メモ）が PDF になります。<b>「送る」</b>でメール・AirDrop・LINE などを選んで渡せます。OK のテイクは番号を丸で囲み、カットごとに「使うテイク」をまとめてあります。</p>')}
       ${step('人に渡す：「出力」', `<p>いちばん上が<b>スクリプトシート</b>（撮影後、監督と編集へ。PDF で送れる）。その下の「ほかの資料を渡す」で、<b>撮影チェックシート</b>・<b>撮影資料</b>・<b>編集素材リスト</b>・<b>香盤表</b>を選んで書き出します。表示と作品データは「設定」にあります。${MODE.artifact ? 'このページでは印刷とファイル保存ができないので、<b>「表をコピー」</b>を押して Excel・スプレッドシート・LINE などに貼り付けてください。' : '「印刷・PDF」「Excel用（CSV）」「表をコピー」から選べます。'}</p>`)}
@@ -2656,6 +2689,16 @@ const SHEET = {
       ${step('資料を入れ直す：「資料」', '<p>新しい台本や香盤表（PDF・Word・Excel など）を入れると読み取ります。取り込んだ資料の本文もここで読めます。</p>')}
       <button class="btn primary wide" data-a="close">閉じる</button>
     </div></div>`;
+  },
+  dayend(s) {
+    const d = dayById(s.day); if (!d) return sheetTop('撮影の終わり') + '<div class="sheet-body"></div>';
+    const n = P.takes.filter(t => takeOnDay(t, d)).length;
+    return sheetTop('撮影の終わり') + `<div class="sheet-body"><div class="wrap"><section class="card outhero"><h2>${esc(dayLabel(d))}の撮影がすべて撮了です</h2>
+      <p class="lead">おつかれさまでした。この日のテイクは ${n} 件です。記録はこの iPhone の中にしかありません。故障や紛失で消えないように、控えを残してください。</p>
+      <button class="btn primary wide big" data-a="pdfDay" data-id="${d.id}">この日のスクリプトシートを PDF で送る</button>
+      <button class="btn wide" data-a="backup">作品データを保存（ファイルに残す）</button>
+      <p class="small">「作品データを保存」は、記録をまるごとファイルにします。「ファイル」アプリや AirDrop で残せば、別の端末でも「作品データを読み込む」で戻せます。</p>
+      <button class="btn wide" data-a="close">あとで</button></section></div></div>`;
   },
   pdf() {
     if (!PDFOUT) return sheetTop('スクリプトシート（PDF）') + '<div class="sheet-body"><div class="wrap"><p>もう一度「スクリプトシートを PDF で監督に送る」を押してください。</p></div></div>';
@@ -2733,7 +2776,7 @@ async function scriptPdf() {
 
   const data = scriptData().filter(({ sc, ts }) => ts.length || !sc.noshoot);
   const okOnly = (S.outFilter || 'all') === 'ok', order = (S.outOrder || 'script') === 'shoot' ? '撮影の順' : '台本の順';
-  const all = P.takes, nOK = all.filter(t => t.r === 'OK').length, nKP = all.filter(t => t.r === 'KEEP').length, nNG = all.filter(t => t.r === 'NG').length;
+  const dF = scriptDay(), all = P.takes.filter(t => takeOnDay(t, dF) && data.some(x => x.sc.id === t.sc)), nOK = all.filter(t => t.r === 'OK').length, nKP = all.filter(t => t.r === 'KEEP').length, nNG = all.filter(t => t.r === 'NG').length;
   const director = ((P.credits || []).find(c => /監督/.test(c.role)) || {}).name || P.director || '';
   const shooter = ((P.credits || []).find(c => /^撮影/.test(c.role)) || {}).name || '';
   const recorder = ((P.credits || []).find(c => /記録/.test(c.role)) || {}).name || '';
@@ -2742,8 +2785,12 @@ async function scriptPdf() {
   const now = fmtAt(Date.now());
 
   // 表の列（mm）
-  const COLS = [['テイク', 17, 'c'], ['判定', 16, 'c'], ['尺', 15, 'c'], ['カメラのファイル名', 46, 'l'], ['音声', 30, 'l'], ['案・レンズ', 22, 'c'], ['メモ', 0, 'l'], ['記録', 22, 'c']];
-  COLS[6][1] = CW - COLS.reduce((s, c) => s + c[1], 0);
+  const has = k => data.some(x => x.ts.some(t => t[k]));
+  const COLS = [['テイク', 17, 'c', 'n'], ['判定', 16, 'c', 'r'], ['尺', 15, 'c', 'sec'], [has('clip2') ? 'A カメのファイル名' : 'カメラのファイル名', 44, 'l', 'clip']]
+    .concat(has('clip2') ? [['B カメのファイル名', 40, 'l', 'clip2']] : [], has('snd') ? [['音声', 28, 'l', 'snd']] : [], has('tc') ? [['タイムコード', 27, 'c', 'tc']] : [])
+    .concat([['案・レンズ', 22, 'c', 'plan'], ['メモ', 0, 'l', 'note'], ['記録', 21, 'c', 'at']]);
+  const CI = k => COLS.findIndex(c => c[3] === k);
+  COLS[CI('note')][1] = CW - COLS.reduce((s, c) => s + c[1], 0);
   const colX = []; COLS.reduce((x, c, i) => { colX[i] = x; return x + c[1]; }, M);
 
   // ブロック（高さと描き方）を並べる
@@ -2763,7 +2810,7 @@ async function scriptPdf() {
     });
     hline(M, M + CW, y + 13, C.line, .25);
   } });
-  add({ k: 'note', h: 7, draw: y => { font(8, 400); text(`${order}・${okOnly ? 'ＯＫとＫＥＥＰだけ' : 'すべてのテイク'}。ＯＫのテイクは番号を丸で囲んでいます。尺は現場で計った長さ（目安）。`, M, y + 4, C.mute); } });
+  add({ k: 'note', h: 7, draw: y => { font(8, 400); text(`${dF ? dayLabel(dF) + 'の撮影分' : 'すべての撮影日'}・${(S.outScenes || 'shot') === 'shot' ? '撮ったシーンだけ' : '撮っていないシーンも'}・${order}・${okOnly ? 'ＯＫとＫＥＥＰだけ' : 'すべてのテイク'}。ＯＫのテイクは番号を丸で囲んでいます。尺は現場で計った長さ（目安）。`, M, y + 4, C.mute); } });
 
   const colHead = { k: 'colhead', h: 6.5, draw: y => {
     rect(M, y, CW, 6.5, '#ebe7de');
@@ -2810,21 +2857,25 @@ async function scriptPdf() {
         font(8.5, 800); text(fit(right, rw - 2), M + CW - 2, y + 4.6, use.length ? (oks.length ? C.ok : C.keep) : C.red, 'right');
       } });
       for (const t of gp.ts) {
-        font(9); const memo = wrap(t.note || '', COLS[6][1] - 4);
-        font(9, 700, PMONO); const clip = wrap(t.clip || '', COLS[3][1] - 4), snd = wrap(t.snd || '', COLS[4][1] - 4);
-        const h = Math.max(memo.length, clip.length, snd.length, 1) * LH + 2.6;
+        const W = k => (CI(k) < 0 ? 0 : COLS[CI(k)][1] - 4);
+        font(9); const memo = wrap(t.note || '', W('note'));
+        font(9, 700, PMONO); const clip = wrap(t.clip || '', W('clip')), clip2 = CI('clip2') < 0 ? [] : wrap(t.clip2 || '', W('clip2'));
+        font(8.5, 500, PMONO); const snd = CI('snd') < 0 ? [] : wrap(t.snd || '', W('snd'));
+        const h = Math.max(memo.length, clip.length, clip2.length, snd.length, 1) * LH + 2.6;
         add({ k: 'row', sc, h, draw: y => {
-          const base = y + 4.6, cx = i => colX[i] + COLS[i][1] / 2;
+          const base = y + 4.6, cx = k => colX[CI(k)] + COLS[CI(k)][1] / 2, lx = k => colX[CI(k)] + 2;
           const col = t.r === 'OK' ? C.ok : t.r === 'KEEP' ? C.keep : t.r === 'NG' ? C.ng : C.mute;
-          font(13, 400, PNUM); text(String(t.n), cx(0), base + .6, t.r === 'NG' ? C.ng : C.ink, 'center');
-          if (t.r === 'OK') { g.strokeStyle = C.ok; g.lineWidth = .5 * K; g.beginPath(); g.arc(cx(0) * K, (base - 1.55) * K, 2.85 * K, 0, Math.PI * 2); g.stroke(); }
-          font(10, 400, PNUM); text(t.r || '—', cx(1), base + .2, col, 'center');
-          font(9, 500, PMONO); text(fmtSec(t.sec) || '—', cx(2), base, t.sec ? C.ink : C.ng, 'center');
-          font(9, 700, PMONO); clip.forEach((s, i) => text(s, colX[3] + 2, base + i * LH, t.r === 'NG' ? C.ng : C.ink));
-          font(8.5, 500, PMONO); snd.forEach((s, i) => text(s, colX[4] + 2, base + i * LH, C.ink));
-          font(8.5); text([t.plan, t.mm ? t.mm + 'mm' : ''].filter(Boolean).join(' ') || '', cx(5), base, C.ink, 'center');
-          font(9); memo.forEach((s, i) => text(s, colX[6] + 2, base + i * LH, t.r === 'NG' ? '#7a5a55' : C.ink));
-          font(8, 500, PMONO); text(fmtAt(t.at), cx(7), base, C.mute, 'center');
+          font(13, 400, PNUM); text(String(t.n), cx('n'), base + .6, t.r === 'NG' ? C.ng : C.ink, 'center');
+          if (t.r === 'OK') { g.strokeStyle = C.ok; g.lineWidth = .5 * K; g.beginPath(); g.arc(cx('n') * K, (base - 1.55) * K, 2.85 * K, 0, Math.PI * 2); g.stroke(); }
+          font(10, 400, PNUM); text(t.r || '—', cx('r'), base + .2, col, 'center');
+          font(9, 500, PMONO); text(fmtSec(t.sec) || '—', cx('sec'), base, t.sec ? C.ink : C.ng, 'center');
+          font(9, 700, PMONO); clip.forEach((s, i) => text(s, lx('clip'), base + i * LH, t.r === 'NG' ? C.ng : C.ink));
+          clip2.forEach((s, i) => text(s, lx('clip2'), base + i * LH, t.r === 'NG' ? C.ng : C.ink));
+          font(8.5, 500, PMONO); snd.forEach((s, i) => text(s, lx('snd'), base + i * LH, C.ink));
+          if (CI('tc') >= 0) { font(8.5, 500, PMONO); text(t.tc || '', cx('tc'), base, C.ink, 'center'); }
+          font(8.5); text([t.plan, t.mm ? t.mm + 'mm' : ''].filter(Boolean).join(' ') || '', cx('plan'), base, C.ink, 'center');
+          font(9); memo.forEach((s, i) => text(s, lx('note'), base + i * LH, t.r === 'NG' ? '#7a5a55' : C.ink));
+          font(8, 500, PMONO); text(fmtAt(t.at), cx('at'), base, C.mute, 'center');
           hline(M, M + CW, y + h);
         } });
       }
@@ -2910,6 +2961,12 @@ function recStop() {
   const sec = Math.round((Date.now() - S.run.t0) / 1000);
   S.last = { sc: S.run.sc, cut: S.run.cut, sec }; S.run = null; persist(); return sec;
 }
+function checkDayEnd(sc) {
+  const id = sc && sc.day; if (!id) return;
+  const scs = dayScenes(id).filter(x => !x.noshoot); if (!scs.length || !scs.every(sceneDone)) return;
+  S.dayEnd = S.dayEnd || {}; if (S.dayEnd[id]) return; S.dayEnd[id] = Date.now(); persist();
+  setTimeout(() => openSheet({ t: 'dayend', day: id }), 1200);
+}
 function recResult(scId, r) {
   const sc = sceneById(scId); const cut = S.recCut[scId] || '';
   if (S.run && S.run.sc === scId) recStop();
@@ -2917,7 +2974,8 @@ function recResult(scId, r) {
   const cc = sc.cuts.find(x => x.id === cut), pk = cc ? Math.min(cc.pick || 0, (cc.alts || []).length) : 0, plan = cc && cc.alts && cc.alts.length ? '案' + planLabel(pk) : '';
   const pf = cc && planFig(cc, pk), mm = pf && pf.mm ? String(pf.mm) : '';
   const nIn = parseInt(half(($('rc-n') || {}).value || ''), 10);
-  const t = { id: uid(), sc: scId, cut, plan, mm, n: nIn > 0 ? nIn : nextTakeNo(scId, cut), r, sec, clip: half(($('rc-clip') || {}).value || '').trim(), snd: half(($('rc-snd') || {}).value || '').trim(), tc: '', note: (($('rc-note') || {}).value || '').trim(), at: Date.now(), day: sc.day || '' };
+  const t = { id: uid(), sc: scId, cut, plan, mm, n: nIn > 0 ? nIn : nextTakeNo(scId, cut), r, sec, clip: half(($('rc-clip') || {}).value || '').trim(), snd: half(($('rc-snd') || {}).value || '').trim(), clip2: half(($('rc-clip2') || {}).value || '').trim(), tc: half(($('rc-tc') || {}).value || '').trim(), note: (($('rc-note') || {}).value || '').trim(), at: Date.now(), day: sc.day || '' };
+  const prevCut = S.recCut[scId];
   P.takes.push(t); S.last = null; freshRec = true;
   if (r === 'OK' && sc.cuts.length) { // 次のカットへ
     const i = sc.cuts.findIndex(c => c.id === cut);
@@ -2925,8 +2983,14 @@ function recResult(scId, r) {
     if (next) S.recCut[scId] = next.id;
   }
   save(true); persist(); buzz(r === 'OK' ? [20, 40, 20] : 15);
-  toast(`${cutLabel(sc, cut)} T${t.n} ${r} を記録しました`);
+  toastUndo(`${cutLabel(sc, cut)} T${t.n} ${r} を記録しました`, () => {
+    P.takes = P.takes.filter(x => x.id !== t.id); S.recCut[scId] = prevCut; if (sec) S.last = { sc: scId, cut, sec };
+    freshRec = true; save(true); persist(); render();
+    const put = (id, v) => { const el = $(id); if (el) el.value = v || ''; }; put('rc-clip', t.clip); put('rc-clip2', t.clip2); put('rc-snd', t.snd); put('rc-tc', t.tc); put('rc-note', t.note); put('rc-n', t.n);
+    toast('取り消しました。入れた内容は残してあります');
+  });
   render();
+  if (r === 'OK') checkDayEnd(sc);
 }
 
 /* ───────── 操作 ───────── */
@@ -2958,12 +3022,15 @@ const ACT = {
   delEvent: b => { P.events = P.events.filter(e => e.id !== b.dataset.id); save(); render(); },
   day: b => { S.day = b.dataset.id; persist(); render(); $('v-shoot').scrollTop = 0; },
   check: b => { const k = b.dataset.k; if (P.checks[k]) delete P.checks[k]; else P.checks[k] = 1; save(); buzz(10); b.setAttribute('aria-checked', String(!!P.checks[k])); if (/^g\|/.test(k)) { const s = b.closest('details'); if (s) { const sm = s.querySelector('summary .small'); const all = s.querySelectorAll('.chip[role=checkbox]'); if (sm) sm.textContent = `${[...all].filter(x => x.getAttribute('aria-checked') === 'true').length}/${all.length}`; } } },
-  sceneDone: b => { const sc = sceneById(b.dataset.id); const was = sceneDone(sc); sc.done = !was; if (was && sceneOk(sc) && P.takes.some(t => t.sc === sc.id)) { toast('すべてのカットに OK があるので撮了のままです'); } save(); buzz(); render(); },
+  sceneDone: b => { const sc = sceneById(b.dataset.id); const was = sceneDone(sc); if (!was) setTimeout(() => checkDayEnd(sc), 0); sc.done = !was; if (was && sceneOk(sc) && P.takes.some(t => t.sc === sc.id)) { toast('すべてのカットに OK があるので撮了のままです'); } save(); buzz(); render(); },
   openRec: b => { const top = S.sheets[S.sheets.length - 1]; if (top && top.t === 'rec' && top.id === b.dataset.id) return; S.sheets = S.sheets.filter(x => x.t !== 'rec'); openSheet({ t: 'rec', id: b.dataset.id }); },
   recCut: b => { const top = S.sheets[S.sheets.length - 1]; S.recCut[top.id] = b.dataset.id; persist(); renderSheets(); },
   recStart: () => { const top = S.sheets[S.sheets.length - 1]; S.run = { sc: top.id, cut: S.recCut[top.id] || '', t0: Date.now() }; S.last = null; persist(); buzz(30); renderSheetsKeep(); },
   recStop: () => { recStop(); buzz(30); renderSheetsKeep(); },
   recResult: b => { const top = S.sheets[S.sheets.length - 1]; recResult(top.id, b.dataset.r); },
+  fld: b => { S.fld = Object.assign({}, FLD_DEF, S.fld || {}); S.fld[b.dataset.k] = !S.fld[b.dataset.k]; persist(); render(); },
+  pdfDay: async b => { const keep = [S.outDayF, S.outScenes]; S.outDayF = b.dataset.id; S.outScenes = 'shot'; S.sheets = S.sheets.filter(x => x.t !== 'dayend'); await makeScriptPdf(); S.outDayF = keep[0]; S.outScenes = keep[1]; persist(); },
+  undo: () => { const f = toastUndo.fn; toastUndo.fn = null; $('toast').classList.remove('show', 'act'); if (f) f(); },
   takeStep: b => { const el = $('rc-n'); if (!el) return; const v = Math.max(1, (parseInt(half(el.value), 10) || 1) + +b.dataset.d); el.value = v; buzz(8); },
   pdfScript: () => makeScriptPdf(),
   pdfShare: () => pdfShare(),
@@ -3058,6 +3125,7 @@ function bindValue(t) {
   save();
 }
 document.addEventListener('input', e => { const t = e.target;
+  if (t.id === 'rc-tc' || (t.dataset.b && /\|tc$/.test(t.dataset.b))) { const dg = half(t.value).replace(/\D/g, '').slice(0, 8); const v = (dg.match(/.{1,2}/g) || []).join(':'); if (v !== t.value) t.value = v; }
   if (t.id === 'guideq') { const q = t.value.trim(); t.closest('.sheet-body').querySelectorAll('.gitem').forEach(el => { el.hidden = !!q && !el.dataset.q.includes(q); }); return; } if (t.dataset.b && !t.dataset.list && t.tagName !== 'SELECT') bindValue(t); });
 document.addEventListener('change', e => {
   const t = e.target;
@@ -3073,6 +3141,7 @@ document.addEventListener('change', e => {
   else if (t.id === 'file') { readFiles(t.files); t.value = ''; }
   else if (t.id === 'restore') { if (t.files[0]) restoreFile(t.files[0]); t.value = ''; }
   else if (t.id === 'outDay') { S.outDay = t.value; persist(); }
+  else if (['outDayF', 'outScenes', 'outFilter', 'outOrder'].includes(t.id)) { S[t.id] = t.value; persist(); render(); }
 });
 document.addEventListener('keydown', e => {
   if (e.key === 'Enter' && e.target.id === 'gearInput') { e.preventDefault(); ACT.gearAdd(); }
@@ -3090,7 +3159,8 @@ document.addEventListener('drop', e => { if (e.dataTransfer && e.dataTransfer.fi
 let lock = null;
 async function applyWake() {
   try {
-    if (S.wake && 'wakeLock' in navigator && document.visibilityState === 'visible') { if (!lock) { lock = await navigator.wakeLock.request('screen'); lock.addEventListener('release', () => { lock = null; }); } }
+    const want = S.wake || S.sheets.some(x => x.t === 'rec');
+    if (want && 'wakeLock' in navigator && document.visibilityState === 'visible') { if (!lock) { lock = await navigator.wakeLock.request('screen'); lock.addEventListener('release', () => { lock = null; }); } }
     else if (lock) { await lock.release(); lock = null; }
   } catch (e) { lock = null; }
 }

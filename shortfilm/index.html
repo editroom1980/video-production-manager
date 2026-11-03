@@ -241,6 +241,39 @@ pre.doc { white-space: pre-wrap; word-break: break-word; font-family: var(--font
 .cutrow input { min-height: 40px; border: 1.5px solid var(--line); border-radius: 9px; background: var(--surface); padding: 6px 8px; font-size: 15px; width: 100%; min-width: 0; }
 @media (max-width: 420px) { .cutrow { grid-template-columns: 52px 84px 1fr 36px; } }
 
+.docv { display: flex; flex-direction: column; gap: 14px; font-size: 14px; line-height: 1.55; }
+.docv .pg { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 14px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.docv h1 { font-size: 20px; font-weight: 800; line-height: 1.3; }
+.docv h1 small { display: block; font-size: 12px; font-weight: 700; color: var(--muted); margin-top: 2px; }
+.docv h2 { font-size: 16px; font-weight: 800; margin-top: 6px; }
+.docv .ph { color: var(--muted); font-size: 13px; }
+.docv .foot { font-size: 12px; color: var(--muted); }
+.docv .tblw { max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; border: 1px solid var(--line); border-radius: 10px; }
+.docv table { border-collapse: collapse; width: max-content; min-width: 100%; font-size: 13px; }
+.docv td { max-width: 15em; min-width: 3em; }
+.docv table.kv { width: 100%; }
+.docv table.kv td, .docv .scn table td:last-child { max-width: none; }
+.docv th, .docv td { border-bottom: 1px solid var(--line); border-right: 1px solid var(--line); padding: 6px 8px; text-align: left; vertical-align: top; }
+.docv th { background: var(--surface2); font-weight: 800; white-space: nowrap; }
+.docv tr > :last-child { border-right: 0; }
+.docv .c { text-align: center; }
+.docv .sh td { background: var(--surface2); font-weight: 700; }
+.docv .evr td { color: var(--muted); font-weight: 700; }
+.docv .pm td { font-size: 12px; color: var(--muted); }
+.docv .ok { color: var(--ok); font-weight: 800; }
+.docv .ng { color: var(--ng); }
+.docv .dir { font-size: 12px; color: var(--muted); margin-top: 4px; }
+.docv .box { display: inline-block; width: 12px; height: 12px; border: 1.5px solid var(--muted); border-radius: 3px; vertical-align: -1px; margin-right: 4px; }
+.docv table.kv th { width: 72px; text-align: center; }
+.docv .imgs { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; }
+.docv .imgs figure { margin: 0; cursor: zoom-in; }
+.docv .imgs img { width: 100%; height: 150px; object-fit: contain; background: #fff; border: 1px solid var(--line); border-radius: 8px; display: block; }
+.docv .imgs figcaption { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.docv .scr { font-size: 14px; line-height: 1.7; border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; }
+.docv .scr .a { color: var(--muted); padding-left: 1.2em; }
+.docv .gear { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 4px; }
+.docv .gear b { grid-column: 1 / -1; }
+.docv .rules ul { margin-left: 1.2em; }
 .thumbs { display: flex; gap: 6px; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 2px; }
 .thumb { flex: 0 0 auto; padding: 0; border-radius: 8px; overflow: hidden; border: 1px solid var(--line); background: #fff; }
 .thumb img { display: block; height: 64px; width: auto; }
@@ -325,7 +358,7 @@ pre.doc { white-space: pre-wrap; word-break: break-word; font-family: var(--font
 <script>
 (() => {
 'use strict';
-const VERSION = '1.3（11/3 撮影資料を1冊にまとめて出力）';
+const VERSION = '1.4（11/3 資料をすべて画面で見られるように）';
 
 /* ───────── 基本 ───────── */
 const $ = id => document.getElementById(id);
@@ -1266,6 +1299,15 @@ function setTab(k) { S.scroll[S.tab] = $('v-' + S.tab).scrollTop; S.tab = k; per
 function renderDocs() {
   const empty = !P.scenes.length && !P.docs.length;
   let h = `<div class="wrap">`;
+  if (P.scenes.length) h += `<section class="card"><h2>${esc(P.title || 'この作品')}の資料を見る</h2>
+    <div class="btns grid2">
+      <button class="btn primary" data-a="view" data-k="book">撮影資料（日程・シーンごと）</button>
+      <button class="btn" data-a="view" data-k="koban">香盤表</button>
+      <button class="btn" data-a="view" data-k="check">撮影チェックシート</button>
+      <button class="btn" data-a="view" data-k="post">編集素材リスト</button>
+      <button class="btn" data-a="view" data-k="script">スクリプト表（記録）</button>
+    </div>
+    ${P.docs.length ? `<p class="small">もとの資料（台本・作品意図・写真と実景まとめなど）は、この画面のいちばん下の「取り込んだ資料」から開けます。</p>` : ''}</section>`;
   h += `<section class="card">
     <h2>資料を入れる</h2>
     <p class="lead">台本・香盤表・カット表・そのほかの資料を入れると、シーン・出演・撮影日・カットを自動で読み取ります。読み取った結果を確かめてから取り込みます。</p>
@@ -1527,10 +1569,18 @@ function renderLog() {
 }
 
 /* ───────── 出力 ───────── */
+const VIEWS = {
+  book: { name: '撮影資料', html: () => bookHtml() },
+  check: { name: '撮影チェックシート', html: () => checkSheetHtml(outDays()) },
+  script: { name: 'スクリプト表', html: () => scriptHtml() },
+  post: { name: '編集素材リスト', html: () => postHtml() },
+  koban: { name: '香盤表', html: () => kobanHtml() },
+};
 function outBtns(k, share) {
   const B = (a, l, cls = '') => `<button class="btn ${cls}" data-a="${a}${k}">${l}</button>`;
-  const list = MODE.artifact ? [B('copy', '表をコピー', 'primary'), share ? B('share', '文字で送る') : '']
-    : [B('print', '印刷・PDF', 'primary'), B('csv', 'Excel用（CSV）'), B('copy', '表をコピー'), share ? B('share', '文字で送る') : ''];
+  const view = `<button class="btn primary" data-a="view" data-k="${k.toLowerCase()}">画面で見る</button>`;
+  const list = MODE.artifact ? [view, B('copy', '表をコピー'), share ? B('share', '文字で送る') : '']
+    : [view, B('copy', '表をコピー'), share ? B('share', '文字で送る') : '', B('print', '印刷・PDF'), B('csv', 'Excel用（CSV）')];
   return `<div class="btns grid2">${list.filter(Boolean).join('')}</div>`;
 }
 function renderOut() {
@@ -1545,7 +1595,7 @@ function renderOut() {
       <div class="seg">${[['all', 'すべてのテイク'], ['ok', 'OK・KEEPだけ']].map(([k, l]) => `<button data-a="outFilter" data-k="${k}" aria-pressed="${(S.outFilter || 'all') === k}">${l}</button>`).join('')}</div>
       ${outBtns('Script', true)}</section>
     <section class="card"><h2>撮影資料（1冊にまとめたもの）</h2><p class="lead">最初に撮影日ごとの流れ・持ち物・現場の注意、続いてシーンごとに1ページ（撮影の日時と場所・撮るもの・演出・参考画像・編集素材・台本）。スタッフに配る資料に。</p>
-      <div class="btns grid2">${MODE.artifact ? '<span class="small">このページでは印刷できません。</span>' : '<button class="btn primary" data-a="printBook">印刷・PDF</button>'}</div></section>
+      <div class="btns grid2"><button class="btn primary" data-a="view" data-k="book">画面で見る</button>${MODE.artifact ? '' : '<button class="btn" data-a="printBook">印刷・PDF</button>'}</div></section>
     <section class="card"><h2>編集素材リスト</h2><p class="lead">台本の ※写真・ＣＧ・動画、字幕、ナレーション、唄、ＳＥ をシーンごとに並べたもの。編集・ＣＧ・音の担当に渡せます。</p>
       ${outBtns('Post', false)}</section>
     <section class="card"><h2>香盤表</h2><p class="lead">撮影日の順に、シーン・場所・人物の出番（○）・小道具・衣装を並べた表。</p>
@@ -1708,7 +1758,7 @@ function bookHtml() {
         ${sc.cuts.length ? `<tr><th>撮るもの</th><td>${sc.cuts.map(c => `<div>${cutState(sc, c.id).ok ? '☑' : pbox}C${esc(c.no)}　${c.size ? `<b>${esc(c.size)}</b>　` : ''}${esc(c.desc)}</div>`).join('')}</td></tr>` : ''}
         ${sc.edit ? `<tr><th>編集へ</th><td>${esc(sc.edit)}</td></tr>` : ''}
       </tbody></table>
-      ${imgs.length ? `<h2>参考画像</h2><div class="imgs">${imgs.map(id => `<figure><img src="${IMG[id]}" alt=""><figcaption>${esc(name(id))}</figcaption></figure>`).join('')}</div>` : ''}
+      ${imgs.length ? `<h2>参考画像</h2><div class="imgs">${imgs.map(id => `<figure data-a="viewImg" data-id="${id}" data-list="${imgs.join(',')}"><img src="${IMG[id]}" alt=""><figcaption>${esc(name(id))}</figcaption></figure>`).join('')}</div>` : ''}
       ${pi.length ? `<h2>編集素材</h2><table><tbody>${pi.map(x => `<tr><td class="c">${pbox}</td><td class="c" style="white-space:nowrap">${esc(postName(x.k))}</td><td>${esc(x.t)}</td></tr>`).join('')}</tbody></table>` : ''}
       ${sc.lines.length ? `<h2>台本</h2><div class="scr">${sc.lines.map(l => l.k === 'd' ? `<div><b>${esc(l.who)}</b>${l.p ? `（${esc(l.p)}）` : ''}「${esc(l.text)}」</div>` : `<div class="a">${esc(l.text)}</div>`).join('')}</div>` : ''}
     </section>`;
@@ -1948,6 +1998,11 @@ const SHEET = {
     return sheetTop(`S#${esc(sc.no)} に付ける画像を選ぶ`) + `<div class="sheet-body"><div class="wrap"><p class="small">タップで付ける・外す。終わったら × で閉じてください。</p>
       ${Object.entries(groups).map(([g, ms]) => `<section class="card"><h3>${esc(g)}</h3><div class="pickgrid">${ms.map(m => `<button class="pk" data-a="pickToggle" data-id="${m.id}" aria-pressed="${(sc.refs || []).includes(m.id)}"><img src="${IMG[m.id]}" alt="" loading="lazy"><span>${esc(m.name.replace(g.replace(/\.pdf$/i, ''), '').trim() || m.name)}</span></button>`).join('')}</div></section>`).join('') || '<p class="small">まだ画像がありません。「資料」で PDF を「ページを画像でも残す」にして取り込むか、写真を足してください。</p>'}</div></div>`;
   },
+  view(s) {
+    const V = VIEWS[s.k]; if (!V) return sheetTop('資料') + '<div class="sheet-body"></div>';
+    const html = V.html().replace(/<table/g, '<div class="tblw"><table').replace(/<\/table>/g, '</table></div>');
+    return sheetTop(esc(V.name)) + `<div class="sheet-body"><div class="docv">${html}</div></div>`;
+  },
   ask(s) { return `<div class="sheet-top"><div class="t">確認</div></div><div class="sheet-body"><div class="wrap"><section class="card"><p style="font-size:17px;font-weight:700">${esc(s.msg)}</p>
       <div class="btns grid2"><button class="btn" data-a="askNo">やめる</button><button class="btn primary" data-a="askYes">${esc(s.ok)}</button></div></section></div></div>`; },
   help() {
@@ -1965,6 +2020,7 @@ const SHEET = {
       ${step('全体の予定：「香盤」', '<p>「台本の順」で全シーン、「撮影日ごと」で日ごとの並び（↑↓で入れ替え）、「人物」で出番の表を見られます。</p>')}
       ${step('撮ったもの：「記録」', '<p>撮ったテイクの一覧です。「撮り残し」で OK の無いカットだけを出せます。テイクを押すとクリップ名やメモを直せます。</p>')}
       ${step('人に渡す：「出力」', `<p><b>撮影チェックシート</b>（当日の流れ、紙で持つとき）、<b>スクリプト表</b>（撮影後、編集担当へ）、<b>編集素材リスト</b>（ＣＧ・音・編集の担当へ）、<b>香盤表</b>。${MODE.artifact ? 'このページでは印刷とファイル保存ができないので、<b>「表をコピー」</b>を押して Excel・スプレッドシート・LINE などに貼り付けてください。' : '「印刷・PDF」「Excel用（CSV）」「表をコピー」から選べます。'}</p>`)}
+      ${step('資料を画面で見る', '<p>「資料」の画面のいちばん上にある<b>「撮影資料」「香盤表」「撮影チェックシート」「編集素材リスト」「スクリプト表」</b>を押すと、そのまま画面で読めます（「出力」の「画面で見る」と同じ）。撮影資料は日程と、シーンごとの撮るもの・演出・参考画像・編集素材・台本をまとめたものです。画像はタップで大きくなります。</p>')}
       ${step('資料を入れ直す：「資料」', '<p>新しい台本や香盤表（PDF・Word・Excel など）を入れると読み取ります。取り込んだ資料の本文もここで読めます。</p>')}
       <button class="btn primary wide" data-a="close">閉じる</button>
     </div></div>`;
@@ -2079,6 +2135,7 @@ const ACT = {
   askYes: () => answer(true),
   askNo: () => answer(false),
   help: () => openSheet({ t: 'help' }),
+  view: b => { if (b.dataset.k === 'check' && $('outDay')) outDays(); openSheet({ t: 'view', k: b.dataset.k }); },
   wake: () => { S.wake = !S.wake; persist(); applyWake(); render(); toast(S.wake ? '撮影中は画面を消しません' : '画面は自動で消えます'); },
   gearAdd: () => { const el = $('gearInput'); const v = el.value.trim(); if (!v) return; P.gear.push(v); save(); S.gearOpen = true; render(); },
   gearEdit: () => openSheet({ t: 'gear' }),

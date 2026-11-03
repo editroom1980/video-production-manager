@@ -1,7 +1,7 @@
 // 撮影現場で電波が弱くても使えるように、アプリと読み取り用の部品を端末に残す。
-const CACHE = 'satsueicho-v14';
+const CACHE = 'satsueicho-v15';
 const CORE = ['./', './index.html', './manifest.json', './apple-touch-icon.png', './icon-192.png', './icon-512.png'];
-const LIBS = ['./lib/xlsx.full.min.js', './lib/mammoth.browser.min.js', './lib/pdf.min.js', './lib/pdf.worker.min.js'];
+const LIBS = ['./lib/xlsx.full.min.js', './lib/mammoth.browser.min.js', './lib/pdf.min.js', './lib/pdf.worker.min.js', './lib/fonts/bebas-neue.woff2', './lib/fonts/jetbrains-mono-500.woff2', './lib/fonts/jetbrains-mono-700.woff2'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE)

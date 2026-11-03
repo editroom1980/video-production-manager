@@ -8,18 +8,18 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="apple-mobile-web-app-title" content="キネコマ">
 <meta name="theme-color" content="#111215">
-<meta name="description" content="台本・香盤表・資料を読み込んで、撮影チェックシートと編集用のスクリプト表を作る短編映画の現場アプリ">
+<meta name="description" content="台本・香盤表・資料を読み込んで、撮影チェックシートと編集用のスクリプトシートを作る短編映画の現場アプリ">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <title>キネコマ</title>
 <style>
 :root {
-  --bg: #e3e5e8; --surface: #fbfbfa; --surface2: #eff0f2; --ink: #121418; --muted: #5a616a; --line: #cfd3d8;
-  --accent: #b2610c; --accent-ink: #ffffff; --accent-bg: #f5e4cc;
-  --ok: #1e7a4c; --ok-bg: #dcefe3; --keep: #8a5d00; --keep-bg: #f7ebcf; --ng: #6a717a; --ng-bg: #e6e8eb;
-  --sel: #121418; --sel-ink: #f3efe6; --warn: #c23a2b; --rec: #d93a2b;
-  --film: #111215; --film2: #1b1d22; --film-ink: #ece8df; --film-mute: #9aa0a8; --hole: #e3e5e8; --amber: #f0a83c;
+  --bg: #e9e6df; --surface: #fffdf8; --surface2: #f3f0e9; --ink: #16161a; --muted: #6a655c; --line: #dcd7cc;
+  --accent: #b35d00; --accent-ink: #ffffff; --accent-bg: #f6e6cf;
+  --ok: #1d7a4a; --ok-bg: #dff0e5; --keep: #8a5d00; --keep-bg: #f7ebcf; --ng: #6a6f76; --ng-bg: #e9e7e2;
+  --sel: #16161a; --sel-ink: #f3efe6; --warn: #c23a2b; --rec: #d93a2b;
+  --film: #111215; --film2: #1b1d22; --film-ink: #ece8df; --film-mute: #9aa0a8; --hole: #e9e6df; --amber: #f2a93b;
   --font: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Yu Gothic", "Meiryo", sans-serif;
   --mono: ui-monospace, "SF Mono", "Menlo", "Roboto Mono", "Noto Sans Mono", "Consolas", monospace;
   --tabbar: 58px;
@@ -27,20 +27,20 @@
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #08090b; --surface: #14161a; --surface2: #1b1e23; --ink: #ece8df; --muted: #9aa0a8; --line: #2a2e35;
-    --accent: #f0a83c; --accent-ink: #1b1206; --accent-bg: #2c2111;
-    --ok: #5fcf90; --ok-bg: #11291c; --keep: #f0c24a; --keep-bg: #2e260f; --ng: #9ca3ab; --ng-bg: #23272d;
-    --sel: #ece8df; --sel-ink: #121418; --warn: #ff6a57; --rec: #ff4a3a;
-    --film: #000000; --film2: #121317; --film-ink: #ece8df; --film-mute: #8f959d; --hole: #2b2f36; --amber: #f0a83c;
+    --bg: #0a0a0c; --surface: #141417; --surface2: #1c1c20; --ink: #f1ece2; --muted: #918c83; --line: #2a2a30;
+    --accent: #f2a93b; --accent-ink: #1a1105; --accent-bg: #2c2111;
+    --ok: #6fd39b; --ok-bg: #102419; --keep: #f2c14e; --keep-bg: #2b230e; --ng: #9a9ca2; --ng-bg: #222327;
+    --sel: #f1ece2; --sel-ink: #141417; --warn: #ff6a57; --rec: #ff4b3e;
+    --film: #000000; --film2: #121317; --film-ink: #ece8df; --film-mute: #8f959d; --hole: #2d2f35; --amber: #f2a93b;
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-    --bg: #08090b; --surface: #14161a; --surface2: #1b1e23; --ink: #ece8df; --muted: #9aa0a8; --line: #2a2e35;
-    --accent: #f0a83c; --accent-ink: #1b1206; --accent-bg: #2c2111;
-    --ok: #5fcf90; --ok-bg: #11291c; --keep: #f0c24a; --keep-bg: #2e260f; --ng: #9ca3ab; --ng-bg: #23272d;
-    --sel: #ece8df; --sel-ink: #121418; --warn: #ff6a57; --rec: #ff4a3a;
-    --film: #000000; --film2: #121317; --film-ink: #ece8df; --film-mute: #8f959d; --hole: #2b2f36; --amber: #f0a83c;
+    --bg: #0a0a0c; --surface: #141417; --surface2: #1c1c20; --ink: #f1ece2; --muted: #918c83; --line: #2a2a30;
+    --accent: #f2a93b; --accent-ink: #1a1105; --accent-bg: #2c2111;
+    --ok: #6fd39b; --ok-bg: #102419; --keep: #f2c14e; --keep-bg: #2b230e; --ng: #9a9ca2; --ng-bg: #222327;
+    --sel: #f1ece2; --sel-ink: #141417; --warn: #ff6a57; --rec: #ff4b3e;
+    --film: #000000; --film2: #121317; --film-ink: #ece8df; --film-mute: #8f959d; --hole: #2d2f35; --amber: #f2a93b;
     color-scheme: dark;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
@@ -398,82 +398,171 @@ pre.doc { white-space: pre-wrap; word-break: break-word; font-family: var(--font
   #print .scr .a { color: #333; padding-left: 4mm; }
 }
 
-/* ═════ キネコマのデザイン：フィルムの帯とカチンコ ═════ */
-.perf-b, .perf-t { position: relative; }
-.perf-b::after, .perf-t::before { content: ''; position: absolute; left: 0; right: 0; height: 7px; pointer-events: none;
-  background: repeating-linear-gradient(90deg, transparent 0 6px, var(--hole) 6px 16px, transparent 16px 22px); opacity: .95; }
-.perf-b::after { bottom: 4px; }
-.perf-t::before { top: 4px; }
-.top { background: var(--film); color: var(--film-ink); border-bottom: 0; padding-bottom: 18px; gap: 10px; }
-.logo { display: inline-flex; align-items: center; gap: 7px; flex: 0 0 auto; color: var(--film-ink); }
-.logo svg { width: 24px; height: 24px; }
-.logo b { font-size: 16px; font-weight: 900; letter-spacing: .14em; }
-.logo small { font-family: var(--mono); font-size: 10px; color: var(--film-mute); letter-spacing: .04em; align-self: flex-end; margin-bottom: 2px; }
-.top .ttl { font-size: 14px; font-weight: 700; color: var(--film-mute); border-left: 1px solid #3a3e45; padding-left: 10px; }
-.top .ttl small { display: none; }
-.clock { font-family: var(--mono); font-size: 19px; font-weight: 700; color: var(--amber); letter-spacing: .02em; }
-.top #helpbtn { background: transparent; color: var(--film-ink); border-color: #3d4249; min-height: 34px; }
-.tabbar { background: var(--film); border-top: 0; padding-top: 12px; }
-.tabbar button { color: #80868e; position: relative; }
-.tabbar button[aria-current="page"] { color: var(--amber); }
-.tabbar button[aria-current="page"]::after { content: ''; position: absolute; bottom: 6px; left: 32%; right: 32%; height: 3px; border-radius: 2px; background: var(--amber); }
-.sheet-top { background: var(--film); color: var(--film-ink); border-bottom: 0; padding-bottom: 16px; }
-.sheet-top .x { color: var(--film-ink); border-color: #3d4249; }
-.sheet-top .btn { background: transparent; color: var(--film-ink); border-color: #3d4249; }
-.sheet-top .btn.primary { background: var(--amber); border-color: var(--amber); color: #1b1206; }
-.sheet-top .donebtn[aria-pressed="true"] { background: var(--ok); border-color: var(--ok); color: #fff; }
-#workbar button { background: var(--amber); color: #1b1206; letter-spacing: .02em; }
-#updbar button { background: var(--film2); color: var(--film-ink); }
+/* ═════ キネコマのデザイン（第2版）：暗い映写室・フィルム・カチンコ ═════ */
+@font-face { font-family: "Bebas Neue"; src: url(lib/fonts/bebas-neue.woff2) format("woff2"); font-weight: 400; font-display: swap; }
+@font-face { font-family: "JetBrains Mono"; src: url(lib/fonts/jetbrains-mono-500.woff2) format("woff2"); font-weight: 400 500; font-display: swap; }
+@font-face { font-family: "JetBrains Mono"; src: url(lib/fonts/jetbrains-mono-700.woff2) format("woff2"); font-weight: 600 800; font-display: swap; }
+:root { --display: "Bebas Neue", var(--font); --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --grain: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .5  0 0 0 0 .5  0 0 0 0 .5  0 0 0 .07 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  --glow: rgba(178,97,12,.10); --card-hi: rgba(255,255,255,.7); --shadow: 0 1px 2px rgba(20,16,8,.06), 0 6px 18px rgba(20,16,8,.06); }
+:root[data-theme="dark"] { --glow: rgba(242,169,59,.10); --card-hi: rgba(255,255,255,.035); --shadow: 0 1px 0 rgba(0,0,0,.5), 0 10px 28px rgba(0,0,0,.45); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --glow: rgba(242,169,59,.10); --card-hi: rgba(255,255,255,.035); --shadow: 0 1px 0 rgba(0,0,0,.5), 0 10px 28px rgba(0,0,0,.45); } }
 
-h2 { letter-spacing: .02em; }
-h3 { letter-spacing: .12em; }
-.card { border-radius: 12px; box-shadow: 0 1px 0 rgba(0,0,0,.04); }
-.btn { border-radius: 10px; }
-.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+#app { background: radial-gradient(120% 60% at 50% 0%, var(--glow), transparent 60%), var(--grain), var(--bg); }
+.views { background: transparent; }
+
+/* 上と下の帯：フィルム */
+.perf-b, .perf-t { position: relative; }
+.perf-b::after, .perf-t::before { content: ''; position: absolute; left: 0; right: 0; height: 6px; pointer-events: none;
+  background: repeating-linear-gradient(90deg, transparent 0 7px, var(--hole2) 7px 15px, transparent 15px 22px); border-radius: 1px; }
+.perf-b::after { bottom: 5px; }
+.perf-t::before { top: 5px; }
+:root { --hole2: #2d2f35; }
+.top { background: linear-gradient(180deg, #050506, #111215); color: var(--film-ink); border-bottom: 0; padding-bottom: 19px; gap: 10px; box-shadow: 0 1px 0 #000; }
+.logo { display: inline-flex; align-items: center; gap: 8px; flex: 0 0 auto; color: var(--film-ink); }
+.logo svg { width: 26px; height: 26px; filter: drop-shadow(0 0 6px rgba(242,169,59,.35)); }
+.logo b { font-size: 16px; font-weight: 900; letter-spacing: .2em; }
+.logo small { font-family: var(--mono); font-size: 10px; color: #7c8087; letter-spacing: .04em; align-self: flex-end; margin-bottom: 2px; }
+.top .ttl { font-size: 13px; font-weight: 700; color: #8d9198; border-left: 1px solid #2f3238; padding-left: 10px; }
+.top .ttl small { display: none; }
+.clock { font-family: var(--display); font-size: 30px; font-weight: 400; color: #f2a93b; letter-spacing: .04em; line-height: 1; text-shadow: 0 0 14px rgba(242,169,59,.45); }
+.top #helpbtn { background: transparent; color: #d9d4ca; border: 1px solid #33363c; min-height: 34px; border-radius: 999px; padding: 4px 12px; }
+.tabbar { background: linear-gradient(0deg, #050506, #111215); border-top: 0; padding-top: 12px; box-shadow: 0 -1px 0 #000; }
+.tabbar button { color: #6f747b; position: relative; letter-spacing: .08em; font-size: 11px; }
+.tabbar button svg { transition: transform .15s; }
+.tabbar button[aria-current="page"] { color: #f2a93b; }
+.tabbar button[aria-current="page"] svg { filter: drop-shadow(0 0 6px rgba(242,169,59,.6)); transform: translateY(-1px); }
+.tabbar button[aria-current="page"]::after { content: ''; position: absolute; top: 2px; left: 38%; right: 38%; height: 2px; border-radius: 2px; background: #f2a93b; box-shadow: 0 0 8px #f2a93b; }
+.sheet-top { background: linear-gradient(180deg, #050506, #111215); color: var(--film-ink); border-bottom: 0; padding-bottom: 17px; }
+.sheet-top .t { letter-spacing: .04em; }
+.sheet-top .x { color: #d9d4ca; border: 1px solid #33363c; border-radius: 999px; width: 40px; height: 40px; font-size: 18px; }
+.sheet-top .btn { background: transparent; color: #d9d4ca; border: 1px solid #33363c; border-radius: 999px; }
+.sheet-top .btn.primary { background: #f2a93b; border-color: #f2a93b; color: #1a1105; }
+.sheet-top .donebtn[aria-pressed="true"] { background: var(--ok); border-color: var(--ok); color: #06150c; }
+#workbar button { background: #f2a93b; color: #1a1105; letter-spacing: .02em; }
+#updbar button { background: #1b1d22; color: var(--film-ink); }
+
+/* 文字 */
+h2 { font-size: 19px; letter-spacing: .03em; }
+h3 { font-size: 12px; letter-spacing: .16em; }
+.card > h2:first-child, .card > .row-h:first-child > h2 { display: flex; align-items: center; gap: 9px; }
+.card > h2:first-child::before, .card > .row-h:first-child > h2::before { content: ''; flex: 0 0 auto; width: 9px; height: 14px; border-radius: 2px; background: var(--accent); box-shadow: 0 0 10px var(--glow); }
+.lead { line-height: 1.6; }
+
+/* 面 */
+.card, .scard, .srow, .take, .docv .pg, .seg, .mx-wrap { background: linear-gradient(180deg, var(--card-hi), transparent 40%), var(--surface); }
+.card { border-radius: 16px; border-color: var(--line); box-shadow: var(--shadow); padding: 16px; }
+.card.flat { background: var(--surface2); box-shadow: none; }
+.memo, .cam { background: var(--surface2); border-left: 2px solid var(--line); border-radius: 4px 10px 10px 4px; }
+.memo b, .cam b { letter-spacing: .08em; }
+
+/* ボタン */
+.btn { border-radius: 12px; border: 1px solid var(--line); background: var(--surface2); transition: transform .08s, filter .15s; }
+.btn:active { transform: translateY(1px) scale(.99); filter: brightness(.95); }
+.btn.primary { background: var(--accent); background-image: linear-gradient(180deg, rgba(255,255,255,.22), rgba(255,255,255,0) 55%); border-color: transparent; color: var(--accent-ink); box-shadow: 0 6px 18px var(--glow), inset 0 -2px 0 rgba(0,0,0,.12); letter-spacing: .04em; }
 .btn.dark { background: var(--film); border-color: var(--film); color: var(--film-ink); }
-.seg { border-radius: 10px; }
-.seg button[aria-pressed="true"] { background: var(--film); color: var(--film-ink); box-shadow: inset 0 -3px 0 var(--amber); }
-.chip[aria-pressed="true"], .chip.sel { background: var(--film); border-color: var(--film); color: var(--film-ink); }
+.btn.small { border-radius: 999px; padding: 4px 12px; }
+.seg { border-radius: 12px; padding: 4px; }
+.seg button { letter-spacing: .04em; }
+.seg button[aria-pressed="true"] { background: var(--sel); color: var(--sel-ink); box-shadow: inset 0 -2px 0 var(--accent); }
+.chip { border-width: 1px; background: var(--surface2); }
+.chip[aria-pressed="true"], .chip.sel { background: var(--sel); border-color: var(--sel); color: var(--sel-ink); }
+.field input, .field select, .field textarea, .inp { border-width: 1px; border-radius: 10px; background: var(--surface2); }
+.field input:focus, .field textarea:focus, .inp:focus { border-color: var(--accent); }
+.field > span { letter-spacing: .08em; }
+
+/* 撮影の日のカード（コールシート） */
+.callsheet { position: relative; overflow: hidden; }
+.callsheet::after { content: ''; position: absolute; right: -40px; top: -40px; width: 160px; height: 160px; border-radius: 50%; background: radial-gradient(circle, var(--glow), transparent 70%); pointer-events: none; }
+.callsheet .cs-date { font-family: var(--display); font-size: 44px; line-height: .95; letter-spacing: .03em; }
+.callsheet .cs-date .wd { font-family: var(--font); font-size: 20px; font-weight: 800; letter-spacing: 0; margin-left: 4px; vertical-align: 6px; color: var(--muted); }
+.callsheet .cs-call { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.callsheet .cs-call b { font-family: var(--display); font-size: 30px; font-weight: 400; color: var(--accent); letter-spacing: .04em; }
+.callsheet .cs-call span { font-weight: 700; }
+.sum { gap: 8px; }
+.sum div { background: var(--surface2); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px 8px; }
+.sum b { font-family: var(--display); font-weight: 400; font-size: 38px; line-height: 1; letter-spacing: .03em; }
+.sum span { font-size: 11px; letter-spacing: 0; white-space: nowrap; }
+.bar { height: 12px; border-radius: 3px; background: repeating-linear-gradient(90deg, var(--surface2) 0 12px, transparent 12px 15px); border: 1px solid var(--line); }
+.bar i { background: repeating-linear-gradient(90deg, var(--accent) 0 12px, transparent 12px 15px); box-shadow: 0 0 10px var(--glow); }
 
 /* シーンのカード：左にフィルムの縁 */
-.scard { position: relative; padding-left: 30px; border-radius: 12px; overflow: hidden; }
-.scard::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 18px; background: var(--film);
-  background-image: repeating-linear-gradient(180deg, transparent 0 8px, var(--hole) 8px 16px, transparent 16px 20px);
-  background-size: 7px 100%; background-repeat: repeat-y; background-position: 5px 0; }
-.scard.now { box-shadow: 0 0 0 2px var(--amber); border-color: transparent; }
-.scard .tm { font-family: var(--mono); font-weight: 700; letter-spacing: .02em; }
-.scard .sn, .srow .no, .grp-h .sn { font-family: var(--mono); letter-spacing: .02em; }
-.scard .sn { background: var(--film); color: var(--film-ink); border-radius: 5px; padding: 1px 8px; font-size: 17px; }
-.srow .no { font-size: 17px; }
-.srow { border-left: 4px solid var(--film); }
-.cutpill { font-family: var(--mono); }
+.scard { position: relative; padding: 16px 16px 16px 34px; border-radius: 16px; overflow: hidden; box-shadow: var(--shadow); }
+.scard::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 20px; background-color: #0b0b0d;
+  background-image: repeating-linear-gradient(180deg, transparent 0 7px, var(--hole2) 7px 15px, transparent 15px 20px);
+  background-size: 7px 100%; background-repeat: repeat-y; background-position: 6px 0; }
+.scard.now { box-shadow: 0 0 0 2px var(--accent), 0 10px 30px var(--glow); border-color: transparent; }
+.scard.now::after { content: '次に撮る'; position: absolute; left: 0; top: 0; bottom: 0; width: 20px; background: var(--accent); color: var(--accent-ink); font-size: 11px; font-weight: 900; letter-spacing: .3em; writing-mode: vertical-rl; display: block; line-height: 20px; padding-top: 18px; }
+.scard.done { background: linear-gradient(180deg, var(--card-hi), transparent 40%), var(--ok-bg); }
+.scard .hd { align-items: center; gap: 10px; }
+.scard .tm { font-family: var(--display); font-size: 34px; font-weight: 400; line-height: .9; color: var(--accent); letter-spacing: .04em; }
+.scard .sn { font-family: var(--display); font-weight: 400; font-size: 24px; line-height: 1; background: var(--ink); color: var(--surface); border-radius: 6px; padding: 4px 9px 2px; letter-spacing: .05em; }
+.scard .pl { font-size: 18px; letter-spacing: .02em; }
+.srow { border-left: 4px solid var(--accent); border-radius: 12px; }
+.srow .no { font-family: var(--display); font-weight: 400; font-size: 26px; line-height: 1; letter-spacing: .04em; }
+.srow .no small { font-family: var(--mono); font-size: 11px; letter-spacing: 0; margin-top: 2px; }
+.grp-h .sn { font-family: var(--display); font-weight: 400; font-size: 26px; letter-spacing: .04em; }
+.cutpill { font-family: var(--mono); font-weight: 700; border-width: 1px; border-radius: 6px; }
+.ev { border-left: 2px dashed var(--line); }
+.ev b { font-family: var(--mono); }
+.take { border-radius: 12px; }
+.take .ct { font-family: var(--mono); }
+.take .sec { font-family: var(--mono); }
 .timer { font-family: var(--mono); }
+.badge { border-radius: 5px; letter-spacing: .04em; }
 
 /* 記録の画面：カチンコ */
-.slate { background: var(--film); color: var(--film-ink); border-radius: 12px; overflow: hidden; box-shadow: 0 4px 14px rgba(0,0,0,.25); }
-.clap { height: 26px; background: repeating-linear-gradient(-58deg, #f2efe8 0 16px, #0c0d0f 16px 32px); border-bottom: 3px solid #000; }
-.slate-body { padding: 10px 12px 12px; display: flex; flex-direction: column; gap: 8px; }
-.sl-title { display: flex; justify-content: space-between; gap: 8px; font-size: 12px; color: var(--film-mute); letter-spacing: .08em; }
-.sl-title span:last-child { font-family: var(--mono); }
-.sl-grid { display: grid; grid-template-columns: 1.15fr 1fr 1fr; border: 1px solid #3d4249; border-radius: 8px; overflow: hidden; }
-.sl-grid > div { padding: 6px 10px; }
-.sl-grid > div + div { border-left: 1px solid #3d4249; }
-.sl-grid span { display: block; font-size: 11px; font-weight: 800; color: var(--film-mute); letter-spacing: .1em; }
-.sl-grid b { display: block; font-family: var(--mono); font-size: 36px; line-height: 1.05; color: #fff; font-weight: 700; }
-.sl-sub { font-size: 13px; color: #cfcac0; }
-.tcode { display: flex; align-items: center; justify-content: center; gap: 12px; padding: 6px 0 2px; }
-.tcode .recdot { width: 14px; height: 14px; border-radius: 50%; background: #3d4249; flex: 0 0 auto; }
-.tcode .rectxt { font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--film-mute); letter-spacing: .12em; }
-.tcode.run .recdot { background: var(--rec); box-shadow: 0 0 10px var(--rec); animation: recblink 1s steps(2, start) infinite; }
+.slate { position: relative; padding-top: 16px; }
+.clap { position: relative; height: 30px; margin: 0 2px -2px; border-radius: 6px 6px 2px 2px; z-index: 1;
+  background: repeating-linear-gradient(-60deg, #f3efe6 0 18px, #0c0c0e 18px 36px); box-shadow: 0 2px 0 #000, 0 6px 14px rgba(0,0,0,.35);
+  transform-origin: 12px 100%; transform: rotate(-6deg); transition: transform .14s cubic-bezier(.5,1.8,.6,1); }
+.clap::before { content: ''; position: absolute; left: 6px; bottom: 6px; width: 12px; height: 12px; border-radius: 50%; background: #9aa0a8; box-shadow: inset 0 0 0 3px #4a4e55; }
+.slate.run .clap { transform: rotate(0); }
+.slate-body { position: relative; background: #0c0c0e; color: #f3efe6; border-radius: 4px 4px 16px 16px; padding: 22px 14px 14px; display: flex; flex-direction: column; gap: 10px; box-shadow: 0 10px 30px rgba(0,0,0,.35), inset 0 0 0 1px #1f2024; }
+.slate-body::before { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 12px; background: repeating-linear-gradient(60deg, #f3efe6 0 18px, #0c0c0e 18px 36px); border-radius: 4px 4px 0 0; }
+.sl-title { display: flex; justify-content: space-between; gap: 8px; font-size: 12px; color: #a39e94; letter-spacing: .1em; }
+.sl-title b { color: #f3efe6; font-weight: 800; letter-spacing: .04em; }
+.sl-title span:last-child { font-family: var(--mono); white-space: nowrap; }
+.sl-grid { display: grid; grid-template-columns: 1fr 1fr 1.25fr; border: 1.5px solid #f3efe6; border-radius: 4px; overflow: hidden; }
+.sl-grid > div { padding: 6px 8px 4px; min-width: 0; }
+.sl-grid > div + div { border-left: 1.5px solid #f3efe6; }
+.sl-grid span { display: block; font-size: 11px; font-weight: 800; color: #a39e94; letter-spacing: .18em; }
+.sl-grid b { display: block; font-family: var(--display); font-weight: 400; font-size: 64px; line-height: .92; color: #f3efe6; letter-spacing: .02em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sl-grid b.long { font-size: 40px; padding-top: 12px; }
+.tk { display: flex; align-items: center; gap: 2px; }
+.tk input { width: 100%; min-width: 0; background: transparent; border: 0; border-bottom: 1.5px dashed #5a5d63; color: #f2a93b; font-family: var(--display); font-size: 64px; line-height: .92; text-align: center; padding: 0; border-radius: 0; }
+.tk input:focus { outline: none; border-bottom-color: #f2a93b; }
+.tk button { flex: 0 0 auto; width: 30px; height: 30px; border-radius: 50%; border: 1px solid #4a4e55; color: #f3efe6; font-size: 18px; font-weight: 800; display: grid; place-items: center; text-align: center; }
+.sl-files { display: grid; grid-template-columns: 1.5fr 1fr; gap: 8px; }
+.sl-file { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.sl-file span { font-size: 11px; font-weight: 800; color: #a39e94; letter-spacing: .12em; }
+.sl-file input { width: 100%; min-width: 0; min-height: 46px; background: #17181b; border: 1px solid #3a3d43; border-radius: 8px; color: #fff; font-family: var(--mono); font-weight: 700; font-size: 19px; padding: 6px 10px; letter-spacing: .02em; }
+.sl-file input::placeholder { color: #5d6067; font-weight: 500; }
+.sl-file input:focus { outline: none; border-color: #f2a93b; box-shadow: 0 0 0 3px rgba(242,169,59,.25); }
+.sl-file.main input { color: #f2a93b; font-size: 21px; }
+.sl-sub { font-size: 13px; color: #cfc9be; line-height: 1.5; }
+.tcode { display: flex; align-items: center; justify-content: center; gap: 12px; padding: 4px 0 0; border-top: 1px solid #25262a; margin-top: 2px; }
+.tcode .recdot { width: 14px; height: 14px; border-radius: 50%; background: #34363b; flex: 0 0 auto; }
+.tcode .rectxt { font-size: 12px; font-weight: 800; color: #8d9198; letter-spacing: .14em; }
+.tcode.run .recdot { background: var(--rec); box-shadow: 0 0 12px var(--rec); animation: recblink 1s steps(2, start) infinite; }
 .tcode.run .rectxt { color: var(--rec); }
-.tcode .timer { font-size: 50px; color: #fff; letter-spacing: .02em; }
+.tcode .timer { font-family: var(--display); font-weight: 400; font-size: 68px; line-height: 1; color: #f3efe6; letter-spacing: .04em; }
+.tcode.run .timer { color: #fff; text-shadow: 0 0 18px rgba(255,75,62,.35); }
 @keyframes recblink { to { opacity: .25; } }
-@media (prefers-reduced-motion: reduce) { .tcode.run .recdot { animation: none; } }
-.slate .bigbtn { background: #24272d; color: var(--film-ink); border: 1px solid #3d4249; box-shadow: none; }
-.slate .bigbtn.run { background: var(--rec); border-color: var(--rec); color: #fff; }
-.slate .results .rOK { background: var(--ok); color: #fff; }
-.slate .results .rKEEP { background: transparent; color: var(--amber); border-color: var(--amber); }
-.slate .results .rNG { background: #24272d; color: var(--film-ink); border-color: #3d4249; }
+@media (prefers-reduced-motion: reduce) { .tcode.run .recdot { animation: none; } .clap { transition: none; } }
+.slate .bigbtn { background: #1c1d21; color: #f3efe6; border: 1px solid #3a3d43; box-shadow: none; border-radius: 14px; letter-spacing: .1em; }
+.slate .bigbtn.run { background: var(--rec); border-color: var(--rec); color: #fff; box-shadow: 0 8px 24px rgba(255,75,62,.3); }
+.slate .results { gap: 8px; }
+.slate .results button { border-radius: 14px; letter-spacing: .08em; font-family: var(--display); font-weight: 400; font-size: 30px; }
+.slate .results .rOK { background: #2fa866; color: #fff; box-shadow: 0 6px 18px rgba(47,168,102,.28); }
+.slate .results .rKEEP { background: transparent; color: #f2a93b; border-color: #f2a93b; }
+.slate .results .rNG { background: #1c1d21; color: #c9c4ba; border-color: #3a3d43; }
+
+/* PDF の下見 */
+.pdfpages { display: flex; flex-direction: column; gap: 12px; }
+.pdfpages img { display: block; width: 100%; height: auto; border-radius: 6px; box-shadow: var(--shadow); background: #fff; }
+.pdfinfo { display: flex; align-items: center; gap: 12px; }
+.pdfinfo .ico { flex: 0 0 auto; width: 44px; height: 56px; border-radius: 6px; background: #c0392b; color: #fff; display: grid; place-items: center; font-family: var(--display); font-size: 20px; letter-spacing: .06em; box-shadow: var(--shadow); }
 </style>
 </head>
 <body>
@@ -506,7 +595,7 @@ h3 { letter-spacing: .12em; }
 <script>
 (() => {
 'use strict';
-const VERSION = '3.0（11/3 キネコマに名前を変え、フィルムとカチンコのデザインに）';
+const VERSION = '3.1（11/3 デザインを作り直し、カメラのファイル名とテイク番号の記入、スクリプトシートの PDF）';
 
 /* ───────── 基本 ───────── */
 const $ = id => document.getElementById(id);
@@ -538,6 +627,8 @@ let P = load();
 const S = Object.assign({ tab: 'docs', planView: 'script', logOrder: 'script', logFilter: 'all', day: null, sheets: [], run: null, last: null, recCut: {}, wake: false, scroll: {} },
   (() => { try { return JSON.parse(localStorage.getItem(UIKEY)) || {}; } catch (e) { return {}; } })());
 let pending = [];          // 読み取り済みで、まだ取り込んでいない資料
+function applyTheme() { const t = S.theme || 'dark'; if (t === 'auto') delete document.documentElement.dataset.theme; else document.documentElement.dataset.theme = t; }
+applyTheme();
 let saveT;
 function save(now) {
   P.updated = Date.now();
@@ -1656,7 +1747,7 @@ function renderDocs() {
       <button class="btn" data-a="view" data-k="koban">香盤表</button>
       <button class="btn" data-a="view" data-k="check">撮影チェックシート</button>
       <button class="btn" data-a="view" data-k="post">編集素材リスト</button>
-      <button class="btn" data-a="view" data-k="script">スクリプト表（記録）</button>
+      <button class="btn" data-a="view" data-k="script">スクリプトシート（記録）</button>
       <button class="btn" data-a="openGuide">撮り方の手引き</button>
     </div>
     ${P.docs.length ? `<p class="small">もとの資料（台本・作品意図・写真と実景まとめなど）は、この画面のいちばん下の「取り込んだ資料」から開けます。</p>` : ''}</section>`;
@@ -1680,8 +1771,8 @@ function renderDocs() {
       <li><span><b>資料</b>：台本と香盤表（あればカット表）を入れる</span></li>
       <li><span><b>香盤</b>：読み取ったシーン・撮影日・カットを直す、足す</span></li>
       <li><span><b>撮影</b>：当日、シーンごとに準備を確かめ、テイクを記録する</span></li>
-      <li><span><b>記録</b>：OK・NG・クリップ名をまとめたスクリプト表を見る</span></li>
-      <li><span><b>出力</b>：撮影チェックシート・スクリプト表を印刷、PDF、Excel用ファイルで渡す</span></li>
+      <li><span><b>記録</b>：OK・NG・クリップ名をまとめたスクリプトシートを見る</span></li>
+      <li><span><b>出力</b>：撮影チェックシート・スクリプトシートを印刷、PDF、Excel用ファイルで渡す</span></li>
     </ol><p class="small">データはこの端末の中だけに保存されます。ほかの端末へ移すときは「出力」の「作品データを保存」を使ってください。</p></section>`;
   }
   h += `<section class="card"><h3>作品</h3><div class="fields">
@@ -1859,8 +1950,8 @@ function renderShoot() {
   const doneN = scs.filter(sceneDone).length, miss = scs.reduce((n, sc) => n + missingCuts(sc).length, 0), takeN = P.takes.filter(t => scs.some(s => s.id === t.sc)).length;
   const nowSc = scs.find(s => !sceneDone(s));
   const nowIt = items.find(it => itemScene(it) === nowSc);
-  h += `<section class="card"><div class="row-h"><h2 class="grow">${esc(dayLabel(d))}</h2><button class="btn small" data-a="wake" aria-pressed="${S.wake}">${S.wake ? '画面を消さない：入' : '画面を消さない：切'}</button></div>
-    ${d && (d.call || d.meet) ? `<div>集合 <b>${esc(d.call)}</b>　${esc(d.meet)}</div>` : ''}
+  h += `<section class="card callsheet"><div class="row-h"><span class="grow"><span class="small" style="letter-spacing:.16em">撮影日</span><div class="cs-date">${esc(dayLabel(d)).replace(/(\(.+?\)|（.+?）)$/, '<span class="wd">$1</span>')}</div></span><button class="btn small" data-a="wake" aria-pressed="${S.wake}">${S.wake ? '画面を消さない：入' : '画面を消さない：切'}</button></div>
+    ${d && (d.call || d.meet) ? `<div class="cs-call"><span class="small">集合</span><b>${esc(d.call)}</b><span>${esc(d.meet)}</span></div>` : ''}
     ${d && d.notes ? `<div class="memo">${esc(d.notes)}</div>` : ''}
     ${P.memo ? `<div class="memo">${esc(P.memo)}</div>` : ''}
     <button class="btn small" data-a="openGuide" style="align-self:flex-start">撮り方の手引き（原則と出典）</button>
@@ -1883,7 +1974,7 @@ function renderShoot() {
   $('v-shoot').innerHTML = h;
 }
 
-/* ───────── 記録（スクリプト表） ───────── */
+/* ───────── 記録（スクリプトシート） ───────── */
 function orderedScenes(mode) {
   if (mode === 'shoot') return uniq(P.days.flatMap(d => dayScenes(d.id)).concat(P.scenes.filter(s => !s.day).sort(cmpScene)));
   return scriptOrder();
@@ -1903,6 +1994,7 @@ function renderLog() {
     <div class="seg">${[['all', 'すべて'], ['ok', 'OK・KEEPだけ'], ['miss', '撮り残し']].map(([k, l]) => `<button data-a="logFilter" data-k="${k}" aria-pressed="${S.logFilter === k}">${l}</button>`).join('')}</div>`;
   const all = P.takes.length, ok = P.takes.filter(t => t.r === 'OK').length, keep = P.takes.filter(t => t.r === 'KEEP').length;
   h += `<p class="small">テイク ${all}（OK ${ok}・KEEP ${keep}・NG ${P.takes.filter(t => t.r === 'NG').length}）。テイクをタップすると直せます。</p>`;
+  if (all && !MODE.artifact) h += `<button class="btn primary wide" data-a="pdfScript">スクリプトシートを PDF で監督に送る</button>`;
   const scs = orderedScenes(S.logOrder);
   let body = '';
   if (S.logFilter === 'miss') {
@@ -1931,7 +2023,7 @@ function renderLog() {
 const VIEWS = {
   book: { name: '撮影資料', html: () => bookHtml() },
   check: { name: '撮影チェックシート', html: () => checkSheetHtml(outDays()) },
-  script: { name: 'スクリプト表', html: () => scriptHtml() },
+  script: { name: 'スクリプトシート', html: () => scriptHtml() },
   post: { name: '編集素材リスト', html: () => postHtml() },
   koban: { name: '香盤表', html: () => kobanHtml() },
 };
@@ -1949,9 +2041,10 @@ function renderOut() {
     <section class="card"><h2>撮影チェックシート</h2><p class="lead">当日の流れ・出演・撮るもの・備考をチェック欄つきで。紙で持ち歩く人、スタッフへの共有に。</p>
       <label class="field"><span>撮影日</span><select id="outDay"><option value="all">すべての日</option>${dayOpts}${P.scenes.some(s => !s.day) ? `<option value="" ${S.outDay === '' ? 'selected' : ''}>日程未定のシーン</option>` : ''}</select></label>
       ${outBtns('Check', true)}</section>
-    <section class="card"><h2>スクリプト表（編集用）</h2><p class="lead">シーン・カット・テイクごとの OK／KEEP／NG、尺、クリップ名、音声ファイル、メモ。繋がりと編集への申し送り、編集素材も入ります。撮影のあと編集担当に渡します。</p>
+    <section class="card"><h2>スクリプトシート（編集用）</h2><p class="lead">シーン・カット・テイクごとの OK／KEEP／NG、尺、クリップ名、音声ファイル、メモ。繋がりと編集への申し送り、編集素材も入ります。撮影のあと編集担当に渡します。</p>
       <div class="seg">${[['script', '台本の順'], ['shoot', '撮影の順']].map(([k, l]) => `<button data-a="outOrder" data-k="${k}" aria-pressed="${(S.outOrder || 'script') === k}">${l}</button>`).join('')}</div>
       <div class="seg">${[['all', 'すべてのテイク'], ['ok', 'OK・KEEPだけ']].map(([k, l]) => `<button data-a="outFilter" data-k="${k}" aria-pressed="${(S.outFilter || 'all') === k}">${l}</button>`).join('')}</div>
+      ${MODE.artifact ? '' : '<button class="btn primary wide" data-a="pdfScript">スクリプトシートを PDF で監督に送る</button>'}
       ${outBtns('Script', true)}</section>
     <section class="card"><h2>撮影資料（1冊にまとめたもの）</h2><p class="lead">最初に撮影日ごとの流れ・持ち物・現場の注意、続いてシーンごとに1ページ（撮影の日時と場所・撮るもの・演出・参考画像・編集素材・台本）。スタッフに配る資料に。</p>
       <div class="btns grid2"><button class="btn primary" data-a="view" data-k="book">画面で見る</button>${MODE.artifact ? '' : '<button class="btn" data-a="printBook">印刷・PDF</button>'}</div></section>
@@ -1962,6 +2055,8 @@ function renderOut() {
     <section class="card"><h2>作品データ</h2><p class="lead">${MODE.artifact ? '別の作品データ（.json）を読み込むと、今の内容と入れ替わります。' : '別の端末に移す、スタッフに渡す、念のため残すときに。読み込むと今の内容と入れ替わります。'}</p>
       <div class="btns grid2">${MODE.artifact ? '' : '<button class="btn" data-a="backup">作品データを保存</button>'}<button class="btn" data-a="restore">作品データを読み込む</button><button class="btn" data-a="openLinkBox">リンクで作品を開く</button></div>
       <div class="btns"><button class="btn danger" data-a="wipe">新しい作品を始める（全部消す）</button></div></section>
+    <section class="card"><h2>表示</h2><p class="lead">暗い表示は夜や屋内、明るい表示は日なたの屋外で見やすくなります。</p>
+      <div class="seg">${[['dark', '暗い'], ['light', '明るい'], ['auto', '端末に合わせる']].map(([k, l]) => `<button data-a="theme" data-k="${k}" aria-pressed="${(S.theme || 'dark') === k}">${l}</button>`).join('')}</div></section>
     <p class="small" style="text-align:center">キネコマ ${esc(VERSION)}　<button class="link" data-a="licenses">使っている部品</button></p>
   </div>`;
 }
@@ -2070,7 +2165,7 @@ function scriptHtml() {
     const post = pi.length ? `<tr class="pm"><td colspan="11">${POST_ORDER.filter(k => pi.some(x => x.k === k)).map(k => `<b>${esc(postName(k))}</b> ${pi.filter(x => x.k === k).map(x => esc(x.t)).join('／')}`).join('<br>')}</td></tr>` : '';
     return head + post + body;
   }).join('');
-  return `<section class="pg"><h1>スクリプト表<small>${esc(P.title)}${P.draft ? '　' + esc(P.draft) : ''}　${esc(credLine())}</small></h1>
+  return `<section class="pg"><h1>スクリプトシート<small>${esc(P.title)}${P.draft ? '　' + esc(P.draft) : ''}　${esc(credLine())}</small></h1>
     <div class="ph">${(S.outOrder || 'script') === 'shoot' ? '撮影の順' : '台本の順'}・${(S.outFilter || 'all') === 'ok' ? 'OK・KEEPのみ' : 'すべてのテイク'}　テイク ${P.takes.length}（OK ${okN}）　出力 ${fmtAt(Date.now())}</div>
     <table><thead><tr><th>S#</th><th>C</th><th>T</th><th>判定</th><th>尺</th><th>クリップ</th><th>音声</th><th>TC</th><th>カット内容</th><th>メモ</th><th>記録</th></tr></thead><tbody>${rows || '<tr><td colspan="11">記録がありません</td></tr>'}</tbody></table>
     <div class="foot">判定：OK＝使う、KEEP＝予備、NG＝使わない。尺は現場で計った長さ（目安）。</div></section>`;
@@ -2144,7 +2239,7 @@ function scriptCsv() {
   return rows;
 }
 function scriptText() {
-  const L = [`【スクリプト表】${P.title}`];
+  const L = [`【スクリプトシート】${P.title}`];
   for (const { sc, ts } of scriptData()) {
     if (!ts.length) continue;
     L.push('', `■ ${sceneTitle(sc)}`);
@@ -2300,12 +2395,12 @@ function renderSheets() {
   const box = $('sheets');
   const ys = [...box.querySelectorAll('.sheet-body')].map(el => el.scrollTop);
   const keep = {};
-  if (!freshRec) for (const id of ['rc-clip', 'rc-snd', 'rc-note']) { const el = $(id); if (el) keep[id] = el.value; }
+  if (!freshRec) for (const id of ['rc-clip', 'rc-snd', 'rc-note', 'rc-n']) { const el = $(id); if (el) keep[id] = { v: el.value, k: el.dataset.k || '' }; }
   freshRec = false;
-  S.sheets = S.sheets.filter(s => ((s.t !== 'scene' && s.t !== 'rec') || sceneById(s.id)) && (s.t !== 'ask' || askResolve));
+  S.sheets = S.sheets.filter(s => ((s.t !== 'scene' && s.t !== 'rec') || sceneById(s.id)) && (s.t !== 'ask' || askResolve) && (s.t !== 'pdf' || PDFOUT));
   box.innerHTML = S.sheets.map((s, i) => `<div class="sheet" role="dialog" aria-modal="true" style="z-index:${30 + i}">${SHEET[s.t] ? SHEET[s.t](s) : ''}</div>`).join('');
   [...box.querySelectorAll('.sheet-body')].forEach((el, i) => { if (ys[i]) el.scrollTop = ys[i]; });
-  for (const id in keep) { const el = $(id); if (el) el.value = keep[id]; }
+  for (const id in keep) { const el = $(id); if (el && (el.dataset.k || '') === keep[id].k) el.value = keep[id].v; }
   document.body.style.overflow = S.sheets.length ? 'hidden' : '';
   if (S.sheets.length && S.sheets[S.sheets.length - 1].t === 'rec') tickTimer();
 }
@@ -2372,11 +2467,14 @@ const SHEET = {
     const last = S.last && S.last.sc === sc.id && S.last.cut === cut ? S.last.sec : 0;
     return sheetTop(`S#${esc(sc.no)} ${esc(sc.place)}${todLine(sc) ? `（${esc(todLine(sc))}）` : ''}`, `<button class="btn small donebtn" data-a="sceneDone" data-id="${sc.id}" aria-pressed="${sceneDone(sc)}">${sceneDone(sc) ? '撮了 ✓' : '撮了'}</button>`) + `<div class="sheet-body"><div class="wrap">
       <div class="chips">${chips}<button class="chip ${!sc.cuts.length ? '' : 'dash'}" data-a="recCut" data-id="" aria-pressed="${cut === ''}">一連</button><button class="chip dash" data-a="addCutRec" data-id="${sc.id}">＋カット</button></div>
-      <section class="slate">
+      <section class="slate ${running ? 'run' : ''}">
         <div class="clap" aria-hidden="true"></div>
         <div class="slate-body">
-          <div class="sl-title"><span>${esc(P.title || '')}</span><span>${(() => { const d = new Date(); return `${d.getMonth() + 1}/${d.getDate()}`; })()}</span></div>
-          <div class="sl-grid"><div><span>シーン</span><b>${esc(sc.no)}</b></div><div><span>カット</span><b>${c ? esc(c.no) : '一連'}</b></div><div><span>テイク</span><b>${n}</b></div></div>
+          <div class="sl-title"><span><b>${esc(P.title || '')}</b>${(() => { const d = ((P.credits || []).find(x => /監督/.test(x.role)) || {}).name; return d ? `　監督 ${esc(d)}` : ''; })()}</span><span>${(() => { const d = new Date(); return `${d.getMonth() + 1}/${d.getDate()}`; })()}</span></div>
+          <div class="sl-grid"><div><span>シーン</span><b class="${String(sc.no).length > 2 ? 'long' : ''}">${esc(sc.no)}</b></div><div><span>カット</span><b class="${!c || String(c.no).length > 2 ? 'long' : ''}">${c ? esc(c.no) : '一連'}</b></div>
+            <div><span>テイク</span><div class="tk"><button data-a="takeStep" data-d="-1" aria-label="テイク番号を一つ減らす">−</button><input id="rc-n" data-k="${sc.id}|${cut}" value="${n}" inputmode="numeric" aria-label="テイク番号"><button data-a="takeStep" data-d="1" aria-label="テイク番号を一つ増やす">＋</button></div></div></div>
+          <div class="sl-files"><label class="sl-file main"><span>カメラのファイル名</span><input id="rc-clip" value="${esc(suggest('clip'))}" placeholder="例：C0012" autocapitalize="characters" autocomplete="off" spellcheck="false"></label>
+            <label class="sl-file"><span>音声のファイル名</span><input id="rc-snd" value="${esc(suggest('snd'))}" placeholder="例：ZOOM0001" autocapitalize="characters" autocomplete="off" spellcheck="false"></label></div>
           ${c && (c.size || c.desc) ? `<div class="sl-sub">${esc([c.size, c.desc].filter(Boolean).join('　'))}</div>` : ''}
           <div class="tcode ${running ? 'run' : ''}"><i class="recdot" aria-hidden="true"></i><span class="timer" id="timer">${running ? '0:00.0' : last ? fmtSec(last) : '0:00'}</span><span class="rectxt">${running ? '録画中' : last ? '計った長さ' : '待機'}</span></div>
           <button class="bigbtn ${running ? 'run' : ''}" data-a="${running ? 'recStop' : 'recStart'}">${running ? 'カット（止める）' : 'スタート（計る）'}</button>
@@ -2384,11 +2482,9 @@ const SHEET = {
         </div>
       </section>
       <section class="card rec-top">
-        <div class="f2"><label class="field"><span>クリップ名（カメラ）</span><input id="rc-clip" value="${esc(suggest('clip'))}" placeholder="例：A001_C001" autocapitalize="characters"></label>
-          <label class="field"><span>音声ファイル</span><input id="rc-snd" value="${esc(suggest('snd'))}" placeholder="例：ZOOM0001"></label></div>
         <label class="field"><span>メモ（NGの理由、良かったところなど）</span><input id="rc-note" placeholder="例：台詞とちり"></label>
         <div class="notechips">${['芝居', '台詞', 'カメラ', 'ピント', '音', '外の音', '照明', '映り込み', '段取り', '尻OK', '頭OK', '監督の好み'].map(w => `<button data-a="noteAdd" data-w="${w}">${w}</button>`).join('')}</div>
-        <p class="small">スタート→カット で長さを計り、OK・KEEP・NG を押すと1テイク記録されます。計らずに押してもかまいません。</p>
+        <p class="small">カメラのファイル名は、前のテイクの番号を一つ進めて先に入れてあります。カメラの画面と違うときは書き直してください。テイク番号も「−」「＋」で直せます。スタート→カット で長さを計り、OK・KEEP・NG を押すと1テイク記録されます。計らずに押してもかまいません。</p>
       </section>
       <section class="card rec-top"><h3>このカットの撮り方</h3>
         ${(() => { const pl = plans(c); if (!pl.length) return ''; const k = Math.min(c.pick || 0, pl.length - 1), x = pl[k];
@@ -2510,24 +2606,258 @@ const SHEET = {
         <li><span>赤い<b>「記録する」</b>を押すと記録の画面。上の C1・C2 で撮るカットを選び、<b>スタート</b>→<b>カット</b>で長さを計って、<b>OK・KEEP・NG</b> を押す。OK を押すと次のカットに進みます</span></li>
         <li><span>全部のカットに OK が付くと<b>撮了</b>になります（「撮了にする」で手でも付けられます）</span></li>
       </ol>`)}
-      ${step('カメラワーク案', '<p>撮影のカードの<b>「カメラワーク案（アングルと理由）」</b>を押すと、そのシーンの画面の向き（イマジナリーライン）、前後のシーンとのつながり、カットごとのカメラの位置・サイズ・動きと理由が出ます。「記録する」の画面にも、今撮るカットの案が出ます。現場で人が多い・時間が押したなどのときは、記録の画面の<b>「案A・案B・案C」</b>を押すと別案に切り替わり、どの案で撮ったかがテイクに残ります（スクリプト表にも出ます）。作品全体の決まりごとは「撮影」の画面のいちばん上にあります。</p>')}
+      ${step('カメラワーク案', '<p>撮影のカードの<b>「カメラワーク案（アングルと理由）」</b>を押すと、そのシーンの画面の向き（イマジナリーライン）、前後のシーンとのつながり、カットごとのカメラの位置・サイズ・動きと理由が出ます。「記録する」の画面にも、今撮るカットの案が出ます。現場で人が多い・時間が押したなどのときは、記録の画面の<b>「案A・案B・案C」</b>を押すと別案に切り替わり、どの案で撮ったかがテイクに残ります（スクリプトシートにも出ます）。作品全体の決まりごとは「撮影」の画面のいちばん上にあります。</p>')}
       ${step('撮り方の根拠', '<p>カメラ案の下の<b>「根拠」</b>のボタンを押すと、その撮り方の原則（何をする・なぜ・現場で確かめること・出典）が開きます。「撮影」の画面の上と「資料」の画面の<b>「撮り方の手引き」</b>で、すべての原則を見て、さがせます。この作品以外の撮影でも使えます。</p>')}
       ${step('シーンのくわしい中身：「台本・詳細」', '<p>撮影のカードの「台本・詳細」、または「香盤」でシーンを押すと開きます。台本の本文、編集素材（写真・ＣＧ・字幕・ナレーションなど）、参考画像の追加、撮るものの書き直しができます。</p>')}
       ${step('全体の予定：「香盤」', '<p>「台本の順」で全シーン、「撮影日ごと」で日ごとの並び（↑↓で入れ替え）、「人物」で出番の表を見られます。</p>')}
-      ${step('撮ったもの：「記録」', '<p>撮ったテイクの一覧です。「撮り残し」で OK の無いカットだけを出せます。テイクを押すとクリップ名やメモを直せます。</p>')}
-      ${step('人に渡す：「出力」', `<p><b>撮影チェックシート</b>（当日の流れ、紙で持つとき）、<b>スクリプト表</b>（撮影後、編集担当へ）、<b>編集素材リスト</b>（ＣＧ・音・編集の担当へ）、<b>香盤表</b>。${MODE.artifact ? 'このページでは印刷とファイル保存ができないので、<b>「表をコピー」</b>を押して Excel・スプレッドシート・LINE などに貼り付けてください。' : '「印刷・PDF」「Excel用（CSV）」「表をコピー」から選べます。'}</p>`)}
-      ${step('資料を画面で見る', '<p>「資料」の画面のいちばん上にある<b>「撮影資料」「香盤表」「撮影チェックシート」「編集素材リスト」「スクリプト表」</b>を押すと、そのまま画面で読めます（「出力」の「画面で見る」と同じ）。撮影資料は日程と、シーンごとの撮るもの・演出・参考画像・編集素材・台本をまとめたものです。画像はタップで大きくなります。</p>')}
+      ${step('カメラのファイル名とテイク番号', '<p>記録の画面のカチンコに、<b>カメラのファイル名</b>（カメラの画面に出ている名前。例：C0012）と<b>音声のファイル名</b>を書きます。前のテイクの番号を一つ進めて先に入れてあるので、カメラと違うときだけ直してください。<b>テイク番号</b>は自動で進みますが、「−」「＋」や数字の入力で直せます。</p>')}
+      ${step('撮ったもの：「記録」', '<p>撮ったテイクの一覧です。「撮り残し」で OK の無いカットだけを出せます。テイクを押すとファイル名やメモを直せます。</p>')}
+      ${step('監督に渡す：スクリプトシートの PDF', '<p>「記録」または「出力」の<b>「スクリプトシートを PDF で監督に送る」</b>を押すと、スクリプトシート（シーン・カット・テイク・判定・尺・カメラと音声のファイル名・メモ）が PDF になります。<b>「送る」</b>でメール・AirDrop・LINE などを選んで渡せます。OK のテイクは番号を丸で囲み、カットごとに「使うテイク」をまとめてあります。</p>')}
+      ${step('人に渡す：「出力」', `<p><b>撮影チェックシート</b>（当日の流れ、紙で持つとき）、<b>スクリプトシート</b>（撮影後、編集担当へ）、<b>編集素材リスト</b>（ＣＧ・音・編集の担当へ）、<b>香盤表</b>。${MODE.artifact ? 'このページでは印刷とファイル保存ができないので、<b>「表をコピー」</b>を押して Excel・スプレッドシート・LINE などに貼り付けてください。' : '「印刷・PDF」「Excel用（CSV）」「表をコピー」から選べます。'}</p>`)}
+      ${step('資料を画面で見る', '<p>「資料」の画面のいちばん上にある<b>「撮影資料」「香盤表」「撮影チェックシート」「編集素材リスト」「スクリプトシート」</b>を押すと、そのまま画面で読めます（「出力」の「画面で見る」と同じ）。撮影資料は日程と、シーンごとの撮るもの・演出・参考画像・編集素材・台本をまとめたものです。画像はタップで大きくなります。</p>')}
       ${step('資料を入れ直す：「資料」', '<p>新しい台本や香盤表（PDF・Word・Excel など）を入れると読み取ります。取り込んだ資料の本文もここで読めます。</p>')}
       <button class="btn primary wide" data-a="close">閉じる</button>
+    </div></div>`;
+  },
+  pdf() {
+    if (!PDFOUT) return sheetTop('スクリプトシート（PDF）') + '<div class="sheet-body"><div class="wrap"><p>もう一度「スクリプトシートを PDF で監督に送る」を押してください。</p></div></div>';
+    const kb = Math.round(PDFOUT.blob.size / 1024);
+    return sheetTop('スクリプトシート（PDF）') + `<div class="sheet-body"><div class="wrap">
+      <section class="card"><div class="pdfinfo"><span class="ico">PDF</span><div><b>${esc(PDFOUT.name)}</b><div class="small">A4 横・${PDFOUT.pages}ページ・${kb >= 1024 ? (kb / 1024).toFixed(1) + 'MB' : kb + 'KB'}</div></div></div>
+        <button class="btn primary wide" data-a="pdfShare">送る（メール・AirDrop・LINE など）</button>
+        <button class="btn wide" data-a="pdfSave">ファイルに保存</button>
+        <p class="small">「送る」を押すと送り先を選ぶ画面が出ます。メールなら「メール」、近くの iPhone や Mac なら「AirDrop」を選んでください。入っているのは「出力」で選んだ並び順とテイクです。</p></section>
+      <div class="pdfpages">${PDFOUT.previews.map((u, i) => `<img src="${u}" alt="${i + 1}ページ目">`).join('')}</div>
     </div></div>`;
   },
   text(s) { return sheetTop(esc(s.title)) + `<div class="sheet-body"><div class="wrap"><p class="small">長押しですべて選んでコピーしてください。</p><textarea class="inp" rows="20" readonly>${esc(s.text)}</textarea></div></div>`; },
   lic() {
     return sheetTop('使っている部品') + `<div class="sheet-body"><div class="wrap"><section class="card"><p>ファイルの読み取りに次の部品を使っています。部品はアプリと一緒に置いてあるので、電波がなくても動きます。</p>
-      <ul style="margin-left:1.2em"><li>SheetJS Community Edition 0.18.5（Excel）Apache License 2.0</li><li>mammoth.js 1.6.0（Word）BSD 2-Clause License</li><li>PDF.js 3.11.174（PDF）Apache License 2.0</li></ul>
-      <p class="small">使用許諾の全文は lib フォルダにあります。</p></section></div></div>`;
+      <ul style="margin-left:1.2em"><li>SheetJS Community Edition 0.18.5（Excel）Apache License 2.0</li><li>mammoth.js 1.6.0（Word）BSD 2-Clause License</li><li>PDF.js 3.11.174（PDF）Apache License 2.0</li><li>Bebas Neue（数字の書体）SIL Open Font License 1.1</li><li>JetBrains Mono（ファイル名と時刻の書体）SIL Open Font License 1.1</li></ul>
+      <p class="small">使用許諾の全文は lib フォルダ（書体は lib/fonts）にあります。</p></section></div></div>`;
   },
 };
+
+/* ───────── PDF（スクリプトシート）：端末の中で作り、メール・AirDrop などで送る ───────── */
+let PDFOUT = null;
+const PJP = '"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP","Noto Sans CJK JP","Yu Gothic","Meiryo",sans-serif';
+const PNUM = '"Bebas Neue",' + PJP, PMONO = '"JetBrains Mono",ui-monospace,Menlo,monospace';
+async function fontsReady() { try { await Promise.all(['40px "Bebas Neue"', '700 20px "JetBrains Mono"', '500 20px "JetBrains Mono"'].map(f => document.fonts.load(f))); } catch (e) {} }
+function pdfBlob(pages, title) {
+  const enc = new TextEncoder(), parts = [], offs = []; let len = 0;
+  const push = x => { const b = typeof x === 'string' ? enc.encode(x) : x; parts.push(b); len += b.length; };
+  const obj = (n, body) => { offs[n] = len; push(`${n} 0 obj\n`); body(); push('\nendobj\n'); };
+  const u16 = s => { let h = 'FEFF'; for (const ch of s) { const c = ch.codePointAt(0); if (c > 0xffff) { const v = c - 0x10000; h += (0xD800 + (v >> 10)).toString(16).padStart(4, '0') + (0xDC00 + (v & 0x3ff)).toString(16).padStart(4, '0'); } else h += c.toString(16).padStart(4, '0'); } return '<' + h.toUpperCase() + '>'; };
+  const PW = 841.89, PH = 595.28, n = pages.length;
+  push('%PDF-1.4\n'); push(new Uint8Array([37, 226, 227, 207, 211, 10]));
+  obj(1, () => push('<< /Type /Catalog /Pages 2 0 R >>'));
+  obj(2, () => push(`<< /Type /Pages /Kids [${pages.map((p, i) => `${4 + i * 3} 0 R`).join(' ')}] /Count ${n} >>`));
+  obj(3, () => push(`<< /Title ${u16(title)} /Creator ${u16('キネコマ')} /Producer ${u16('キネコマ')} >>`));
+  pages.forEach((p, i) => {
+    const po = 4 + i * 3, io = po + 1, co = po + 2, cs = `q ${PW} 0 0 ${PH} 0 0 cm /Im${i} Do Q`;
+    obj(po, () => push(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${PW} ${PH}] /Resources << /XObject << /Im${i} ${io} 0 R >> >> /Contents ${co} 0 R >>`));
+    obj(io, () => { push(`<< /Type /XObject /Subtype /Image /Width ${p.w} /Height ${p.h} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${p.jpg.length} >>\nstream\n`); push(p.jpg); push('\nendstream'); });
+    obj(co, () => push(`<< /Length ${cs.length} >>\nstream\n${cs}\nendstream`));
+  });
+  const total = 4 + n * 3, xref = len;
+  push(`xref\n0 ${total}\n0000000000 65535 f \n`);
+  for (let k = 1; k < total; k++) push(String(offs[k]).padStart(10, '0') + ' 00000 n \n');
+  push(`trailer\n<< /Size ${total} /Root 1 0 R /Info 3 0 R >>\nstartxref\n${xref}\n%%EOF\n`);
+  return new Blob(parts, { type: 'application/pdf' });
+}
+// スクリプトシートを A4 横のページに描く（1mm = K px）
+async function scriptPdf() {
+  await fontsReady();
+  const K = 8, W = 297, H = 210, M = 12, TOP = 27, BOT = H - 15, CW = W - M * 2;
+  const cv = document.createElement('canvas'); cv.width = W * K; cv.height = H * K;
+  const g = cv.getContext('2d');
+  const C = { ink: '#16161a', mute: '#6d685f', line: '#d8d3c8', band: '#141416', cut: '#f4f1ea', ok: '#1d8250', keep: '#a5680a', ng: '#8d8a84', amber: '#e39a2d', red: '#c0392b' };
+  const pt = v => v * 0.3528;
+  const font = (size, w = 400, fam = PJP) => { g.font = `${w} ${(pt(size) * K).toFixed(1)}px ${fam}`; };
+  const tw = s => g.measureText(s).width / K;
+  const text = (s, x, y, color = C.ink, align = 'left') => { g.fillStyle = color; g.textAlign = align; g.textBaseline = 'alphabetic'; g.fillText(s, x * K, y * K); };
+  const rect = (x, y, w, h, color) => { g.fillStyle = color; g.fillRect(x * K, y * K, w * K, h * K); };
+  const hline = (x1, x2, y, color = C.line, wd = .25) => { g.strokeStyle = color; g.lineWidth = wd * K; g.beginPath(); g.moveTo(x1 * K, y * K); g.lineTo(x2 * K, y * K); g.stroke(); };
+  const NOHEAD = '、。，．・：；？！）」』】〕ー～…ぁぃぅぇぉっゃゅょァィゥェォッャュョ';
+  const wrap = (s, maxW) => {
+    const out = [];
+    for (const para of String(s || '').split('\n')) {
+      let line = '';
+      for (const ch of para) {
+        if (tw(line + ch) > maxW && line && !NOHEAD.includes(ch)) { out.push(line); line = ch; } else line += ch;
+      }
+      out.push(line);
+    }
+    return out.length ? out : [''];
+  };
+  const fit = (s, maxW) => { s = String(s || ''); if (tw(s) <= maxW) return s; while (s && tw(s + '…') > maxW) s = s.slice(0, -1); return s + '…'; };
+  const LH = 4.25; // 9pt の行の高さ（mm）
+
+  const data = scriptData().filter(({ sc, ts }) => ts.length || !sc.noshoot);
+  const okOnly = (S.outFilter || 'all') === 'ok', order = (S.outOrder || 'script') === 'shoot' ? '撮影の順' : '台本の順';
+  const all = P.takes, nOK = all.filter(t => t.r === 'OK').length, nKP = all.filter(t => t.r === 'KEEP').length, nNG = all.filter(t => t.r === 'NG').length;
+  const director = ((P.credits || []).find(c => /監督/.test(c.role)) || {}).name || P.director || '';
+  const shooter = ((P.credits || []).find(c => /^撮影/.test(c.role)) || {}).name || '';
+  const recorder = ((P.credits || []).find(c => /記録/.test(c.role)) || {}).name || '';
+  const days = uniq(all.map(t => t.day)).map(id => dayById(id)).filter(Boolean).map(dayLabel);
+  const okSec = all.filter(t => t.r === 'OK').reduce((s, t) => s + (t.sec || 0), 0);
+  const now = fmtAt(Date.now());
+
+  // 表の列（mm）
+  const COLS = [['テイク', 17, 'c'], ['判定', 16, 'c'], ['尺', 15, 'c'], ['カメラのファイル名', 46, 'l'], ['音声', 30, 'l'], ['案・レンズ', 22, 'c'], ['メモ', 0, 'l'], ['記録', 22, 'c']];
+  COLS[6][1] = CW - COLS.reduce((s, c) => s + c[1], 0);
+  const colX = []; COLS.reduce((x, c, i) => { colX[i] = x; return x + c[1]; }, M);
+
+  // ブロック（高さと描き方）を並べる
+  const blocks = [];
+  const add = (b) => blocks.push(b);
+  // 1ページ目のまとめ
+  add({ k: 'summary', h: 30, draw: y => {
+    g.strokeStyle = C.ink; g.lineWidth = .5 * K; g.strokeRect(M * K, y * K, CW * K, 26 * K);
+    const cells = [['作品', P.title || ''], ['監督', director], ['撮影', shooter], ['記録', recorder], ['撮影日', days.join('・') || '—'], ['テイク', `${all.length}`], ['ＯＫ／ＫＥＥＰ／ＮＧ', `${nOK}／${nKP}／${nNG}`], ['ＯＫの尺の合計', fmtSec(okSec) || '—']];
+    const cw = CW / 4;
+    cells.forEach(([l, v], i) => {
+      const cx = M + (i % 4) * cw, cy = y + Math.floor(i / 4) * 13;
+      if (i % 4) { g.strokeStyle = C.line; g.lineWidth = .25 * K; g.beginPath(); g.moveTo(cx * K, (cy + 1.5) * K); g.lineTo(cx * K, (cy + 11.5) * K); g.stroke(); }
+      font(7, 700); text(l, cx + 3, cy + 4.6, C.mute);
+      const num = /^[\d／:—]+$/.test(v);
+      font(num ? 17 : 11.5, num ? 400 : 800, num ? PNUM : PJP); text(fit(v, cw - 6), cx + 3, cy + 10.6, C.ink);
+    });
+    hline(M, M + CW, y + 13, C.line, .25);
+  } });
+  add({ k: 'note', h: 7, draw: y => { font(8, 400); text(`${order}・${okOnly ? 'ＯＫとＫＥＥＰだけ' : 'すべてのテイク'}。ＯＫのテイクは番号を丸で囲んでいます。尺は現場で計った長さ（目安）。`, M, y + 4, C.mute); } });
+
+  const colHead = { k: 'colhead', h: 6.5, draw: y => {
+    rect(M, y, CW, 6.5, '#ebe7de');
+    font(7, 800);
+    COLS.forEach(([l, w, a], i) => text(l, a === 'c' ? colX[i] + w / 2 : colX[i] + 2, y + 4.4, C.mute, a === 'c' ? 'center' : 'left'));
+  } };
+  const sceneBand = (sc, cont) => ({ k: 'scene', sc, h: cont ? 8 : 10, draw: y => {
+    const h = cont ? 8 : 10;
+    rect(M, y, CW, h, C.band); rect(M, y, 1.6, h, C.amber);
+    font(cont ? 13 : 17, 400, PNUM); const sn = `S#${sc.no}`; text(sn, M + 4, y + h - 2.2, '#ffffff');
+    const x2 = M + 6 + tw(sn);
+    font(cont ? 9 : 11, 800); const pl = `${sc.place}${todLine(sc) ? `（${todLine(sc)}）` : ''}${cont ? '　つづき' : ''}`; text(fit(pl, 120), x2, y + h - 2.8, '#ffffff');
+    const x3 = x2 + Math.min(tw(pl), 120) + 6;
+    font(7.5, 400); const meta = [sc.loc ? 'ロケ：' + sc.loc : '', sc.day ? '撮影：' + dayLabel(dayById(sc.day)) : ''].filter(Boolean).join('　');
+    if (!cont) text(fit(meta, M + CW - 3 - x3), M + CW - 3, y + h - 3, '#c9c3b6', 'right');
+  } });
+
+  for (const { sc, ts } of data) {
+    add(sceneBand(sc, false));
+    const notes = [sc.cont ? ['繋がり', sc.cont] : null, sc.edit ? ['編集へ', sc.edit] : null].filter(Boolean);
+    for (const [l, v] of notes) {
+      font(8.5); const ls = wrap(v, CW - 22);
+      add({ k: 'note', sc, h: ls.length * 3.9 + 2.2, draw: y => { font(7.5, 800); text(l, M + 2, y + 3.9, C.mute); font(8.5); ls.forEach((s, i) => text(s, M + 20, y + 3.9 + i * 3.9)); } });
+    }
+    add(Object.assign({}, colHead, { sc }));
+    if (!ts.length) { add({ k: 'row', sc, h: 7, draw: y => { font(8.5); text('記録なし（まだ撮っていません）', M + 3, y + 4.8, C.ng); hline(M, M + CW, y + 7); } }); }
+    // カットごとにまとめる
+    const groups = [];
+    for (const t of ts) { let gp = groups.find(x => x.cut === (t.cut || '')); if (!gp) groups.push(gp = { cut: t.cut || '', ts: [] }); gp.ts.push(t); }
+    if ((S.outOrder || 'script') === 'script') groups.sort((a, b) => sc.cuts.findIndex(c => c.id === a.cut) - sc.cuts.findIndex(c => c.id === b.cut));
+    for (const gp of groups) {
+      const c = sc.cuts.find(x => x.id === gp.cut);
+      const allT = takesOf(sc.id, gp.cut), oks = allT.filter(t => t.r === 'OK'), keeps = allT.filter(t => t.r === 'KEEP');
+      const use = oks.length ? oks : keeps;
+      const right = `テイク ${allT.length}回　使う：${use.length ? use.map(t => `${oks.length ? '' : 'ＫＥＥＰ '}T${t.n}${t.clip ? `（${t.clip}）` : ''}`).join('、') : 'なし'}`;
+      font(8.5, 800); const rw = Math.min(tw(right) + 4, 120);
+      font(8.5); const desc = c ? [c.size, c.desc].filter(Boolean).join('　') : '一連（カットを分けない）';
+      const dl = wrap(desc, CW - rw - 24);
+      add({ k: 'cut', sc, h: Math.max(dl.length * 3.9 + 2.6, 7), draw: y => {
+        const h = Math.max(dl.length * 3.9 + 2.6, 7);
+        rect(M, y, CW, h, C.cut); rect(M, y, 1, h, C.amber);
+        font(12, 400, PNUM); text(c ? `C${c.no}` : '一連', M + 3, y + 5.4, C.ink);
+        font(8.5); dl.forEach((s, i) => text(s, M + 18, y + 4.6 + i * 3.9, C.ink));
+        font(8.5, 800); text(fit(right, rw - 2), M + CW - 2, y + 4.6, use.length ? (oks.length ? C.ok : C.keep) : C.red, 'right');
+      } });
+      for (const t of gp.ts) {
+        font(9); const memo = wrap(t.note || '', COLS[6][1] - 4);
+        font(9, 700, PMONO); const clip = wrap(t.clip || '', COLS[3][1] - 4), snd = wrap(t.snd || '', COLS[4][1] - 4);
+        const h = Math.max(memo.length, clip.length, snd.length, 1) * LH + 2.6;
+        add({ k: 'row', sc, h, draw: y => {
+          const base = y + 4.6, cx = i => colX[i] + COLS[i][1] / 2;
+          const col = t.r === 'OK' ? C.ok : t.r === 'KEEP' ? C.keep : t.r === 'NG' ? C.ng : C.mute;
+          font(13, 400, PNUM); text(String(t.n), cx(0), base + .6, t.r === 'NG' ? C.ng : C.ink, 'center');
+          if (t.r === 'OK') { g.strokeStyle = C.ok; g.lineWidth = .5 * K; g.beginPath(); g.arc(cx(0) * K, (base - 1.55) * K, 2.85 * K, 0, Math.PI * 2); g.stroke(); }
+          font(10, 400, PNUM); text(t.r || '—', cx(1), base + .2, col, 'center');
+          font(9, 500, PMONO); text(fmtSec(t.sec) || '—', cx(2), base, t.sec ? C.ink : C.ng, 'center');
+          font(9, 700, PMONO); clip.forEach((s, i) => text(s, colX[3] + 2, base + i * LH, t.r === 'NG' ? C.ng : C.ink));
+          font(8.5, 500, PMONO); snd.forEach((s, i) => text(s, colX[4] + 2, base + i * LH, C.ink));
+          font(8.5); text([t.plan, t.mm ? t.mm + 'mm' : ''].filter(Boolean).join(' ') || '', cx(5), base, C.ink, 'center');
+          font(9); memo.forEach((s, i) => text(s, colX[6] + 2, base + i * LH, t.r === 'NG' ? '#7a5a55' : C.ink));
+          font(8, 500, PMONO); text(fmtAt(t.at), cx(7), base, C.mute, 'center');
+          hline(M, M + CW, y + h);
+        } });
+      }
+    }
+    add({ k: 'gap', sc: null, h: 5, draw: () => {} });
+  }
+  if (!data.length) add({ k: 'note', h: 10, draw: y => { font(11, 700); text('記録がありません', M, y + 6, C.mute); } });
+
+  // ページに割り付ける（シーンの途中で改ページしたら、シーンの帯と表の見出しをもう一度）
+  const pages = [[]]; let y = TOP, cur = null;
+  const fitsWithNext = (i) => { const b = blocks[i]; let h = b.h; if (b.k === 'scene' || b.k === 'colhead' || b.k === 'cut') { for (let j = i + 1; j < blocks.length && j < i + 4; j++) { h += blocks[j].h; if (blocks[j].k === 'row') break; } } return h; };
+  for (let i = 0; i < blocks.length; i++) {
+    const b = blocks[i];
+    if (b.k === 'scene') cur = b.sc;
+    if (y + fitsWithNext(i) > BOT && pages[pages.length - 1].length) {
+      pages.push([]); y = TOP;
+      if (b.k === 'gap') continue;
+      if (cur && b.k !== 'scene') { const sb = sceneBand(cur, true); pages[pages.length - 1].push({ b: sb, y }); y += sb.h; if (b.k !== 'colhead') { pages[pages.length - 1].push({ b: colHead, y }); y += colHead.h; } }
+    }
+    pages[pages.length - 1].push({ b, y }); y += b.h;
+  }
+
+  // 描く
+  const out = [], previews = [];
+  const title = `${P.title || '作品'}　スクリプトシート`;
+  for (let p = 0; p < pages.length; p++) {
+    g.setTransform(1, 0, 0, 1, 0, 0); g.fillStyle = '#ffffff'; g.fillRect(0, 0, cv.width, cv.height);
+    // 上のフィルムの帯
+    rect(0, 0, W, 6.5, '#111215');
+    for (let x = 3; x < W; x += 6) { g.fillStyle = '#ffffff'; g.beginPath(); g.roundRect ? g.roundRect(x * K, 2 * K, 2.6 * K, 2.4 * K, .5 * K) : g.rect(x * K, 2 * K, 2.6 * K, 2.4 * K); g.fill(); }
+    // 見出し
+    font(17, 900); text('スクリプトシート', M, 17);
+    const hx = M + tw('スクリプトシート') + 5;
+    font(10, 700); text(fit(`${P.title || ''}${P.draft ? '　' + P.draft : ''}`, 120), hx, 16.6, C.mute);
+    font(8.5, 700); text([director ? '監督　' + director : '', `出力　${now}`].filter(Boolean).join('　　'), W - M, 16.6, C.mute, 'right');
+    hline(M, W - M, 21, C.ink, .5);
+    for (const { b, y: by } of pages[p]) b.draw(by);
+    // 下の帯
+    hline(M, W - M, H - 10, C.line, .25);
+    font(7.5); text('判定：ＯＫ＝使う（番号を丸で囲む）　ＫＥＥＰ＝予備　ＮＧ＝使わない', M, H - 6, C.mute);
+    font(12, 400, PNUM); text(`${p + 1} / ${pages.length}`, W - M, H - 5.6, C.ink, 'right');
+    font(7.5, 800); text('キネコマ', W - M - 18, H - 6, C.mute, 'right');
+    const blob = await new Promise(r => cv.toBlob(r, 'image/jpeg', .86));
+    out.push({ jpg: new Uint8Array(await blob.arrayBuffer()), w: cv.width, h: cv.height });
+    previews.push(URL.createObjectURL(blob));
+  }
+  return { blob: pdfBlob(out, title), previews, pages: pages.length };
+}
+async function makeScriptPdf() {
+  busy(true, 'PDF を作っています…');
+  try {
+    if (PDFOUT) PDFOUT.previews.forEach(u => URL.revokeObjectURL(u));
+    const r = await scriptPdf();
+    PDFOUT = Object.assign(r, { name: fileName('スクリプトシート', 'pdf') });
+    S.sheets = S.sheets.filter(s => s.t !== 'pdf'); openSheet({ t: 'pdf' });
+  } catch (e) { console.error(e); toast('PDF を作れませんでした'); }
+  finally { busy(false); }
+}
+async function pdfShare() {
+  if (!PDFOUT) return;
+  const f = new File([PDFOUT.blob], PDFOUT.name, { type: 'application/pdf' });
+  if (navigator.canShare && navigator.canShare({ files: [f] })) {
+    try { await navigator.share({ files: [f], title: PDFOUT.name }); } catch (e) { if (e && e.name !== 'AbortError') toast('送れませんでした。「ファイルに保存」を試してください'); }
+  } else pdfSave();
+}
+function pdfSave() {
+  if (!PDFOUT) return;
+  const a = document.createElement('a'); a.href = URL.createObjectURL(PDFOUT.blob); a.download = PDFOUT.name; document.body.appendChild(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 4000);
+  toast('保存しました：' + PDFOUT.name);
+}
 
 /* ───────── 記録の動き ───────── */
 let timerH = null;
@@ -2548,7 +2878,8 @@ function recResult(scId, r) {
   const sec = S.last && S.last.sc === scId && S.last.cut === cut ? S.last.sec : 0;
   const cc = sc.cuts.find(x => x.id === cut), pk = cc ? Math.min(cc.pick || 0, (cc.alts || []).length) : 0, plan = cc && cc.alts && cc.alts.length ? '案' + planLabel(pk) : '';
   const pf = cc && planFig(cc, pk), mm = pf && pf.mm ? String(pf.mm) : '';
-  const t = { id: uid(), sc: scId, cut, plan, mm, n: nextTakeNo(scId, cut), r, sec, clip: ($('rc-clip') || {}).value || '', snd: ($('rc-snd') || {}).value || '', tc: '', note: (($('rc-note') || {}).value || '').trim(), at: Date.now(), day: sc.day || '' };
+  const nIn = parseInt(half(($('rc-n') || {}).value || ''), 10);
+  const t = { id: uid(), sc: scId, cut, plan, mm, n: nIn > 0 ? nIn : nextTakeNo(scId, cut), r, sec, clip: half(($('rc-clip') || {}).value || '').trim(), snd: half(($('rc-snd') || {}).value || '').trim(), tc: '', note: (($('rc-note') || {}).value || '').trim(), at: Date.now(), day: sc.day || '' };
   P.takes.push(t); S.last = null; freshRec = true;
   if (r === 'OK' && sc.cuts.length) { // 次のカットへ
     const i = sc.cuts.findIndex(c => c.id === cut);
@@ -2595,6 +2926,11 @@ const ACT = {
   recStart: () => { const top = S.sheets[S.sheets.length - 1]; S.run = { sc: top.id, cut: S.recCut[top.id] || '', t0: Date.now() }; S.last = null; persist(); buzz(30); renderSheetsKeep(); },
   recStop: () => { recStop(); buzz(30); renderSheetsKeep(); },
   recResult: b => { const top = S.sheets[S.sheets.length - 1]; recResult(top.id, b.dataset.r); },
+  takeStep: b => { const el = $('rc-n'); if (!el) return; const v = Math.max(1, (parseInt(half(el.value), 10) || 1) + +b.dataset.d); el.value = v; buzz(8); },
+  pdfScript: () => makeScriptPdf(),
+  pdfShare: () => pdfShare(),
+  pdfSave: () => pdfSave(),
+  theme: b => { S.theme = b.dataset.k; persist(); applyTheme(); render(); },
   noteAdd: b => { const el = $('rc-note'); el.value = (el.value ? el.value + '、' : '') + b.dataset.w; },
   viewImg: b => { const list = (b.dataset.list || b.dataset.id).split(',').filter(Boolean); openSheet({ t: 'img', list, i: Math.max(0, list.indexOf(b.dataset.id)) }); },
   imgStep: b => { const top = S.sheets[S.sheets.length - 1]; top.i = (top.i + +b.dataset.dir + top.list.length) % top.list.length; persist(); renderSheets(); },
@@ -2613,15 +2949,15 @@ const ACT = {
   outOrder: b => { S.outOrder = b.dataset.k; persist(); render(); },
   outFilter: b => { S.outFilter = b.dataset.k; persist(); render(); },
   copyCheck: () => copyTable(checkCsv(outDays()), '撮影チェックシート'),
-  copyScript: () => copyTable(scriptCsv(), 'スクリプト表'),
+  copyScript: () => copyTable(scriptCsv(), 'スクリプトシート'),
   copyPost: () => copyTable(postCsv(), '編集素材リスト'),
   copyKoban: () => copyTable(kobanCsv(), '香盤表'),
   printCheck: () => doPrint(checkSheetHtml(outDays()), true),
   shareCheck: () => shareText('撮影チェックシート', checkText(outDays())),
   csvCheck: () => download(fileName('撮影チェックシート', 'csv'), toCsv(checkCsv(outDays())), 'text/csv'),
   printScript: () => doPrint(scriptHtml(), true),
-  csvScript: () => download(fileName('スクリプト表', 'csv'), toCsv(scriptCsv()), 'text/csv'),
-  shareScript: () => shareText('スクリプト表', scriptText()),
+  csvScript: () => download(fileName('スクリプトシート', 'csv'), toCsv(scriptCsv()), 'text/csv'),
+  shareScript: () => shareText('スクリプトシート', scriptText()),
   printBook: () => doPrint(bookHtml(), false),
   printPost: () => doPrint(postHtml(), false),
   csvPost: () => download(fileName('編集素材リスト', 'csv'), toCsv(postCsv()), 'text/csv'),

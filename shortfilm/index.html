@@ -170,6 +170,40 @@ table.mx { border-collapse: collapse; font-size: 13px; min-width: 100%; }
 .cutpill.ok { border-color: var(--ok); background: var(--ok-bg); color: var(--ok); }
 .cutpill.tried { border-color: var(--keep); color: var(--keep); }
 .donebtn { margin-left: auto; }
+.fig { display: block; width: 100%; max-width: 420px; height: auto; margin: 4px auto; font-family: var(--font); }
+.fig .fbg { fill: var(--surface); stroke: var(--line); stroke-width: .4; }
+.fig .froad { fill: var(--surface2); stroke: var(--line); stroke-width: .4; }
+.fig .fbox { fill: var(--ng-bg); stroke: var(--ng); stroke-width: .4; }
+.fig .fstep { stroke: var(--ng); stroke-width: .3; }
+.fig .fsteparrow { stroke: var(--muted); stroke-width: .7; }
+.fig .ftree { fill: var(--ok-bg); stroke: var(--ok); stroke-width: .3; }
+.fig .fwall { stroke: var(--ink); stroke-width: 1.6; }
+.fig .ft { fill: var(--muted); font-size: 3.4px; font-weight: 700; }
+.fig .fs { font-size: 3px; }
+.fig .fv { font-size: 3.2px; }
+.fig .fl { fill: var(--ink); font-size: 3.6px; }
+.fig .fan { fill: var(--ok); font-size: 3.2px; font-weight: 800; }
+.fig .fcl { fill: var(--accent); font-size: 3.2px; font-weight: 800; }
+.fig .fnote { fill: var(--muted); font-size: 3.2px; }
+.fig .faxt { fill: var(--warn); font-size: 2.8px; }
+.fig .fside { fill: var(--accent); fill-opacity: .07; }
+.fig .faxis { stroke: var(--warn); stroke-width: .6; stroke-dasharray: 2 1.4; }
+.fig .ffov { fill: var(--accent); fill-opacity: .16; stroke: var(--accent); stroke-width: .35; }
+.fig .fcam { fill: var(--ink); }
+.fig .fca { fill: var(--accent); }
+.fig .fpa { fill: var(--ok); }
+.fig .fpan, .fig .fcampath { fill: none; stroke: var(--accent); stroke-width: .6; }
+.fig .fcampath { stroke-dasharray: 1.6 1; }
+.fig .fpath { fill: none; stroke: var(--ok); stroke-width: .7; stroke-dasharray: 2 1; }
+.fig .fface { stroke: var(--ok); stroke-width: .7; }
+.fig .fact { fill: var(--ok); }
+.fig .fnorth { stroke: var(--ink); stroke-width: .6; }
+.fig .fground { stroke: var(--muted); stroke-width: .5; }
+.fig .fperson { stroke: var(--ok); stroke-width: .8; fill: var(--ok); }
+.figthumb { display: flex; align-items: center; gap: 8px; margin: 4px 0; padding: 4px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); width: 100%; text-align: left; font-size: 13px; font-weight: 800; color: var(--accent); }
+.figthumb .fig { width: 120px; flex: 0 0 120px; margin: 0; }
+.figbtn { display: block; width: 100%; padding: 0; border-radius: 10px; }
+.docv .bfig .fig, #print .bfig .fig { width: 46mm; max-width: 46mm; margin: 1mm 0; }
 .alts { margin-top: 3px; }
 .alts > summary { font-size: 13px; font-weight: 700; color: var(--accent); min-height: 32px; }
 .cam.alt b { color: var(--accent); }
@@ -376,7 +410,7 @@ pre.doc { white-space: pre-wrap; word-break: break-word; font-family: var(--font
 <script>
 (() => {
 'use strict';
-const VERSION = '1.9（11/3 資料の版の表示、最新にするボタン）';
+const VERSION = '2.0（11/3 カメラ位置の図）';
 
 /* ───────── 基本 ───────── */
 const $ = id => document.getElementById(id);
@@ -550,6 +584,84 @@ function sceneProgress(sc) {
 function sceneDone(sc) { return sc.done || (P.takes.some(t => t.sc === sc.id) && sceneOk(sc)); }
 function missingCuts(sc) { if (sc.noshoot) return []; return missingCuts0(sc); }
 function missingCuts0(sc) { if (sc.cuts.length) return sc.cuts.filter(c => !cutState(sc, c.id).ok); return sceneOk(sc) ? [] : [null]; }
+/* ───────── カメラ位置の図（上から見た図。北が上） ───────── */
+const LENS_FOV = { 広角: 80, 標準: 50, 望遠: 24, 寄り: 40, マクロ: 34 };
+function clipHalf(A, B, C) { // 0〜100 の四角を、直線 AB のうち点 C の側だけに切る
+  const cr = (P) => (B[0] - A[0]) * (P[1] - A[1]) - (B[1] - A[1]) * (P[0] - A[0]);
+  const sg = Math.sign(cr(C)) || 1; let poly = [[0, 0], [100, 0], [100, 100], [0, 100]], out = [];
+  for (let i = 0; i < poly.length; i++) {
+    const P = poly[i], Q = poly[(i + 1) % poly.length], a = sg * cr(P), b = sg * cr(Q);
+    if (a >= 0) out.push(P);
+    if ((a >= 0) !== (b >= 0)) { const t = a / (a - b); out.push([P[0] + (Q[0] - P[0]) * t, P[1] + (Q[1] - P[1]) * t]); }
+  }
+  return out;
+}
+const v2 = (d, r) => [Math.sin(d * Math.PI / 180) * r, -Math.cos(d * Math.PI / 180) * r];
+const f1 = n => Math.round(n * 10) / 10;
+function figSVG(stage, fig, opt = {}) {
+  if (!fig) return '';
+  stage = stage || {}; const o = [], uid2 = 'f' + Math.random().toString(36).slice(2, 7); let legendH = 13;
+  const T = (x, y, t, cls = 'ft', anchor = 'middle') => `<text x="${f1(x)}" y="${f1(y)}" class="${cls}" text-anchor="${anchor}">${esc(t)}</text>`;
+  o.push(`<defs><marker id="${uid2}a" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="4" markerHeight="4" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="fpa"/></marker><marker id="${uid2}c" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="4" markerHeight="4" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="fca"/></marker></defs>`);
+  o.push(`<clipPath id="${uid2}k"><rect x="0" y="0" width="100" height="100"/></clipPath><rect x="0" y="0" width="100" height="100" class="fbg"/><g clip-path="url(#${uid2}k)">`);
+  for (const e of stage.els || []) {
+    if (e.k === 'road') o.push(`<rect x="${e.x}" y="${e.y}" width="${e.w}" height="${e.h}" class="froad"/>` + (e.label ? T(e.x + e.w / 2, e.y + e.h - 8, e.label, 'ft fv') : ''));
+    else if (e.k === 'box') o.push(`<rect x="${e.x}" y="${e.y}" width="${e.w}" height="${e.h}" rx="1" class="fbox"/>` + (e.label ? T(e.x + e.w / 2, e.y + Math.min(4.6, e.h / 2 + 1.2), e.label, 'ft fs') : ''));
+    else if (e.k === 'steps') {
+      let st = `<rect x="${e.x}" y="${e.y}" width="${e.w}" height="${e.h}" class="fbox"/>`;
+      for (let yy = e.y + 3; yy < e.y + e.h; yy += 3) st += `<line x1="${e.x}" y1="${yy}" x2="${e.x + e.w}" y2="${yy}" class="fstep"/>`;
+      const up = e.dir !== 'down', cx = e.x + e.w / 2;
+      st += `<line x1="${cx}" y1="${up ? e.y + e.h - 3 : e.y + 3}" x2="${cx}" y2="${up ? e.y + 4 : e.y + e.h - 4}" class="fsteparrow" marker-end="url(#${uid2}a)"/>`;
+      o.push(st + (e.label ? T(e.x + e.w + 2, e.y + e.h / 2, e.label, 'ft fs', 'start') : ''));
+    }
+    else if (e.k === 'circle') o.push(`<circle cx="${e.x}" cy="${e.y}" r="${e.r}" class="fbox"/>` + (e.label ? T(e.x, e.y + 1.4, e.label, 'ft fs') : ''));
+    else if (e.k === 'tree') o.push(`<circle cx="${e.x}" cy="${e.y}" r="${e.r || 3}" class="ftree"/>`);
+    else if (e.k === 'wall') o.push(`<line x1="${e.x1}" y1="${e.y1}" x2="${e.x2}" y2="${e.y2}" class="fwall"/>` + (e.label ? T((e.x1 + e.x2) / 2 + (e.dx || 0), (e.y1 + e.y2) / 2 + (e.dy || 0), e.label, 'ft fs') : ''));
+    else if (e.k === 'label') o.push(e.rot ? `<g transform="translate(${e.x} ${e.y}) rotate(-90)">${T(0, 1, e.t, 'ft ' + (e.cls || 'fs'))}</g>` : T(e.x, e.y, e.t, 'ft ' + (e.cls || 'fs'), e.a || 'middle'));
+  }
+  // イマジナリーラインと、カメラを置く側
+  const ax = fig.axis || stage.axis, cams = fig.cams || [];
+  if (ax && cams.length) {
+    const [A, B] = ax, dx = B[0] - A[0], dy = B[1] - A[1], L = Math.hypot(dx, dy) || 1, ux = dx / L, uy = dy / L;
+    const P1 = [A[0] - ux * 200, A[1] - uy * 200], P2 = [A[0] + ux * 200, A[1] + uy * 200];
+    o.push(`<polygon points="${clipHalf(A, B, cams[0]).map(p => p.map(f1).join(',')).join(' ')}" class="fside"/>`);
+    o.push(`<line x1="${f1(P1[0])}" y1="${f1(P1[1])}" x2="${f1(P2[0])}" y2="${f1(P2[1])}" class="faxis"/>`);
+    const lp = fig.axisLabel || stage.axisLabel;
+    if (lp) o.push(T(lp[0], lp[1], 'イマジナリーライン', 'ft faxt', lp[2] || 'middle'));
+  }
+  // 写る範囲（扇形）
+  const fov = fig.fov || LENS_FOV[fig.lens] || 50;
+  for (const c of cams) {
+    const [x, y, d] = c, R = fig.reach || 46, a = v2(d - fov / 2, R), b = v2(d + fov / 2, R);
+    o.push(`<path d="M${f1(x)} ${f1(y)}L${f1(x + a[0])} ${f1(y + a[1])}A${R} ${R} 0 0 1 ${f1(x + b[0])} ${f1(y + b[1])}Z" class="ffov"/>`);
+  }
+  if (fig.campath) o.push(`<polyline points="${fig.campath.map(p => p.join(',')).join(' ')}" class="fcampath" marker-end="url(#${uid2}c)"/>`);
+  if (fig.path) o.push(`<polyline points="${fig.path.map(p => p.join(',')).join(' ')}" class="fpath" marker-end="url(#${uid2}a)"/>`);
+  for (const a of fig.acts || (fig.act ? [fig.act] : [])) {
+    const [x, y, face, label] = a, f = v2(face, 6);
+    o.push(`<line x1="${x}" y1="${y}" x2="${f1(x + f[0])}" y2="${f1(y + f[1])}" class="fface" marker-end="url(#${uid2}a)"/><circle cx="${x}" cy="${y}" r="3" class="fact"/>` + T(x + (a[4] || 0), y + 7.5, label || '高峰', 'ft fan'));
+  }
+  cams.forEach((c, i) => {
+    const [x, y, d, lab] = c;
+    o.push(`<g transform="translate(${f1(x)} ${f1(y)}) rotate(${d})"><rect x="-3" y="-2" width="6" height="5" rx="1" class="fcam"/><polygon points="-1.8,-2 1.8,-2 3,-4.6 -3,-4.6" class="fcam"/></g>`);
+    if (fig.pan && i === 0) { const r = 8, a = v2(d - 30, r), b = v2(d + 30, r); o.push(`<path d="M${f1(x + a[0])} ${f1(y + a[1])}A${r} ${r} 0 0 1 ${f1(x + b[0])} ${f1(y + b[1])}" class="fpan" marker-end="url(#${uid2}c)" marker-start="url(#${uid2}c)"/>`); }
+    if (lab || cams.length > 1) o.push(T(x, y + 8, lab || '①②③④'[i], 'ft fcl'));
+  });
+  o.push('</g>');
+  // 北の矢印
+  o.push(`<g transform="translate(93 8)"><line x1="0" y1="5" x2="0" y2="-4" class="fnorth" marker-end="url(#${uid2}a)"/>${T(0, 10.5, '北', 'ft fs')}</g>`);
+  // 下の欄：高さ（横から見た絵）・サイズ・レンズ
+  const hv = /すれすれ|地面|足元/.test(fig.h || '') ? 0.6 : /低|腰/.test(fig.h || '') ? 3.2 : /高め|上から|見下ろし|段の上/.test(fig.h || '') ? 8.5 : 5.6;
+  const tilt = /見上げ|あおり|ティルトアップ/.test(fig.h || '') ? -1 : /見下ろし|俯瞰/.test(fig.h || '') ? 1 : 0;
+  o.push(`<g transform="translate(0 104)"><line x1="2" y1="12" x2="22" y2="12" class="fground"/><line x1="15" y1="12" x2="15" y2="4" class="fperson"/><circle cx="15" cy="3" r="1.4" class="fperson"/>
+    <rect x="3.5" y="${f1(12 - hv - 1.2)}" width="4" height="2.4" rx=".5" class="fcam"/><line x1="7.5" y1="${f1(12 - hv)}" x2="11.5" y2="${f1(12 - hv - tilt * 2.5)}" class="fpan" marker-end="url(#${uid2}c)"/>
+    ${(() => { const ls = [`高さ：${fig.h || '目の高さ'}`], sz = `サイズ：${fig.size || '—'}`, ln = `レンズ：${fig.lens || '標準'}${fig.pan ? '　パン' : ''}${fig.campath ? '　移動' : ''}`;
+      if ((sz + ln).length > 17) ls.push(sz, ln); else ls.push(sz + '　' + ln);
+      legendH = 6.5 * ls.length + (fig.note ? 6.5 : 0);
+      return ls.map((t, i) => T(25, 5 + i * 6.5, t, 'ft fl', 'start')).join('') + (fig.note ? T(2, 5 + ls.length * 6.5, '※ ' + fig.note, 'ft fnote', 'start') : ''); })()}</g>`);
+  return `<svg class="fig${opt.small ? ' small' : ''}" viewBox="-1 -1 102 ${Math.max(122, 106 + legendH)}" role="img" aria-label="カメラ位置の図">${o.join('')}</svg>`;
+}
+const planFig = (c, i) => (i ? ((c.alts || [])[i - 1] || {}).fig : c.fig);
 const planLabel = i => 'ABCDEFG'[i] || String(i + 1);
 const plans = c => (c && c.cam ? [{ when: '基本', cam: c.cam, why: c.why }] : []).concat((c && c.alts) || []);
 function altsHtml(c) {
@@ -1510,7 +1622,7 @@ function shootCard(sc, isNow, slot) {
   const cos = costumeItems(sc).map(n => prepChip(`${sc.id}|w|${n}`, n)).join('');
   const mk = makeupItems(sc).map(n => prepChip(`${sc.id}|m|${n}`, n)).join('');
   const withDesc = sc.cuts.some(c => c.desc);
-  const cuts = sc.cuts.map(c => { const st = cutState(sc, c.id); const pill = `<span class="cutpill ${st.ok ? 'ok' : st.n ? 'tried' : ''}">C${esc(c.no)}${st.ok ? ' OK' : st.n ? ` ${st.n}回` : ''}</span>`; return withDesc ? `<div class="cutrowv">${pill}<div>${c.size ? `<b>${esc(c.size)}</b> ` : ''}${esc(c.desc)}${camHtml(c)}</div></div>` : pill; }).join('');
+  const cuts = sc.cuts.map(c => { const st = cutState(sc, c.id); const pill = `<span class="cutpill ${st.ok ? 'ok' : st.n ? 'tried' : ''}">C${esc(c.no)}${st.ok ? ' OK' : st.n ? ` ${st.n}回` : ''}</span>`; return withDesc ? `<div class="cutrowv">${pill}<div>${c.size ? `<b>${esc(c.size)}</b> ` : ''}${esc(c.desc)}${c.fig ? `<button class="figthumb" data-a="openFig" data-sc="${sc.id}" data-id="${c.id}" aria-label="カメラ位置の図を開く">${figSVG(sc.stage, c.fig, { small: true })}<span>図を開く（案A〜C）</span></button>` : ''}${camHtml(c)}</div></div>` : pill; }).join('');
   const ts = takesOf(sc.id);
   return `<article class="scard ${done ? 'done' : isNow ? 'now' : ''}" id="sc-${slot ? slot.id : sc.id}">
     <div class="hd">${start ? `<span class="tm">${esc(start)}</span>` : ''}<span class="sn">S#${esc(sc.no)}</span><span class="pl">${esc(sc.place)}</span>${todLine(sc) ? `<span class="badge">${esc(todLine(sc))}</span>` : ''}
@@ -1803,7 +1915,7 @@ function bookHtml() {
         ${sc.notes ? `<tr><th>備考</th><td>${esc(sc.notes)}</td></tr>` : ''}
         ${sc.axis ? `<tr><th>軸</th><td>${esc(sc.axis)}</td></tr>` : ''}
         ${sc.link ? `<tr><th>前後</th><td>${esc(sc.link)}</td></tr>` : ''}
-        ${sc.cuts.length ? `<tr><th>撮るもの</th><td>${sc.cuts.map(c => `<div class="bcut">${cutState(sc, c.id).ok ? '☑' : pbox}C${esc(c.no)}　${c.size ? `<b>${esc(c.size)}</b>　` : ''}${esc(c.desc)}${c.cam ? `<div class="dir">カメラ${c.alts && c.alts.length ? '（案A）' : ''}：${esc(c.cam)}${c.why ? `<br>理由：${esc(c.why)}` : ''}</div>` : ''}${(c.alts || []).map((a, i) => `<div class="dir">案${planLabel(i + 1)}（${esc(a.when)}）：${esc(a.cam)}${a.why ? `<br>理由：${esc(a.why)}` : ''}</div>`).join('')}</div>`).join('')}</td></tr>` : ''}
+        ${sc.cuts.length ? `<tr><th>撮るもの</th><td>${sc.cuts.map(c => `<div class="bcut">${cutState(sc, c.id).ok ? '☑' : pbox}C${esc(c.no)}　${c.size ? `<b>${esc(c.size)}</b>　` : ''}${esc(c.desc)}${c.fig ? `<div class="bfig">${figSVG(sc.stage, c.fig, { small: true })}</div>` : ''}${c.cam ? `<div class="dir">カメラ${c.alts && c.alts.length ? '（案A）' : ''}：${esc(c.cam)}${c.why ? `<br>理由：${esc(c.why)}` : ''}</div>` : ''}${(c.alts || []).map((a, i) => `<div class="dir">案${planLabel(i + 1)}（${esc(a.when)}）：${esc(a.cam)}${a.why ? `<br>理由：${esc(a.why)}` : ''}</div>`).join('')}</div>`).join('')}</td></tr>` : ''}
         ${sc.edit ? `<tr><th>編集へ</th><td>${esc(sc.edit)}</td></tr>` : ''}
       </tbody></table>
       ${imgs.length ? `<h2>参考画像</h2><div class="imgs">${imgs.map(id => `<figure data-a="viewImg" data-id="${id}" data-list="${imgs.join(',')}"><img src="${IMG[id]}" alt=""><figcaption>${esc(name(id))}</figcaption></figure>`).join('')}</div>` : ''}
@@ -2058,7 +2170,8 @@ const SHEET = {
         <div class="ctlabel">${esc(cutLabel(sc, cut))}　テイク ${n}${c && (c.size || c.desc) ? `<br><small>${esc([c.size, c.desc].filter(Boolean).join('　'))}</small>` : ''}</div>
         ${(() => { const pl = plans(c); if (!pl.length) return ''; const k = Math.min(c.pick || 0, pl.length - 1), x = pl[k];
           return `${pl.length > 1 ? `<div class="chips planchips">${pl.map((p, i) => `<button class="chip" data-a="pickPlan" data-sc="${sc.id}" data-id="${c.id}" data-i="${i}" aria-pressed="${i === k}">案${planLabel(i)}<span class="small">${esc(p.when)}</span></button>`).join('')}</div>` : ''}
-            <div class="memo"><b>カメラ${pl.length > 1 ? `（案${planLabel(k)}）` : ''}</b>${esc(x.cam)}${x.why ? `<br><span class="small">理由：${esc(x.why)}</span>` : ''}</div>`; })()}
+            <div class="memo"><b>カメラ${pl.length > 1 ? `（案${planLabel(k)}）` : ''}</b>${esc(x.cam)}${x.why ? `<br><span class="small">理由：${esc(x.why)}</span>` : ''}</div>
+            ${planFig(c, k) ? `<button class="figbtn" data-a="openFig" data-sc="${sc.id}" data-id="${c.id}">${figSVG(sc.stage, planFig(c, k))}</button>` : ''}`; })()}
         ${sc.axis ? `<div class="small"><b>画面の向き・軸：</b>${esc(sc.axis)}</div>` : ''}
         ${sc.dir ? `<div class="memo"><b>演出</b>${esc(sc.dir)}</div>` : ''}
         ${(sc.refs || []).some(id => IMG[id]) ? `<div class="thumbs">${thumbs(sc.refs)}</div>` : ''}
@@ -2145,6 +2258,15 @@ const SHEET = {
     <p class="small">ホーム画面のアイコンから開いたアプリは、Safari とは保存場所が別です。アイコンから使うときは、ここで一度開いてください。</p>
     <input class="inp worklink" placeholder="ここにリンクを貼り付け" autocomplete="off" autocapitalize="off" spellcheck="false" inputmode="url">
     <button class="btn primary wide" data-a="openPasted">開く</button></section></div></div>`; },
+  fig(s) {
+    const sc = sceneById(s.sc), c = sc && sc.cuts.find(x => x.id === s.id); if (!c) return sheetTop('カメラ位置の図') + '<div class="sheet-body"></div>';
+    const pl = plans(c);
+    return sheetTop(`S#${esc(sc.no)} C${esc(c.no)} カメラ位置の図`) + `<div class="sheet-body"><div class="wrap">
+      <p class="small">上から見た図（北が上）。赤い点線がイマジナリーライン、色の付いた側にカメラを置く。扇形が写る範囲、緑の丸が高峰、矢印は向きと動き。見取り図と写真からの想定なので、細かい向きは現地で合わせてください。</p>
+      <div class="memo"><b>C${esc(c.no)}</b>${esc(c.desc)}</div>
+      ${pl.map((p, i) => `<section class="card"><h3>案${planLabel(i)}　${esc(p.when)}</h3>${planFig(c, i) ? figSVG(sc.stage, planFig(c, i)) : '<p class="small">図はありません</p>'}<div>${esc(p.cam)}</div>${p.why ? `<div class="small">理由：${esc(p.why)}</div>` : ''}</section>`).join('')}
+    </div></div>`;
+  },
   ask(s) { return `<div class="sheet-top"><div class="t">確認</div></div><div class="sheet-body"><div class="wrap"><section class="card"><p style="font-size:17px;font-weight:700">${esc(s.msg)}</p>
       <div class="btns grid2"><button class="btn" data-a="askNo">やめる</button><button class="btn primary" data-a="askYes">${esc(s.ok)}</button></div></section></div></div>`; },
   help() {
@@ -2245,6 +2367,7 @@ const ACT = {
   viewImg: b => { const list = (b.dataset.list || b.dataset.id).split(',').filter(Boolean); openSheet({ t: 'img', list, i: Math.max(0, list.indexOf(b.dataset.id)) }); },
   imgStep: b => { const top = S.sheets[S.sheets.length - 1]; top.i = (top.i + +b.dataset.dir + top.list.length) % top.list.length; persist(); renderSheets(); },
   imgZoom: () => { S.zoom = !S.zoom; renderSheets(); },
+  openFig: b => openSheet({ t: 'fig', sc: b.dataset.sc, id: b.dataset.id }),
   pickPlan: b => { const sc = sceneById(b.dataset.sc), c = sc && sc.cuts.find(x => x.id === b.dataset.id); if (!c) return; c.pick = +b.dataset.i; save(); renderSheets(); RENDER[S.tab](); },
   pickImgs: b => openSheet({ t: 'pick', id: b.dataset.id }),
   pickToggle: b => { const sc = sceneById(S.sheets[S.sheets.length - 1].id); sc.refs = sc.refs || []; const id = b.dataset.id; if (sc.refs.includes(id)) sc.refs = sc.refs.filter(x => x !== id); else sc.refs.push(id); save(); b.setAttribute('aria-pressed', String(sc.refs.includes(id))); },

@@ -25,13 +25,20 @@
   color-scheme: light;
 }
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     --bg: #0c1014; --surface: #161c22; --surface2: #1c242b; --ink: #e7edf2; --muted: #9aa8b4; --line: #2a353f;
     --accent: #ff7a5c; --accent-ink: #1d0702; --accent-bg: #3a1a14;
     --ok: #5fd08f; --ok-bg: #133423; --keep: #f1b54a; --keep-bg: #3a2c0f; --ng: #a3adb7; --ng-bg: #262e36;
     --sel: #e7edf2; --sel-ink: #14191f; --warn: #ff7a5c;
     color-scheme: dark;
   }
+}
+:root[data-theme="dark"] {
+    --bg: #0c1014; --surface: #161c22; --surface2: #1c242b; --ink: #e7edf2; --muted: #9aa8b4; --line: #2a353f;
+    --accent: #ff7a5c; --accent-ink: #1d0702; --accent-bg: #3a1a14;
+    --ok: #5fd08f; --ok-bg: #133423; --keep: #f1b54a; --keep-bg: #3a2c0f; --ng: #a3adb7; --ng-bg: #262e36;
+    --sel: #e7edf2; --sel-ink: #14191f; --warn: #ff7a5c;
+    color-scheme: dark;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 html, body { height: 100%; }
@@ -285,6 +292,7 @@ pre.doc { white-space: pre-wrap; word-break: break-word; font-family: var(--font
   <header class="top">
     <div class="ttl" id="ttl"></div>
     <div class="clock" id="clock"></div>
+    <button class="btn small" data-a="help" id="helpbtn">使い方</button>
   </header>
   <div id="updbar" hidden></div>
   <main class="views">
@@ -326,6 +334,10 @@ function fmtSec(s) { s = Math.round(+s || 0); if (!s) return ''; return `${Math.
 function parseSec(v) { v = half(v).trim(); if (!v) return 0; const m = /^(\d+)[:分'](\d{1,2})/.exec(v); if (m) return +m[1] * 60 + +m[2]; const n = parseFloat(v); return isNaN(n) ? 0 : Math.round(n); }
 function fmtAt(ts) { if (!ts) return ''; const d = new Date(ts); return `${d.getMonth() + 1}/${d.getDate()} ${d.getHours()}:${pad2(d.getMinutes())}`; }
 function natCmp(a, b) { return String(a).localeCompare(String(b), 'ja', { numeric: true }); }
+
+/* ───────── 置かれた場所 ───────── */
+const PRESET = window.SATSUEICHO_PRESET || null;
+const MODE = { artifact: !!(PRESET && PRESET.artifact) }; // 印刷・ファイル保存ができない場所に置いたとき
 
 /* ───────── 保存 ───────── */
 const KEY = 'satsueicho.v1.project', UIKEY = 'satsueicho.v1.ui';
@@ -1505,24 +1517,29 @@ function renderLog() {
 }
 
 /* ───────── 出力 ───────── */
+function outBtns(k, share) {
+  const B = (a, l, cls = '') => `<button class="btn ${cls}" data-a="${a}${k}">${l}</button>`;
+  const list = MODE.artifact ? [B('copy', '表をコピー', 'primary'), share ? B('share', '文字で送る') : '']
+    : [B('print', '印刷・PDF', 'primary'), B('csv', 'Excel用（CSV）'), B('copy', '表をコピー'), share ? B('share', '文字で送る') : ''];
+  return `<div class="btns grid2">${list.filter(Boolean).join('')}</div>`;
+}
 function renderOut() {
   const dayOpts = P.days.map(d => `<option value="${d.id}" ${S.outDay === d.id ? 'selected' : ''}>${esc(dayLabel(d))}</option>`).join('');
   $('v-out').innerHTML = `<div class="wrap">
-    <section class="card"><h2>撮影チェックシート</h2><p class="lead">当日の流れ・出演・小道具・衣装・カットをチェック欄つきで1枚に。紙で持ち歩く人、スタッフへの共有に。</p>
+    <p class="small">${MODE.artifact ? 'このページでは印刷とファイルの保存ができません。「表をコピー」を押して、Excel・スプレッドシートの左上のマスに貼り付けてください。「文字で送る」は LINE やメールに貼れる文字をコピーします。' : '「表をコピー」は Excel・スプレッドシートにそのまま貼り付けられます。'}</p>
+    <section class="card"><h2>撮影チェックシート</h2><p class="lead">当日の流れ・出演・撮るもの・備考をチェック欄つきで。紙で持ち歩く人、スタッフへの共有に。</p>
       <label class="field"><span>撮影日</span><select id="outDay"><option value="all">すべての日</option>${dayOpts}${P.scenes.some(s => !s.day) ? `<option value="" ${S.outDay === '' ? 'selected' : ''}>日程未定のシーン</option>` : ''}</select></label>
-      <div class="btns grid2"><button class="btn primary" data-a="printCheck">印刷・PDF</button><button class="btn" data-a="shareCheck">文字で送る</button></div>
-      <div class="btns grid2"><button class="btn" data-a="csvCheck">Excel用（CSV）</button></div></section>
-    <section class="card"><h2>スクリプト表（編集用）</h2><p class="lead">シーン・カット・テイクごとの OK／KEEP／NG、尺、クリップ名、音声ファイル、メモ。繋がりと編集への申し送りも入ります。</p>
+      ${outBtns('Check', true)}</section>
+    <section class="card"><h2>スクリプト表（編集用）</h2><p class="lead">シーン・カット・テイクごとの OK／KEEP／NG、尺、クリップ名、音声ファイル、メモ。繋がりと編集への申し送り、編集素材も入ります。撮影のあと編集担当に渡します。</p>
       <div class="seg">${[['script', '台本の順'], ['shoot', '撮影の順']].map(([k, l]) => `<button data-a="outOrder" data-k="${k}" aria-pressed="${(S.outOrder || 'script') === k}">${l}</button>`).join('')}</div>
       <div class="seg">${[['all', 'すべてのテイク'], ['ok', 'OK・KEEPだけ']].map(([k, l]) => `<button data-a="outFilter" data-k="${k}" aria-pressed="${(S.outFilter || 'all') === k}">${l}</button>`).join('')}</div>
-      <div class="btns grid2"><button class="btn primary" data-a="printScript">印刷・PDF</button><button class="btn" data-a="csvScript">Excel用（CSV）</button></div>
-      <div class="btns grid2"><button class="btn" data-a="shareScript">文字で送る</button></div></section>
+      ${outBtns('Script', true)}</section>
     <section class="card"><h2>編集素材リスト</h2><p class="lead">台本の ※写真・ＣＧ・動画、字幕、ナレーション、唄、ＳＥ をシーンごとに並べたもの。編集・ＣＧ・音の担当に渡せます。</p>
-      <div class="btns grid2"><button class="btn" data-a="printPost">印刷・PDF</button><button class="btn" data-a="csvPost">Excel用（CSV）</button></div></section>
+      ${outBtns('Post', false)}</section>
     <section class="card"><h2>香盤表</h2><p class="lead">撮影日の順に、シーン・場所・人物の出番（○）・小道具・衣装を並べた表。</p>
-      <div class="btns grid2"><button class="btn" data-a="printKoban">印刷・PDF</button><button class="btn" data-a="csvKoban">Excel用（CSV）</button></div></section>
-    <section class="card"><h2>作品データ</h2><p class="lead">別の端末に移す、スタッフに渡す、念のため残すときに。読み込むと今の内容と入れ替わります。</p>
-      <div class="btns grid2"><button class="btn" data-a="backup">作品データを保存</button><button class="btn" data-a="restore">作品データを読み込む</button></div>
+      ${outBtns('Koban', false)}</section>
+    <section class="card"><h2>作品データ</h2><p class="lead">${MODE.artifact ? '別の作品データ（.json）を読み込むと、今の内容と入れ替わります。' : '別の端末に移す、スタッフに渡す、念のため残すときに。読み込むと今の内容と入れ替わります。'}</p>
+      <div class="btns grid2">${MODE.artifact ? '' : '<button class="btn" data-a="backup">作品データを保存</button>'}<button class="btn" data-a="restore">作品データを読み込む</button></div>
       <div class="btns"><button class="btn danger" data-a="wipe">新しい作品を始める（全部消す）</button></div></section>
     <p class="small" style="text-align:center">撮影帳 ${esc(VERSION)}　<button class="link" data-a="licenses">使っている部品</button></p>
   </div>`;
@@ -1541,6 +1558,11 @@ async function download(name, text, mime) {
   const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click();
   setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
   toast('保存しました：' + name);
+}
+async function copyTable(rows, label) {
+  const tsv = rows.map(r => r.map(v => String(v ?? '').replace(/[\t\r\n]+/g, ' ')).join('\t')).join('\n');
+  try { await navigator.clipboard.writeText(tsv); toast(`${label}をコピーしました。Excel・スプレッドシートの左上のマスに貼り付けてください`); }
+  catch (e) { openSheet({ t: 'text', title: label, text: tsv }); }
 }
 async function shareText(title, text) {
   try { if (navigator.share) { await navigator.share({ title, text }); return; } } catch (e) { if (e && e.name === 'AbortError') return; }
@@ -1685,7 +1707,7 @@ async function restoreFile(f) {
   try {
     const j = JSON.parse(decodeText(await f.arrayBuffer()));
     if (!j || !j.v || !Array.isArray(j.scenes)) throw new Error();
-    if (!confirm(`「${j.title || '作品'}」を読み込みます。今の内容（${P.title || '作品'}）と入れ替わります。よろしいですか？`)) return;
+    if (!await ask(`「${j.title || '作品'}」を読み込みます。今の内容（${P.title || '作品'}）と入れ替わります。よろしいですか？`)) return;
     const images = j.images || []; delete j.images;
     busy(true, '作品データを読み込んでいます…');
     try { await IDB.clear(); } catch (e) {}
@@ -1698,15 +1720,18 @@ async function restoreFile(f) {
 
 /* ───────── 上に重なる画面（シーン・記録・テイクなど） ───────── */
 let freshRec = false;
+let askResolve = null;
+function ask(msg, ok = 'はい') { return new Promise(res => { if (askResolve) askResolve(false); askResolve = res; S.sheets.push({ t: 'ask', msg, ok }); renderSheets(); }); }
+function answer(v) { const r = askResolve; askResolve = null; if (S.sheets.length && S.sheets[S.sheets.length - 1].t === 'ask') S.sheets.pop(); renderSheets(); if (r) r(v); }
 function openSheet(s) { S.sheets.push(s); persist(); renderSheets(); }
-function closeSheet() { S.sheets.pop(); persist(); render(); }
+function closeSheet() { if (S.sheets.length && S.sheets[S.sheets.length - 1].t === 'ask') { answer(false); return; } S.sheets.pop(); persist(); render(); }
 function renderSheets() {
   const box = $('sheets');
   const ys = [...box.querySelectorAll('.sheet-body')].map(el => el.scrollTop);
   const keep = {};
   if (!freshRec) for (const id of ['rc-clip', 'rc-snd', 'rc-note']) { const el = $(id); if (el) keep[id] = el.value; }
   freshRec = false;
-  S.sheets = S.sheets.filter(s => (s.t !== 'scene' && s.t !== 'rec') || sceneById(s.id));
+  S.sheets = S.sheets.filter(s => ((s.t !== 'scene' && s.t !== 'rec') || sceneById(s.id)) && (s.t !== 'ask' || askResolve));
   box.innerHTML = S.sheets.map((s, i) => `<div class="sheet" role="dialog" aria-modal="true" style="z-index:${30 + i}">${SHEET[s.t] ? SHEET[s.t](s) : ''}</div>`).join('');
   [...box.querySelectorAll('.sheet-body')].forEach((el, i) => { if (ys[i]) el.scrollTop = ys[i]; });
   for (const id in keep) { const el = $(id); if (el) el.value = keep[id]; }
@@ -1846,6 +1871,27 @@ const SHEET = {
     return sheetTop(`S#${esc(sc.no)} に付ける画像を選ぶ`) + `<div class="sheet-body"><div class="wrap"><p class="small">タップで付ける・外す。終わったら × で閉じてください。</p>
       ${Object.entries(groups).map(([g, ms]) => `<section class="card"><h3>${esc(g)}</h3><div class="pickgrid">${ms.map(m => `<button class="pk" data-a="pickToggle" data-id="${m.id}" aria-pressed="${(sc.refs || []).includes(m.id)}"><img src="${IMG[m.id]}" alt="" loading="lazy"><span>${esc(m.name.replace(g.replace(/\.pdf$/i, ''), '').trim() || m.name)}</span></button>`).join('')}</div></section>`).join('') || '<p class="small">まだ画像がありません。「資料」で PDF を「ページを画像でも残す」にして取り込むか、写真を足してください。</p>'}</div></div>`;
   },
+  ask(s) { return `<div class="sheet-top"><div class="t">確認</div></div><div class="sheet-body"><div class="wrap"><section class="card"><p style="font-size:17px;font-weight:700">${esc(s.msg)}</p>
+      <div class="btns grid2"><button class="btn" data-a="askNo">やめる</button><button class="btn primary" data-a="askYes">${esc(s.ok)}</button></div></section></div></div>`; },
+  help() {
+    const step = (t, b) => `<section class="card"><h2 style="font-size:18px">${t}</h2>${b}</section>`;
+    return sheetTop('使い方') + `<div class="sheet-body"><div class="wrap">
+      <p class="lead">下に並んだ5つのボタン（資料・香盤・撮影・記録・出力）で画面を切り替えます。撮影の日に使うのは主に「撮影」です。</p>
+      ${step('撮影の日：「撮影」', `<ol class="steps">
+        <li><span>画面の下の<b>「撮影」</b>を押す</span></li>
+        <li><span>上の<b>日付</b>（例：11/05(木)・11/06(金)）を押すと、その日のシーンが時間の順に並びます。集合時刻と場所、現場の注意もここに出ます</span></li>
+        <li><span>シーンのカードの見方：<b>ロケ地</b>＝実際に行く場所、<b>演出</b>＝芝居や音の注意、<b>小さな画像</b>＝参考画像（タップで大きくなる。古写真と同じ構図かを見比べる）、<b>撮るもの</b>＝C1・C2…撮るべき芝居と実景</span></li>
+        <li><span>赤い<b>「記録する」</b>を押すと記録の画面。上の C1・C2 で撮るカットを選び、<b>スタート</b>→<b>カット</b>で長さを計って、<b>OK・KEEP・NG</b> を押す。OK を押すと次のカットに進みます</span></li>
+        <li><span>全部のカットに OK が付くと<b>撮了</b>になります（「撮了にする」で手でも付けられます）</span></li>
+      </ol>`)}
+      ${step('シーンのくわしい中身：「台本・詳細」', '<p>撮影のカードの「台本・詳細」、または「香盤」でシーンを押すと開きます。台本の本文、編集素材（写真・ＣＧ・字幕・ナレーションなど）、参考画像の追加、撮るものの書き直しができます。</p>')}
+      ${step('全体の予定：「香盤」', '<p>「台本の順」で全シーン、「撮影日ごと」で日ごとの並び（↑↓で入れ替え）、「人物」で出番の表を見られます。</p>')}
+      ${step('撮ったもの：「記録」', '<p>撮ったテイクの一覧です。「撮り残し」で OK の無いカットだけを出せます。テイクを押すとクリップ名やメモを直せます。</p>')}
+      ${step('人に渡す：「出力」', `<p><b>撮影チェックシート</b>（当日の流れ、紙で持つとき）、<b>スクリプト表</b>（撮影後、編集担当へ）、<b>編集素材リスト</b>（ＣＧ・音・編集の担当へ）、<b>香盤表</b>。${MODE.artifact ? 'このページでは印刷とファイル保存ができないので、<b>「表をコピー」</b>を押して Excel・スプレッドシート・LINE などに貼り付けてください。' : '「印刷・PDF」「Excel用（CSV）」「表をコピー」から選べます。'}</p>`)}
+      ${step('資料を入れ直す：「資料」', '<p>新しい台本や香盤表（PDF・Word・Excel など）を入れると読み取ります。取り込んだ資料の本文もここで読めます。</p>')}
+      <button class="btn primary wide" data-a="close">閉じる</button>
+    </div></div>`;
+  },
   text(s) { return sheetTop(esc(s.title)) + `<div class="sheet-body"><div class="wrap"><p class="small">長押しですべて選んでコピーしてください。</p><textarea class="inp" rows="20" readonly>${esc(s.text)}</textarea></div></div>`; },
   lic() {
     return sheetTop('使っている部品') + `<div class="sheet-body"><div class="wrap"><section class="card"><p>ファイルの読み取りに次の部品を使っています。部品はアプリと一緒に置いてあるので、電波がなくても動きます。</p>
@@ -1894,17 +1940,17 @@ const ACT = {
   pendDrop: b => { pending = pending.filter(x => x.id !== b.dataset.id); render(); },
   openDoc: b => openSheet({ t: 'doc', id: b.dataset.id }),
   docReread: b => { const d = P.docs.find(x => x.id === b.dataset.id); if (!d) return; const tabs = /\.(csv|tsv)$/i.test(d.name) ? [{ name: d.name, rows: parseCsv(d.text) }] : tabTables(d.text, d.name); const nd = analyze({ name: d.name, text: d.text, tables: tabs }); pending.push(nd); S.sheets = []; setTab('docs'); },
-  delDoc: async b => { if (!confirm('この資料を消しますか？')) return; const d = P.docs.find(x => x.id === b.dataset.id); P.docs = P.docs.filter(x => x !== d); for (const id of (d && d.pages) || []) await dropImage(id); save(); closeSheet(); },
+  delDoc: async b => { if (!await ask('この資料を消しますか？')) return; const d = P.docs.find(x => x.id === b.dataset.id); P.docs = P.docs.filter(x => x !== d); for (const id of (d && d.pages) || []) await dropImage(id); save(); closeSheet(); },
   planView: b => { S.planView = b.dataset.k; persist(); render(); },
   openScene: b => openSheet({ t: 'scene', id: b.dataset.id }),
   addScene: () => { const sc = newScene(''); sc.seq = P.scenes.length; save(); render(); openSheet({ t: 'scene', id: sc.id }); },
-  delScene: b => { const sc = sceneById(b.dataset.id); const n = takesOf(sc.id).length; if (!confirm(`S#${sc.no} を消しますか？${n ? `（テイクの記録 ${n} 件も消えます）` : ''}`)) return; P.scenes = P.scenes.filter(x => x !== sc); P.takes = P.takes.filter(t => t.sc !== sc.id); P.slots = (P.slots || []).filter(x => x.sc !== sc.id); S.sheets = S.sheets.filter(x => x.id !== sc.id); save(); render(); },
+  delScene: async b => { const sc = sceneById(b.dataset.id); const n = takesOf(sc.id).length; if (!await ask(`S#${sc.no} を消しますか？${n ? `（テイクの記録 ${n} 件も消えます）` : ''}`)) return; P.scenes = P.scenes.filter(x => x !== sc); P.takes = P.takes.filter(t => t.sc !== sc.id); P.slots = (P.slots || []).filter(x => x.sc !== sc.id); S.sheets = S.sheets.filter(x => x.id !== sc.id); save(); render(); },
   addCut: b => { const sc = sceneById(b.dataset.id); sc.cuts.push({ id: uid(), no: String(sc.cuts.reduce((m, c) => Math.max(m, parseInt(c.no, 10) || 0), 0) + 1), size: '', desc: '' }); save(); renderSheets(); },
   addCutRec: b => { const sc = sceneById(b.dataset.id); const c = { id: uid(), no: String(sc.cuts.reduce((m, c) => Math.max(m, parseInt(c.no, 10) || 0), 0) + 1), size: '', desc: '' }; sc.cuts.push(c); S.recCut[sc.id] = c.id; save(); render(); toast(`C${c.no} を足しました（内容はシーンの詳細で書けます）`); },
-  delCut: b => { const sc = sceneById(b.dataset.sc); const n = takesOf(sc.id, b.dataset.id).length; if (n && !confirm(`このカットのテイク ${n} 件は「一連」に移ります。消しますか？`)) return; sc.cuts = sc.cuts.filter(c => c.id !== b.dataset.id); P.takes.forEach(t => { if (t.sc === sc.id && t.cut === b.dataset.id) t.cut = ''; }); save(); render(); },
+  delCut: async b => { const sc = sceneById(b.dataset.sc); const n = takesOf(sc.id, b.dataset.id).length; if (n && !await ask(`このカットのテイク ${n} 件は「一連」に移ります。消しますか？`)) return; sc.cuts = sc.cuts.filter(c => c.id !== b.dataset.id); P.takes.forEach(t => { if (t.sc === sc.id && t.cut === b.dataset.id) t.cut = ''; }); save(); render(); },
   addDay: () => { const d = { id: uid(), label: `${P.days.length + 1}日目`, date: '', call: '', meet: '', notes: '' }; P.days.push(d); save(); render(); openSheet({ t: 'day', id: d.id }); },
   openDay: b => openSheet({ t: 'day', id: b.dataset.id }),
-  delDay: b => { if (!confirm('この撮影日を消しますか？')) return; const id = b.dataset.id; P.days = P.days.filter(d => d.id !== id); P.scenes.forEach(s => { if (s.day === id) s.day = ''; }); P.events = P.events.filter(e => e.day !== id); P.slots = (P.slots || []).filter(x => x.day !== id); save(); closeSheet(); },
+  delDay: async b => { if (!await ask('この撮影日を消しますか？')) return; const id = b.dataset.id; P.days = P.days.filter(d => d.id !== id); P.scenes.forEach(s => { if (s.day === id) s.day = ''; }); P.events = P.events.filter(e => e.day !== id); P.slots = (P.slots || []).filter(x => x.day !== id); save(); closeSheet(); },
   move: b => { const items = timeline(b.dataset.day); const i = +b.dataset.i, j = i + +b.dataset.dir; if (j < 0 || j >= items.length) return; [items[i], items[j]] = [items[j], items[i]]; items.forEach((it, k) => { it.o.order = (k + 1) * 10; }); save(); render(); },
   delSlot: b => { P.slots = P.slots.filter(x => x.id !== b.dataset.id); save(); render(); },
   addEvent: b => openSheet({ t: 'event', day: b.dataset.day }),
@@ -1928,11 +1974,15 @@ const ACT = {
   unref: async b => { const sc = sceneById(b.dataset.sc); sc.refs = (sc.refs || []).filter(x => x !== b.dataset.id); await dropImage(b.dataset.id); save(); render(); },
   openTake: b => openSheet({ t: 'take', id: b.dataset.id }),
   takeR: b => { const t = P.takes.find(x => x.id === b.dataset.id); t.r = b.dataset.r; save(); render(); },
-  delTake: b => { if (!confirm('このテイクを消しますか？')) return; P.takes = P.takes.filter(t => t.id !== b.dataset.id); save(); closeSheet(); },
+  delTake: async b => { if (!await ask('このテイクを消しますか？')) return; P.takes = P.takes.filter(t => t.id !== b.dataset.id); save(); closeSheet(); },
   logOrder: b => { S.logOrder = b.dataset.k; persist(); render(); },
   logFilter: b => { S.logFilter = b.dataset.k; persist(); render(); },
   outOrder: b => { S.outOrder = b.dataset.k; persist(); render(); },
   outFilter: b => { S.outFilter = b.dataset.k; persist(); render(); },
+  copyCheck: () => copyTable(checkCsv(outDays()), '撮影チェックシート'),
+  copyScript: () => copyTable(scriptCsv(), 'スクリプト表'),
+  copyPost: () => copyTable(postCsv(), '編集素材リスト'),
+  copyKoban: () => copyTable(kobanCsv(), '香盤表'),
   printCheck: () => doPrint(checkSheetHtml(outDays()), true),
   shareCheck: () => shareText('撮影チェックシート', checkText(outDays())),
   csvCheck: () => download(fileName('撮影チェックシート', 'csv'), toCsv(checkCsv(outDays())), 'text/csv'),
@@ -1945,9 +1995,12 @@ const ACT = {
   csvKoban: () => download(fileName('香盤表', 'csv'), toCsv(kobanCsv()), 'text/csv'),
   backup: () => download(fileName('作品データ', 'json'), JSON.stringify(Object.assign({}, P, { images: P.imgs.filter(m => IMG[m.id]).map(m => ({ id: m.id, data: IMG[m.id] })) })), 'application/json'),
   restore: () => $('restore').click(),
-  wipe: () => { if (!confirm('この端末の作品データをすべて消して、新しく始めますか？（先に「作品データを保存」しておくと戻せます）')) return; P = blank(); pending = []; S.sheets = []; S.run = null; S.day = null; S.recCut = {}; for (const k in IMG) delete IMG[k]; IDB.clear().catch(() => {}); save(true); setTab('docs'); toast('新しい作品を始めました'); },
+  wipe: async () => { if (!await ask('この端末の作品データをすべて消して、新しく始めますか？（先に「作品データを保存」しておくと戻せます）')) return; P = blank(); pending = []; S.sheets = []; S.run = null; S.day = null; S.recCut = {}; for (const k in IMG) delete IMG[k]; IDB.clear().catch(() => {}); save(true); setTab('docs'); toast('新しい作品を始めました'); },
   licenses: () => openSheet({ t: 'lic' }),
   close: () => closeSheet(),
+  askYes: () => answer(true),
+  askNo: () => answer(false),
+  help: () => openSheet({ t: 'help' }),
   wake: () => { S.wake = !S.wake; persist(); applyWake(); render(); toast(S.wake ? '撮影中は画面を消しません' : '画面は自動で消えます'); },
   gearAdd: () => { const el = $('gearInput'); const v = el.value.trim(); if (!v) return; P.gear.push(v); save(); S.gearOpen = true; render(); },
   gearEdit: () => openSheet({ t: 'gear' }),
@@ -2027,7 +2080,7 @@ setInterval(renderTop, 15000);
 
 // 新しい版のお知らせ
 async function checkUpdate() {
-  if (location.protocol !== 'https:') return;
+  if (location.protocol !== 'https:' || MODE.artifact) return;
   try {
     const t = await (await fetch('index.html', { cache: 'no-store' })).text();
     const v = (/const VERSION = '([^']+)'/.exec(t) || [])[1];
@@ -2039,11 +2092,22 @@ async function checkUpdate() {
 // 入力欄の候補
 document.body.insertAdjacentHTML('beforeend', `<datalist id="todlist">${['朝', '昼', '夕', '夜', '深夜', '早朝'].map(x => `<option value="${x}">`).join('')}</datalist><datalist id="sizelist">${['引き', 'フル', 'ニー', 'ウエスト', 'ミディアム', 'バスト', 'アップ', '寄り', 'ルーズ', 'タイト', '2ショット', '肩なめ', '主観', '俯瞰', 'あおり', 'インサート', '移動'].map(x => `<option value="${x}">`).join('')}</datalist>`);
 
+async function boot() {
+  try { Object.assign(IMG, await IDB.all()); } catch (e) {}
+  // 同梱の作品データがあり、この端末にまだ何も入っていなければ、それを開く
+  if (PRESET && PRESET.data && !P.scenes.length) {
+    const j = JSON.parse(JSON.stringify(PRESET.data)); const images = j.images || []; delete j.images;
+    for (const im of images) { IMG[im.id] = im.data; try { await IDB.put(im.id, im.data); } catch (e) {} }
+    P = Object.assign(blank(), j); S.tab = 'shoot'; S.day = null; save(true); persist();
+  }
+  render();
+  if (!S.helpSeen && P.scenes.length) { S.helpSeen = true; persist(); openSheet({ t: 'help' }); }
+}
 render();
-IDB.all().then(all => { Object.assign(IMG, all); if (Object.keys(all).length) render(); }).catch(() => {});
+boot();
 applyWake();
 checkUpdate();
-if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {});
+if ('serviceWorker' in navigator && location.protocol === 'https:' && !MODE.artifact) navigator.serviceWorker.register('sw.js').catch(() => {});
 })();
 </script>
 </body>

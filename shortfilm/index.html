@@ -376,7 +376,7 @@ pre.doc { white-space: pre-wrap; word-break: break-word; font-family: var(--font
 <script>
 (() => {
 'use strict';
-const VERSION = '1.8（11/3 カメラワークの別案を切り替えて記録）';
+const VERSION = '1.9（11/3 資料の版の表示、最新にするボタン）';
 
 /* ───────── 基本 ───────── */
 const $ = id => document.getElementById(id);
@@ -1311,7 +1311,7 @@ function renderTabs() {
   $('tabbar').innerHTML = TABS.map(([k, l]) => `<button data-a="tab" data-k="${k}" ${S.tab === k ? 'aria-current="page"' : ''}>${ICON[k]}<span>${l}</span></button>`).join('');
 }
 function renderTop() {
-  $('ttl').innerHTML = `<small>撮影帳</small>${esc(P.title || '作品名は未設定')}`;
+  $('ttl').innerHTML = `<small>撮影帳 ${esc(VERSION.split('（')[0])}</small>${esc(P.title || '作品名は未設定')}`;
   $('clock').textContent = nowHM();
 }
 const RENDER = { docs: renderDocs, plan: renderPlan, shoot: renderShoot, log: renderLog, out: renderOut };
@@ -1334,6 +1334,10 @@ function renderDocs() {
     <p class="small">ホーム画面のアイコンから開いたアプリは、Safari とは保存場所が別です。アイコンから使うときは、ここで一度開いてください。</p>
     <input class="inp worklink" placeholder="ここにリンクを貼り付け" autocomplete="off" autocapitalize="off" spellcheck="false" inputmode="url">
     <button class="btn primary wide" data-a="openPasted">開く</button></section>`;
+  if (P.scenes.length) h += `<section class="card" id="vercard"><h2>資料の版</h2>
+    <div class="row-h"><span class="grow">この端末：<b>第${P.rev || 1}版</b>　最新：<b id="latestrev">確かめています…</b></span></div>
+    <div class="btns grid2"><button class="btn primary" data-a="refreshWork">資料を最新にする</button><button class="btn" data-a="hardUpdate">アプリを最新にする</button></div>
+    <p class="small">アプリの版：${esc(VERSION)}。付けた記録は、どちらを押しても消えません。</p></section>`;
   if (P.scenes.length) h += `<section class="card"><h2>${esc(P.title || 'この作品')}の資料を見る</h2>
     <div class="btns grid2">
       <button class="btn primary" data-a="view" data-k="book">撮影資料（日程・シーンごと）</button>
@@ -1384,6 +1388,7 @@ function renderDocs() {
   }
   h += `</div>`;
   $('v-docs').innerHTML = h;
+  showLatest();
 }
 function renderPending(d) {
   if (d.error) return `<section class="card pend"><div class="row-h"><b class="grow">${esc(d.name)}</b><button class="btn small" data-a="pendDrop" data-id="${d.id}">閉じる</button></div><p class="err">${esc(d.error)}</p></section>`;
@@ -1910,6 +1915,27 @@ async function openWork(name, key) {
   } catch (e) { busy(false); toast('作品を開けませんでした。リンクが全部貼れているか、ネットにつながっているか確かめてください'); return false; }
 }
 // 置いてある作品データが新しくなったら知らせる（鍵はこの端末に覚えておく）
+async function latestRev() {
+  try { const idx = await workIndex(); const name = P.work ? P.work.name : Object.keys(idx).find(n => idx[n].title === P.title); return name ? { name, info: idx[name] } : null; } catch (e) { return null; }
+}
+async function showLatest() {
+  const el = $('latestrev'); if (!el) return;
+  const r = await latestRev(); const el2 = $('latestrev'); if (!el2) return;
+  el2.textContent = r ? `第${r.info.rev || 1}版${(r.info.rev || 1) > (P.rev || 1) ? '（新しい資料があります）' : '（最新です）'}` : 'わかりません（ネットにつながっていないか、この作品は置いてありません）';
+}
+async function refreshWork() {
+  const r = await latestRev();
+  if (!r) { toast('最新の版を確かめられませんでした。ネットにつながっているか確かめてください'); return; }
+  if (!((r.info.rev || 1) > (P.rev || 1))) { toast(`資料は最新です（第${P.rev || 1}版）`); return; }
+  if (P.work) { ACT.workUpdate(); return; }
+  openSheet({ t: 'openlink' }); toast('いつもの作品のリンクを貼り付けて「開く」を押してください');
+}
+async function hardUpdate() {
+  busy(true, 'アプリを最新にしています…'); save(true); persist();
+  try { if (navigator.serviceWorker) for (const r of await navigator.serviceWorker.getRegistrations()) await r.unregister(); } catch (e) {}
+  try { if (window.caches) for (const k of await caches.keys()) await caches.delete(k); } catch (e) {}
+  location.replace(location.pathname + '?v=' + Date.now());
+}
 async function checkWorkUpdate() {
   if (MODE.artifact || location.protocol === 'file:' || !P.scenes.length) return;
   try {
@@ -2254,6 +2280,8 @@ const ACT = {
   askYes: () => answer(true),
   askNo: () => answer(false),
   help: () => openSheet({ t: 'help' }),
+  refreshWork: () => refreshWork(),
+  hardUpdate: () => hardUpdate(),
   workUpdate: async () => { try { busy(true, '新しい資料を読み込んでいます…'); const j = await decryptWork(P.work.name, P.work.key); busy(false); await mergeProject(j); $('workbar').hidden = true; toast('資料を新しくしました（記録はそのままです）'); } catch (e) { busy(false); toast('新しい資料を読み込めませんでした。ネットにつながっているか確かめてください'); } },
   openPasted: b => openPasted(b),
   openLinkBox: () => openSheet({ t: 'openlink' }),
@@ -2338,12 +2366,12 @@ setInterval(renderTop, 15000);
 
 // 新しい版のお知らせ
 async function checkUpdate() {
-  if (location.protocol !== 'https:' || MODE.artifact) return;
+  if ((location.protocol !== 'https:' && location.hostname !== 'localhost') || MODE.artifact) return;
   try {
     const t = await (await fetch('index.html', { cache: 'no-store' })).text();
     const v = (/const VERSION = '([^']+)'/.exec(t) || [])[1];
     const bar = $('updbar');
-    if (v && v !== VERSION) { bar.hidden = false; bar.innerHTML = `<button onclick="location.reload()">新しい版（${esc(v)}）があります。タップで更新</button>`; }
+    if (v && v !== VERSION) { bar.hidden = false; bar.innerHTML = `<button data-a="hardUpdate">アプリの新しい版（${esc(v)}）があります。ここをタップで更新（記録は消えません）</button>`; }
   } catch (e) {}
 }
 
@@ -2351,6 +2379,7 @@ async function checkUpdate() {
 document.body.insertAdjacentHTML('beforeend', `<datalist id="todlist">${['朝', '昼', '夕', '夜', '深夜', '早朝'].map(x => `<option value="${x}">`).join('')}</datalist><datalist id="sizelist">${['引き', 'フル', 'ニー', 'ウエスト', 'ミディアム', 'バスト', 'アップ', '寄り', 'ルーズ', 'タイト', '2ショット', '肩なめ', '主観', '俯瞰', 'あおり', 'インサート', '移動'].map(x => `<option value="${x}">`).join('')}</datalist>`);
 
 async function boot() {
+  if (location.search) { try { history.replaceState(null, '', location.pathname + location.hash); } catch (e) {} }
   try { Object.assign(IMG, await IDB.all()); } catch (e) {}
   await openFromLink();
   // 同梱の作品データがあり、この端末にまだ何も入っていなければ、それを開く
@@ -2369,7 +2398,7 @@ boot();
 window.addEventListener('hashchange', () => openFromLink());
 applyWake();
 checkUpdate();
-if ('serviceWorker' in navigator && location.protocol === 'https:' && !MODE.artifact) navigator.serviceWorker.register('sw.js').catch(() => {});
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost') && !MODE.artifact) navigator.serviceWorker.register('sw.js').catch(() => {});
 })();
 </script>
 </body>

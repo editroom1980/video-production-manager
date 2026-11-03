@@ -315,7 +315,7 @@ pre.doc { white-space: pre-wrap; word-break: break-word; font-family: var(--font
 <script>
 (() => {
 'use strict';
-const VERSION = '1.1（11/3 縦書きPDF・参考画像・編集素材リスト）';
+const VERSION = '1.2（11/3 使い方・鍵つきリンクで作品を開く）';
 
 /* ───────── 基本 ───────── */
 const $ = id => document.getElementById(id);
@@ -1703,18 +1703,42 @@ function kobanCsv() {
   const names = allNames();
   return [['撮影日', '時刻', 'シーン', '場所', '昼夜', '内外', 'ロケ地', '内容', ...names, '小道具', '衣装', 'メイク', '備考']].concat(kobanRows().map(r => { const sc = r.sc; return [krDay(r), kr(r, 'start'), sc.no, sc.place, sc.tod, sc.io, kr(r, 'loc'), kr(r, 'summary'), ...names.map(n => castMark(sc, n)), listText(sc.props), sc.costume, sc.makeup, kr(r, 'notes')]; }));
 }
+async function loadProject(j) {
+  const images = j.images || []; delete j.images;
+  busy(true, '作品データを読み込んでいます…');
+  try { await IDB.clear(); } catch (e) {}
+  for (const k in IMG) delete IMG[k];
+  for (const im of images) { IMG[im.id] = im.data; try { await IDB.put(im.id, im.data); } catch (e) {} }
+  busy(false);
+  P = Object.assign(blank(), j); S.sheets = []; S.run = null; S.day = null; S.recCut = {}; S.tab = 'shoot'; S.helpSeen = false;
+  save(true); persist(); render();
+}
+// 鍵つきリンク（…/#open=名前&k=鍵）で、works/名前.bin の作品データを開く。鍵はサーバーに送られない
+async function openFromLink() {
+  const m = /^#open=([\w-]+)&k=([^&]+)$/.exec(location.hash);
+  if (!m) return;
+  try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {}
+  try {
+    busy(true, '作品を開いています…');
+    const buf = new Uint8Array(await (await fetch(`works/${m[1]}.bin`, { cache: 'no-cache' })).arrayBuffer());
+    if (String.fromCharCode(...buf.slice(0, 4)) !== 'STK1') throw new Error('形式');
+    const base = await crypto.subtle.importKey('raw', new TextEncoder().encode(decodeURIComponent(m[2])), 'PBKDF2', false, ['deriveKey']);
+    const key = await crypto.subtle.deriveKey({ name: 'PBKDF2', salt: buf.slice(4, 20), iterations: 200000, hash: 'SHA-256' }, base, { name: 'AES-GCM', length: 256 }, false, ['decrypt']);
+    const j = JSON.parse(new TextDecoder().decode(await crypto.subtle.decrypt({ name: 'AES-GCM', iv: buf.slice(20, 32) }, key, buf.slice(32))));
+    busy(false);
+    if (P.scenes.length && P.title === j.title) { toast(`「${j.title}」はもう開いています（記録はそのままです）`); return; }
+    if (P.scenes.length && !await ask(`「${j.title}」を開きます。今の内容（${P.title || '作品'}）と入れ替わります。よろしいですか？`, '開く')) return;
+    await loadProject(j);
+    toast(`「${j.title}」を開きました`);
+    S.helpSeen = true; persist(); openSheet({ t: 'help' });
+  } catch (e) { busy(false); toast('作品を開けませんでした。リンクが正しいか、ネットにつながっているか確かめてください'); }
+}
 async function restoreFile(f) {
   try {
     const j = JSON.parse(decodeText(await f.arrayBuffer()));
     if (!j || !j.v || !Array.isArray(j.scenes)) throw new Error();
     if (!await ask(`「${j.title || '作品'}」を読み込みます。今の内容（${P.title || '作品'}）と入れ替わります。よろしいですか？`)) return;
-    const images = j.images || []; delete j.images;
-    busy(true, '作品データを読み込んでいます…');
-    try { await IDB.clear(); } catch (e) {}
-    for (const k in IMG) delete IMG[k];
-    for (const im of images) { IMG[im.id] = im.data; try { await IDB.put(im.id, im.data); } catch (e) {} }
-    busy(false);
-    P = Object.assign(blank(), j); S.sheets = []; S.run = null; S.day = null; S.recCut = {}; save(true); render(); toast('作品データを読み込みました');
+    await loadProject(j); toast('作品データを読み込みました');
   } catch (e) { toast('作品データとして読めませんでした'); }
 }
 
@@ -2094,6 +2118,7 @@ document.body.insertAdjacentHTML('beforeend', `<datalist id="todlist">${['朝', 
 
 async function boot() {
   try { Object.assign(IMG, await IDB.all()); } catch (e) {}
+  await openFromLink();
   // 同梱の作品データがあり、この端末にまだ何も入っていなければ、それを開く
   if (PRESET && PRESET.data && !P.scenes.length) {
     const j = JSON.parse(JSON.stringify(PRESET.data)); const images = j.images || []; delete j.images;
@@ -2105,6 +2130,7 @@ async function boot() {
 }
 render();
 boot();
+window.addEventListener('hashchange', () => openFromLink());
 applyWake();
 checkUpdate();
 if ('serviceWorker' in navigator && location.protocol === 'https:' && !MODE.artifact) navigator.serviceWorker.register('sw.js').catch(() => {});

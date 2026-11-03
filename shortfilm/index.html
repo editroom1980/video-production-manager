@@ -358,7 +358,7 @@ pre.doc { white-space: pre-wrap; word-break: break-word; font-family: var(--font
 <script>
 (() => {
 'use strict';
-const VERSION = '1.4（11/3 資料をすべて画面で見られるように）';
+const VERSION = '1.5（11/3 ホーム画面のアプリでもリンクを貼って作品を開ける）';
 
 /* ───────── 基本 ───────── */
 const $ = id => document.getElementById(id);
@@ -1299,6 +1299,11 @@ function setTab(k) { S.scroll[S.tab] = $('v-' + S.tab).scrollTop; S.tab = k; per
 function renderDocs() {
   const empty = !P.scenes.length && !P.docs.length;
   let h = `<div class="wrap">`;
+  if (!P.scenes.length) h += `<section class="card" style="border-color:var(--accent)"><h2>作品を開く</h2>
+    <p class="lead">送られてきた作品のリンク（<b>https://…/shortfilm/#open=…</b>）を、下の欄に長押しで貼り付けて「開く」を押してください。ファイルは要りません。</p>
+    <p class="small">ホーム画面のアイコンから開いたアプリは、Safari とは保存場所が別です。アイコンから使うときは、ここで一度開いてください。</p>
+    <input class="inp" id="worklink" placeholder="ここにリンクを貼り付け" autocomplete="off" autocapitalize="off" spellcheck="false" inputmode="url">
+    <button class="btn primary wide" data-a="openPasted">開く</button></section>`;
   if (P.scenes.length) h += `<section class="card"><h2>${esc(P.title || 'この作品')}の資料を見る</h2>
     <div class="btns grid2">
       <button class="btn primary" data-a="view" data-k="book">撮影資料（日程・シーンごと）</button>
@@ -1494,7 +1499,7 @@ function renderShoot() {
   const dayId = pickDay(); S.day = dayId;
   const d = dayById(dayId);
   let h = `<div class="wrap">`;
-  if (!P.scenes.length) { $('v-shoot').innerHTML = `<div class="wrap"><div class="empty">まだシーンがありません。<br>「資料」で台本や香盤表を入れてください。</div></div>`; return; }
+  if (!P.scenes.length) { $('v-shoot').innerHTML = `<div class="wrap"><div class="empty">まだ作品が入っていません。<br>下の「資料」を押し、いちばん上の「作品を開く」に送られてきたリンクを貼り付けてください。</div></div>`; return; }
   const chips = P.days.map(x => `<button class="chip" data-a="day" data-id="${x.id}" aria-pressed="${x.id === dayId}">${esc(dayLabel(x))}</button>`);
   if (P.scenes.some(s => !s.day && !s.noshoot)) chips.push(`<button class="chip" data-a="day" data-id="" aria-pressed="${dayId === ''}">日程未定</button>`);
   if (chips.length > 1) h += `<div class="daychips">${chips.join('')}</div>`;
@@ -1601,7 +1606,7 @@ function renderOut() {
     <section class="card"><h2>香盤表</h2><p class="lead">撮影日の順に、シーン・場所・人物の出番（○）・小道具・衣装を並べた表。</p>
       ${outBtns('Koban', false)}</section>
     <section class="card"><h2>作品データ</h2><p class="lead">${MODE.artifact ? '別の作品データ（.json）を読み込むと、今の内容と入れ替わります。' : '別の端末に移す、スタッフに渡す、念のため残すときに。読み込むと今の内容と入れ替わります。'}</p>
-      <div class="btns grid2">${MODE.artifact ? '' : '<button class="btn" data-a="backup">作品データを保存</button>'}<button class="btn" data-a="restore">作品データを読み込む</button></div>
+      <div class="btns grid2">${MODE.artifact ? '' : '<button class="btn" data-a="backup">作品データを保存</button>'}<button class="btn" data-a="restore">作品データを読み込む</button><button class="btn" data-a="openLinkBox">リンクで作品を開く</button></div>
       <div class="btns"><button class="btn danger" data-a="wipe">新しい作品を始める（全部消す）</button></div></section>
     <p class="small" style="text-align:center">撮影帳 ${esc(VERSION)}　<button class="link" data-a="licenses">使っている部品</button></p>
   </div>`;
@@ -1817,24 +1822,46 @@ async function loadProject(j) {
   save(true); persist(); render();
 }
 // 鍵つきリンク（…/#open=名前&k=鍵）で、works/名前.bin の作品データを開く。鍵はサーバーに送られない
-async function openFromLink() {
-  const m = /^#open=([\w-]+)&k=([^&]+)$/.exec(location.hash);
-  if (!m) return;
-  try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {}
+function parseWorkLink(str) { const m = /open=([\w-]+)&k=([^&\s#]+)/.exec(String(str || '')); return m ? { name: m[1], key: decodeURIComponent(m[2]) } : null; }
+async function decryptWork(name, key) {
+  const res = await fetch(`works/${name}.bin`, { cache: 'no-cache' });
+  if (!res.ok) throw new Error('なし');
+  const buf = new Uint8Array(await res.arrayBuffer());
+  if (String.fromCharCode(...buf.slice(0, 4)) !== 'STK1') throw new Error('形式');
+  const base = await crypto.subtle.importKey('raw', new TextEncoder().encode(key), 'PBKDF2', false, ['deriveKey']);
+  const k = await crypto.subtle.deriveKey({ name: 'PBKDF2', salt: buf.slice(4, 20), iterations: 200000, hash: 'SHA-256' }, base, { name: 'AES-GCM', length: 256 }, false, ['decrypt']);
+  return JSON.parse(new TextDecoder().decode(await crypto.subtle.decrypt({ name: 'AES-GCM', iv: buf.slice(20, 32) }, k, buf.slice(32))));
+}
+async function openWork(name, key) {
   try {
     busy(true, '作品を開いています…');
-    const buf = new Uint8Array(await (await fetch(`works/${m[1]}.bin`, { cache: 'no-cache' })).arrayBuffer());
-    if (String.fromCharCode(...buf.slice(0, 4)) !== 'STK1') throw new Error('形式');
-    const base = await crypto.subtle.importKey('raw', new TextEncoder().encode(decodeURIComponent(m[2])), 'PBKDF2', false, ['deriveKey']);
-    const key = await crypto.subtle.deriveKey({ name: 'PBKDF2', salt: buf.slice(4, 20), iterations: 200000, hash: 'SHA-256' }, base, { name: 'AES-GCM', length: 256 }, false, ['decrypt']);
-    const j = JSON.parse(new TextDecoder().decode(await crypto.subtle.decrypt({ name: 'AES-GCM', iv: buf.slice(20, 32) }, key, buf.slice(32))));
+    let j = null;
+    if (name) j = await decryptWork(name, key);
+    else { // 鍵だけ貼られたときは、置いてある作品を順に試す
+      const names = await (await fetch('works/index.json', { cache: 'no-cache' })).json();
+      for (const n of names) { try { j = await decryptWork(n, key); break; } catch (e) {} }
+      if (!j) throw new Error('鍵');
+    }
     busy(false);
-    if (P.scenes.length && P.title === j.title) { toast(`「${j.title}」はもう開いています（記録はそのままです）`); return; }
-    if (P.scenes.length && !await ask(`「${j.title}」を開きます。今の内容（${P.title || '作品'}）と入れ替わります。よろしいですか？`, '開く')) return;
+    if (P.scenes.length && P.title === j.title) { toast(`「${j.title}」はもう開いています（記録はそのままです）`); return true; }
+    if (P.scenes.length && !await ask(`「${j.title}」を開きます。今の内容（${P.title || '作品'}）と入れ替わります。よろしいですか？`, '開く')) return false;
     await loadProject(j);
     toast(`「${j.title}」を開きました`);
     S.helpSeen = true; persist(); openSheet({ t: 'help' });
-  } catch (e) { busy(false); toast('作品を開けませんでした。リンクが正しいか、ネットにつながっているか確かめてください'); }
+    return true;
+  } catch (e) { busy(false); toast('作品を開けませんでした。リンクが全部貼れているか、ネットにつながっているか確かめてください'); return false; }
+}
+async function openFromLink() {
+  const w = parseWorkLink(location.hash);
+  if (!w) return;
+  try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {}
+  await openWork(w.name, w.key);
+}
+async function openPasted() {
+  const v = ($('worklink') || {}).value || '';
+  const w = parseWorkLink(v), key = v.trim();
+  if (!w && !/^[\w-]{12,}$/.test(key)) { toast('送られてきた作品のリンクを、そのまま貼り付けてください'); return; }
+  await openWork(w ? w.name : '', w ? w.key : key);
 }
 async function restoreFile(f) {
   try {
@@ -2003,6 +2030,11 @@ const SHEET = {
     const html = V.html().replace(/<table/g, '<div class="tblw"><table').replace(/<\/table>/g, '</table></div>');
     return sheetTop(esc(V.name)) + `<div class="sheet-body"><div class="docv">${html}</div></div>`;
   },
+  openlink() { return sheetTop('リンクで作品を開く') + `<div class="sheet-body"><div class="wrap"><section class="card" style="border-color:var(--accent)"><h2>作品を開く</h2>
+    <p class="lead">送られてきた作品のリンク（<b>https://…/shortfilm/#open=…</b>）を、下の欄に長押しで貼り付けて「開く」を押してください。ファイルは要りません。</p>
+    <p class="small">ホーム画面のアイコンから開いたアプリは、Safari とは保存場所が別です。アイコンから使うときは、ここで一度開いてください。</p>
+    <input class="inp" id="worklink" placeholder="ここにリンクを貼り付け" autocomplete="off" autocapitalize="off" spellcheck="false" inputmode="url">
+    <button class="btn primary wide" data-a="openPasted">開く</button></section></div></div>`; },
   ask(s) { return `<div class="sheet-top"><div class="t">確認</div></div><div class="sheet-body"><div class="wrap"><section class="card"><p style="font-size:17px;font-weight:700">${esc(s.msg)}</p>
       <div class="btns grid2"><button class="btn" data-a="askNo">やめる</button><button class="btn primary" data-a="askYes">${esc(s.ok)}</button></div></section></div></div>`; },
   help() {
@@ -2135,6 +2167,8 @@ const ACT = {
   askYes: () => answer(true),
   askNo: () => answer(false),
   help: () => openSheet({ t: 'help' }),
+  openPasted: () => openPasted(),
+  openLinkBox: () => openSheet({ t: 'openlink' }),
   view: b => { if (b.dataset.k === 'check' && $('outDay')) outDays(); openSheet({ t: 'view', k: b.dataset.k }); },
   wake: () => { S.wake = !S.wake; persist(); applyWake(); render(); toast(S.wake ? '撮影中は画面を消しません' : '画面は自動で消えます'); },
   gearAdd: () => { const el = $('gearInput'); const v = el.value.trim(); if (!v) return; P.gear.push(v); save(); S.gearOpen = true; render(); },
@@ -2192,6 +2226,7 @@ document.addEventListener('change', e => {
 });
 document.addEventListener('keydown', e => {
   if (e.key === 'Enter' && e.target.id === 'gearInput') { e.preventDefault(); ACT.gearAdd(); }
+  if (e.key === 'Enter' && e.target.id === 'worklink') { e.preventDefault(); openPasted(); }
   if (e.key === 'Escape' && S.sheets.length) closeSheet();
   if ((e.key === 'Enter' || e.key === ' ') && e.target.id === 'drop') { e.preventDefault(); $('file').click(); }
 });
@@ -2236,6 +2271,7 @@ async function boot() {
     for (const im of images) { IMG[im.id] = im.data; try { await IDB.put(im.id, im.data); } catch (e) {} }
     P = Object.assign(blank(), j); S.tab = 'shoot'; S.day = null; save(true); persist();
   }
+  if (!P.scenes.length) S.tab = 'docs';
   render();
   if (!S.helpSeen && P.scenes.length) { S.helpSeen = true; persist(); openSheet({ t: 'help' }); }
 }

@@ -76,6 +76,9 @@ const SP = process.env.SP, fs = require('fs');
     const only95 = await pg.evaluate(([no, ci, k]) => { const A = window.__kinekoma, keep = A.KIT.lenses; A.KIT.lenses = keep.filter(l => +l.dia === 95); const sc = A.P.scenes.find(s => s.no === no); const r = A.kitPlan(sc, sc.cuts[ci], k); A.KIT.lenses = keep; return r.lines.filter(l => l.warn).map(l => l.b + '!' + l.warn).join(' | '); }, ['1', 0, 1]);
     console.log('径 95mm のレンズだけのとき', only95 || '知らせなし');
     await pg.evaluate(() => { window.__kinekoma.S.kitCam = null; });
+    // 前に作品データから入った機材は、空いている欄だけが埋まる（この端末で書いた値は残る）
+    const fill = await pg.evaluate(() => { const A = window.__kinekoma, l = A.KIT.lenses.find(x => x.g), c = A.KIT.cams[0]; if (!l) return '重さのあるレンズが無い'; const lg = l.g; l.g = ''; const was = c.g; c.g = '999'; A.kitAdopt({ lenses: [{ name: l.name, g: lg }], cams: [{ name: c.name, g: '1' }] }); const r = `${l.name} の重さ ${l.g}（${lg} に戻れば正しい）／${c.name} の重さ ${c.g}（999 のままが正しい）`; c.g = was; A.kitSave(); return r; });
+    console.log('空いている欄を埋める', fill);
   }
   // 明るい表示の見た目
   await pg.setInputFiles('#restore', SP + '/work.json'); await pg.click('[data-a=askYes]'); await pg.waitForTimeout(2500); await closeAll();

@@ -637,7 +637,7 @@ details.rec-top > summary { font-size: 13px; font-weight: 800; letter-spacing: .
 <script>
 (() => {
 'use strict';
-const VERSION = '3.6（11/5 機材の登録とカットごとの組み合わせ・ジンバルと一脚の撮り方）';
+const VERSION = '3.6.1（11/5 資料の更新で、前に入った機材の空いている欄を埋める）';
 
 /* ───────── 基本 ───────── */
 const $ = id => document.getElementById(id);
@@ -696,12 +696,14 @@ function kitLoad() { try { const j = JSON.parse(localStorage.getItem(KITKEY)); i
 let KIT = kitLoad();
 function kitSave() { try { localStorage.setItem(KITKEY, JSON.stringify(KIT)); } catch (e) { toast('機材を保存できませんでした（端末の空きが足りません）'); } }
 const kitCount = () => KIT_CAT.reduce((m, [c]) => m + KIT[c].length, 0);
-// 作品データや控えに入っている機材を、この端末の一覧に足す。同じ名前のもの、前に一度足して消したものは足さない
+// 作品データや控えに入っている機材を、この端末の一覧に足す。同じ名前のもの、前に一度足して消したものは足さない。
+// 前に作品データから入った機材は、空いている欄だけを埋める（この端末で書いた値は上書きしない）
 function kitAdopt(k) {
   if (!k) return 0; let n = 0;
   for (const [c] of KIT_CAT) for (const x of k[c] || []) {
-    if (!x || !x.name) continue; const key = c + '|' + x.name;
-    if (KIT[c].some(y => y.name === x.name) || KIT.seen.includes(key)) continue;
+    if (!x || !x.name) continue; const key = c + '|' + x.name, have = KIT[c].find(y => y.name === x.name);
+    if (have) { if (KIT.seen.includes(key)) { let ch = false; for (const f in x) if (f !== 'id' && x[f] && !have[f]) { have[f] = x[f]; ch = true; } if (ch) n++; } continue; }
+    if (KIT.seen.includes(key)) continue;
     KIT[c].push(Object.assign({}, x, { id: uid() })); KIT.seen.push(key); n++;
   }
   if (n) kitSave(); return n;

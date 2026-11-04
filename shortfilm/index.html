@@ -257,6 +257,15 @@ table.mx { border-collapse: collapse; font-size: 13px; min-width: 100%; }
 .grp-h .sn { font-size: 18px; font-weight: 800; }
 .memo { font-size: 13px; background: var(--surface2); border-radius: 8px; padding: 6px 10px; }
 .memo b { color: var(--muted); font-size: 12px; margin-right: 4px; }
+.kit { margin-top: 8px; font-size: 13px; background: var(--surface2); border-left: 2px solid var(--accent); border-radius: 4px 10px 10px 4px; padding: 8px 10px; display: flex; flex-direction: column; gap: 6px; }
+.kit > .row-h > b { font-size: 12px; color: var(--muted); letter-spacing: .08em; }
+.kl { display: grid; grid-template-columns: 4.5em 1fr; gap: 8px; align-items: baseline; }
+.kl > span { font-size: 12px; font-weight: 800; color: var(--muted); letter-spacing: .04em; }
+.kl > div { min-width: 0; overflow-wrap: anywhere; }
+.kwarn { color: var(--warn); font-weight: 700; font-size: 13px; margin-top: 2px; }
+.kitrow { border-top: 1px solid var(--line); padding: 10px 0 6px; display: flex; flex-direction: column; gap: 6px; }
+.kitrow .link { align-self: flex-end; font-size: 13px; }
+.link.danger { color: var(--warn); }
 
 /* sheets */
 #sheets .sheet { position: fixed; inset: 0; z-index: 30; background: var(--bg); display: flex; flex-direction: column; }
@@ -628,7 +637,7 @@ details.rec-top > summary { font-size: 13px; font-weight: 800; letter-spacing: .
 <script>
 (() => {
 'use strict';
-const VERSION = '3.5（11/3 取り消し・画面を消さない・PDF の絞り込み・欄の設定・タイムコード・B カメ・撮影の終わりの控え）';
+const VERSION = '3.6（11/5 機材の登録とカットごとの組み合わせ・ジンバルと一脚の撮り方）';
 
 /* ───────── 基本 ───────── */
 const $ = id => document.getElementById(id);
@@ -675,6 +684,30 @@ function save(now) {
   if (now) w(); else saveT = setTimeout(w, 200);
 }
 function persist() { try { localStorage.setItem(UIKEY, JSON.stringify(S)); } catch (e) {} }
+
+/* ───────── 機材（作品とは別に、この端末に保存。資料の更新・作品の入れ替え・全部消すでは消えない） ───────── */
+const KITKEY = 'satsueicho.v1.kit';
+const KIT_CAT = [['cams', 'カメラ'], ['lenses', 'レンズ'], ['filters', 'フィルター'], ['sups', '支え']];
+const SENSORS = [['ff', 'フルサイズ', 1], ['s35', 'スーパー35・APS-C', 1.5], ['mft', 'マイクロフォーサーズ', 2], ['1in', '1型', 2.7], ['phone', 'スマホ（mm は換算で書く）', 1]];
+const FLT_TYPES = [['vnd', '可変 ND'], ['nd', 'ND（固定）'], ['pl', 'PL（偏光）'], ['ndpl', 'ND＋PL'], ['mist', 'ミスト・拡散'], ['other', 'そのほか']];
+const SUP_TYPES = [['tripod', '三脚'], ['mono', '一脚'], ['gimbal', 'ジンバル'], ['slider', 'スライダー'], ['other', 'そのほか']];
+function kitBlank() { return { cams: [], lenses: [], filters: [], sups: [], seen: [] }; }
+function kitLoad() { try { const j = JSON.parse(localStorage.getItem(KITKEY)); if (j) return Object.assign(kitBlank(), j); } catch (e) {} return kitBlank(); }
+let KIT = kitLoad();
+function kitSave() { try { localStorage.setItem(KITKEY, JSON.stringify(KIT)); } catch (e) { toast('機材を保存できませんでした（端末の空きが足りません）'); } }
+const kitCount = () => KIT_CAT.reduce((m, [c]) => m + KIT[c].length, 0);
+// 作品データや控えに入っている機材を、この端末の一覧に足す。同じ名前のもの、前に一度足して消したものは足さない
+function kitAdopt(k) {
+  if (!k) return 0; let n = 0;
+  for (const [c] of KIT_CAT) for (const x of k[c] || []) {
+    if (!x || !x.name) continue; const key = c + '|' + x.name;
+    if (KIT[c].some(y => y.name === x.name) || KIT.seen.includes(key)) continue;
+    KIT[c].push(Object.assign({}, x, { id: uid() })); KIT.seen.push(key); n++;
+  }
+  if (n) kitSave(); return n;
+}
+const kitCrop = cam => ((SENSORS.find(s => s[0] === (cam && cam.sensor)) || SENSORS[0])[2]);
+const kitNum = v => { const n = parseFloat(half(v || '').replace(/[^\d.]/g, '')); return n > 0 ? n : 0; };
 
 /* ───────── 画像（端末の IndexedDB に保存） ───────── */
 const IMG = {};
@@ -853,6 +886,16 @@ const SRC = {
   tomino: { k: '記事', t: '基本読書「映像の原則 改訂版」（富野由悠季『映像の原則』の紹介）', u: 'https://huyukiitoichi.hatenadiary.jp/entry/20111025/1319547311', n: '原典の本文は未確認。紹介記事による' },
   tomino2: { k: '記事', t: '富野監督とかBLOGサイト2「富野監督の『映像の原則』は合っているのか」', u: 'https://tominotoka.seesaa.net/article/2011-09-27.html', n: '原典の本文は未確認' },
   kinu: { k: '本', t: '衣笠竜屯 監修『映画制作の教科書 プロが教える60のコツ』（メイツ出版、2020年）', u: 'https://booklive.jp/product/index/title_id/20024432/vol_no/001', n: '確認できたのは目次の見出し（TAKE24〜26）だけ' },
+  gmono: { k: '記事', t: '4K Shooters「Getting Some Creative Shots with the DJI Ronin-S and a Monopod」（ジンバルと一脚でクレーンのように撮る）', u: 'https://4kshooters.net/2018/08/02/getting-some-creative-shots-with-the-dji-ronin-s-and-a-monopod' },
+  gfive: { k: '記事', t: '4K Shooters「Five Cinematic Gimbal Shots You Can Pull Off」', u: 'https://4kshooters.net/2018/06/22/five-cinematic-gimbal-shots-you-can-pull-off-with-the-zhiyun-crane-2-or-dji-ronin-s' },
+  gador: { k: '記事', t: 'Adorama「Precision & Flow: 5 Effective Gimbal and Slider Moves for Filmmakers」', u: 'https://www.adorama.com/alc/effective-gimbal-and-slider-moves/' },
+  gbh: { k: '記事', t: 'B&H Explora「15 Cinematic Gimbal Moves for Your Films and Videos」', u: 'https://www.bhphotovideo.com/explora/video/tips-and-solutions/15-cinematic-gimbal-moves-your-films-and-videos' },
+  gdfa: { k: '記事', t: 'Doc Film Academy「Cinematic Gimbal Techniques」（フォロー・リード・横の3つの追い方）', u: 'https://www.docfilmacademy.com/blog/cinematic-gimbal-techniques' },
+  gnfs: { k: '記事', t: 'No Film School「Do You Know the Vocabulary of the Gimbal?」', u: 'https://nofilmschool.com/do-you-know-vocabulary-gimbal' },
+  crane: { k: '記事', t: 'Freelance Video Collective「What is a Crane Shot?」', u: 'https://www.freelancevideocollective.com/crane-shot' },
+  ndls: { k: '記事', t: 'Light Stalking「Why You Need ND Filters When Shooting Video」（シャッターをフレームレートの倍に）', u: 'https://www.lightstalking.com/nd-filters-for-video/' },
+  ndss: { k: '記事', t: 'Shutterstock「Video tips: why you should use ND filters when filming」', u: 'https://customcontributor.shutterstock.com/blog/2017/9/12/why-you-should-use-nd-filters-when-filming' },
+  ndfw: { k: '記事', t: 'Freewell「Ultimate Guide to Choosing Filters」（ND・PL・ND/PL・拡散フィルター）', u: 'https://support.freewellgear.com/portal/en/kb/articles/filter-guide', n: 'フィルターを作る会社の解説' },
 };
 const GUIDE = [
   { id: 'axis', cat: 0, t: 'イマジナリーライン（180度ルール）', do: '人物の視線や動きの向き、人物と見ているものを結ぶ線を決め、そのシーンの間はカメラを線の片側だけに置く。', why: '線を越えると、画面の左右の向きが逆になり、観客が位置関係や進む向きを見失う。越えたいときは、線の上のカット（正面・真後ろ）や、別のものを見せるカットをはさむ。', chk: 'カメラを動かすたびに、線のどちら側にいるかを確かめる。', kw: /イマジナリー|同じ側|線の|側から撮り|反対側/, src: ['gots', 'sb180', 'five', 'arijon', 'wiki180'] },
@@ -872,9 +915,16 @@ const GUIDE = [
   { id: 'wide', cat: 3, t: '広角レンズ（24〜28mm）', do: '広い範囲を写す。場所全体、ＣＧやタイトルを重ねる余白をとるときに。', why: '奥行きが強く出る。近づいて撮ると顔や手前のものがゆがむ（ゆがみは主に近さから）。', chk: '人物は画面の端に置かない。近づきすぎない。', kw: /広角|24mm|28mm/, src: ['keh', 'brown'] },
   { id: 'normal', cat: 3, t: '標準レンズ（35〜50mm）', do: '人の目で見た感じに近い広さ。引き（35mm）や、腰から上（50mm）に。', why: 'ゆがみが少なく、人物と背景の釣り合いがとれた、自然な見え方になる。', chk: '同じ場面のカットは、なるべく同じ系統の mm でそろえる。', kw: /35mm|50mm|標準/, src: ['keh', 'diyp'] },
   { id: 'tele', cat: 3, t: '中望遠・望遠レンズ（85mm〜）', do: '顔の寄り（85mm）、遠くのものを引き寄せる・詰めて見せる（100mm〜）ときに。', why: '背景がぼけて人物が浮き、遠近が詰まって見える（圧縮）。離れて撮れるので、演者が緊張しにくく、通行人も避けやすい。', chk: '離れる分だけ場所が要る。手ぶれしやすいので三脚で。', kw: /望遠|85mm|100mm|135mm|圧縮/, src: ['keh', 'diyp', 'brown'] },
+  { id: 'nd', cat: 3, t: 'ND フィルターとシャッター（明るい屋外）', do: '動画のシャッターは、フレームレートのおよそ倍（24p・25p なら 1/50 前後、30p なら 1/60 前後）にする。明るい屋外でそのシャッターと開けた絞りを保つには、ND フィルターで光を減らす。', why: 'シャッターを速くして明るさを合わせると、動きがカクカクして見える。絞りで合わせると、背景のボケが減る。ND なら、どちらも変えずに明るさだけを下げられる。', chk: '日が傾くと暗くなるので、ND を弱める・外す。夜と地下は外す。強い ND を付けると見づらいので、先にピントと構図を決めてから付ける。', kw: /(?!)/, src: ['ndls', 'ndss', 'ndfw'], note: '販売店・フィルターを作る会社の解説記事による。決まりではなく目安' },
   { id: 'lock', cat: 4, t: '固定（ロックオフ）', do: '三脚でカメラを固定し、カットの間は動かさない。ＣＧや古写真と重ねる実景は、特に動かさない。', why: '合成や重ね合わせには、動かない画が要る。どうしても動かすなら、パンとティルトだけにする。', chk: '三脚の締め忘れ、地面の傾き、風でのぶれを確かめる。', kw: /固定|三脚/, src: ['lock', 'plate'] },
   { id: 'pan', cat: 4, t: 'パン・ティルト', do: '三脚の上でカメラを左右（パン）・上下（ティルト）に振る。ゆっくり一定の速さで。', why: '動く人物についていったり、2つのものを1カットでつないだりできる。速さがばらつくと、見ていて落ち着かない。', chk: '始めと終わりに、数秒止まった画を残す。', kw: /パン|ティルト|なめる/, src: ['katz'] },
   { id: 'hand', cat: 4, t: '手持ち・移動', do: 'カメラを手で持ち、人物と一緒に歩く、または主観で歩く。', why: '一緒に歩いている感じ、その場にいる感じが出る。揺れが大きいと見づらい。', chk: '歩く速さを一定に。揺れが気になるときは、三脚で数か所を撮ってつなぐ。', kw: /手持ち|並んで歩|歩きながら/, src: ['katz', 'five'] },
+  { id: 'gfollow', cat: 4, t: 'ついていく・前を行く（ジンバルのフォロー・リード）', do: 'ジンバルに載せて、人物の後ろについて歩く（フォロー）か、人物の前を後ろ向きに歩く（リード）。人物との距離と、カメラの高さを一定に保つ。', why: '後ろからは、人物と同じ方向を観客に見せられる。前からは、表情を見せたまま一緒に動ける。手持ちより揺れが少なく、一緒に進む感じだけが残る。', chk: 'リードは後ろ向きに歩くので、肩を持って導く人を付ける。人が近づいたら止める。古写真・ＣＧと重ねる実景には使わない（固定にする）。', kw: /ジンバル.*(後ろについ|ついて|前を行|後ろ向き)|フォロー|リード|ついて(降り|歩|登)/, src: ['gdfa', 'gbh', 'gnfs'], note: '販売店・映像の教室の解説記事による' },
+  { id: 'gtruck', cat: 4, t: '横に並んで動く（トラック・パララックス）', do: 'ジンバル（無ければ手持ち）で、人物と並んで横に動き、人物と同じ速さを保つ。手前に柱・看板・植え込みを入れると、手前と奥が違う速さで流れる（パララックス）。', why: '人物の大きさは変わらないまま背景だけが流れ、進んでいる感じと通りの奥行きが出る。三脚のパンより、人物と一緒に歩いている感じが強い。', chk: '画面の向き（左から右など）が守れる側を歩く。足元の段差と通行人に注意。速さは人物に合わせ、先に出ない。', kw: /並んで(動|横)|横に並|並走|パララックス|手前と奥が/, src: ['gador', 'gdfa', 'gfive'], note: '販売店・映像の教室の解説記事による' },
+  { id: 'gpush', cat: 4, t: '寄っていく・離れていく（プッシュイン・プルアウト）', do: '人物に向かってゆっくり近づく（プッシュイン）、または離れていく（プルアウト）。ジンバルなら、歩いて同じ動きができる。', why: '近づくと、人物の気づきや気持ちの高まりに注意を集める。離れると、人物を場所の中に返し、ひとりにする。', chk: '速さは一定に。止まる位置（どのサイズで止めるか）を先に決めてから動く。', kw: /寄っていく|近づいていく|離れていく|プッシュ|プルアウト/, src: ['gador', 'gbh'], note: '販売店・映像の教室の解説記事による' },
+  { id: 'gorbit', cat: 4, t: '回り込む（オービット）', do: 'ジンバルに載せて、人物を中心に同じ距離を保ったまま弧を描いて回る。', why: '人物の周りの空間を見せ、その瞬間を特別なものに見せる。', chk: 'イマジナリーラインを越えないよう、回るのは線のこちら側の半分まで。越えると、前後のカットと向きが逆になる。', kw: /回り込/, src: ['gdfa', 'gbh'], note: '販売店・映像の教室の解説記事による' },
+  { id: 'gjib', cat: 4, t: '一脚と組んで上下に動く（クレーン風のブームアップ・ダウン）', do: 'ジンバルを一脚（またはポール）の先に付け、低い位置から持ち上げる（ブームアップ）、または下ろす（ブームダウン）。ジンバルを逆さにすると、地面すれすれから始められる。', why: '足元から全体へ、人物から場所へ、と見せる範囲を広げて明かす（リビール）。上がる動きは開ける・やりとげる感じ、下がる動きは沈む・入っていく感じになる。', chk: '持ち上げる高さに、人・電線・看板がないか先に確かめる。重さで腕が持たないので1テイクは短く。動きの速さで印象が変わるので、ゆっくり一定に。', kw: /一脚|持ち上げ|ブームアップ|ブームダウン|クレーン/, src: ['gmono', 'gfive', 'crane'], note: '販売店・映像の教室の解説記事による' },
+  { id: 'glow', cat: 4, t: '低い位置の移動（ジンバルのローモード）', do: 'ジンバルを逆さに持ち、地面すれすれの低さで動く。', why: '地面が速く流れ、動きが速く、力強く見える。足元のカットも動きで見せられる。', chk: '段差にカメラをぶつけない。歩く人の足に近づきすぎない。', kw: /ローモード|逆さに持|地面すれすれ.*(動|ついて|移動)/, src: ['gdfa', 'gador'], note: '販売店・映像の教室の解説記事による' },
   { id: 'inout', cat: 5, t: '入りと出（前後に数秒）', do: '動く人物は、画面に入る前から出たあとまで撮る。動作の前後にも数秒余分に回す。', why: '入りと出があると編集で切りやすく、前後のカットにつなぎやすい。余白がないと切る場所がない。', chk: '「スタート」から動き出すまで、「カット」の前に数秒待つ。', kw: /入って|入り|出ていく|抜ける|去る|歩き去|出る/, src: ['rond', 'viterbo'] },
   { id: 'hold', cat: 5, t: '実景・インサートは長めに', do: '実景やインサートは、短くても10〜15秒、ゆっくりした作品ならそれ以上回す。', why: '編集で長さや入る場所を選べる。重ねる・ゆっくり見せるときに足りなくならない。', chk: '人や車が少ない瞬間を待つときは、1分ほど回しておく。', kw: /20秒|30秒|1分|長め|長回し|時間をあけて/, src: ['pbeat'] },
   { id: 'master', cat: 5, t: '引きで場所を見せてから寄る（マスターとカバレッジ）', do: '場面の全体がわかる引きを撮り、そのあと人物や細部の寄りを押さえる。', why: '観客は最初に場所と位置関係がわかると、その後の寄りを迷わず見られる。編集でも組み立てやすい。', chk: 'どのシーンでも、場所がわかる引きを1つは撮る。', kw: /引き（実景|全景|全体|場所/, src: ['brown', 'five', 'cutwari'] },
@@ -894,13 +944,13 @@ function autoBasis(p, f, sc) {
     const mm = +f.mm || 0;
     if (mm && mm <= 28) ids.add('wide'); else if (mm && mm < 85) ids.add('normal'); else if (mm >= 85) ids.add('tele');
     if (f.pan) ids.add('pan');
-    if (f.campath) ids.add('hand');
+    if (f.campath && !/ジンバル|一脚/.test(text + (f.sup || ''))) ids.add('hand');
     if (f.path) { ids.add('dir'); ids.add('inout'); }
     if ((f.act || f.acts) && ((sc && sc.stage && sc.stage.axis) || f.axis)) ids.add('axis');
     if (/目の高さ/.test(f.h || '')) ids.add('eyelevel');
   }
   // そのカットに特に関係が深いものから最大5つ（どの案にも付く一般的なものは後回し）
-  const W = { vfx: 10, ots: 9, pov: 9, action: 8, inout: 8, insert: 8, axis: 7, low: 7, high: 7, tele: 7, wide: 6, look: 6, neutral: 6, thirty: 6, eyeline: 6, hold: 5, pan: 5, hand: 5, dir: 6, master: 4, murch: 4, lock: 3, head: 3, normal: 3, size: 2, eyelevel: 2, tomino: 1, kinu: 1 };
+  const W = { vfx: 10, ots: 9, pov: 9, action: 8, inout: 8, insert: 8, axis: 7, low: 7, high: 7, tele: 7, wide: 6, look: 6, neutral: 6, thirty: 6, eyeline: 6, hold: 5, pan: 5, hand: 5, gjib: 9, gtruck: 8, gfollow: 8, gpush: 7, gorbit: 7, glow: 7, nd: 4, dir: 6, master: 4, murch: 4, lock: 3, head: 3, normal: 3, size: 2, eyelevel: 2, tomino: 1, kinu: 1 };
   return [...ids].sort((a, b) => (W[b] || 0) - (W[a] || 0)).slice(0, 5).sort((a, b) => GUIDE.indexOf(GUIDE_BY[a]) - GUIDE.indexOf(GUIDE_BY[b]));
 }
 const planBasis = (p, f, sc) => ((p && p.basis) || autoBasis(p, f, sc)).filter(id => GUIDE_BY[id]);
@@ -986,7 +1036,7 @@ function figSVG(stage, fig, opt = {}) {
   const tilt = /見上げ|あおり|ティルトアップ/.test(fig.h || '') ? -1 : /見下ろし|俯瞰/.test(fig.h || '') ? 1 : 0;
   o.push(`<g transform="translate(0 104)"><line x1="2" y1="12" x2="22" y2="12" class="fground"/><line x1="15" y1="12" x2="15" y2="4" class="fperson"/><circle cx="15" cy="3" r="1.4" class="fperson"/>
     <rect x="3.5" y="${f1(12 - hv - 1.2)}" width="4" height="2.4" rx=".5" class="fcam"/><line x1="7.5" y1="${f1(12 - hv)}" x2="11.5" y2="${f1(12 - hv - tilt * 2.5)}" class="fpan" marker-end="url(#${uid2}c)"/>
-    ${(() => { const ls = [`高さ：${fig.h || '目の高さ'}`], sz = `サイズ：${fig.size || '—'}`, ln = `レンズ：${fig.mm ? fig.mm + 'mm' : fig.lens || '標準'}${fig.pan ? '　パン' : ''}${fig.campath ? '　移動' : ''}`;
+    ${(() => { const ls = [`高さ：${fig.h || '目の高さ'}`], sz = `サイズ：${fig.size || '—'}`, ln = `レンズ：${fig.mm ? fig.mm + 'mm' : fig.lens || '標準'}${fig.pan ? '　パン' : ''}${fig.campath ? (fig.sup ? `　移動（${fig.sup}）` : '　移動') : ''}`;
       if ((sz + ln).length > 17) ls.push(sz, ln); else ls.push(sz + '　' + ln);
       legendH = 6.5 * ls.length + (fig.note ? 6.5 : 0);
       return ls.map((t, i) => T(25, 5 + i * 6.5, t, 'ft fl', 'start')).join('') + (fig.note ? T(2, 5 + ls.length * 6.5, '※ ' + fig.note, 'ft fnote', 'start') : ''); })()}</g>`);
@@ -1001,6 +1051,75 @@ function altsHtml(c, sc) {
 }
 const mmLine = f => (f && f.mm ? `<div class="mm"><b>レンズ ${esc(f.mm)}mm</b>${f.mmWhy ? `：${esc(f.mmWhy)}` : ''}</div>` : '');
 function camHtml(c, sc) { return c && c.cam ? `<div class="cam"><b>カメラ${c.alts && c.alts.length ? '（案A）' : ''}</b>${esc(c.cam)}${mmLine(c.fig)}${c.why ? `<div class="why">理由：${esc(c.why)}</div>` : ''}${basisHtml(c, c.fig, sc)}</div>${altsHtml(c, sc)}` : ''; }
+// 登録した機材から、カットの案（k 番目）に合う組み合わせを選ぶ。lines は画面に出す行、sum はテイクに残す1行
+function kitPlan(sc, c, k) {
+  const pl = plans(c), x = pl[Math.min(k || 0, pl.length - 1)] || {}, f = planFig(c, Math.min(k || 0, pl.length - 1)) || {};
+  const text = [x.cam, x.why, c.desc, c.size, f.h, f.sup].filter(Boolean).join(' ');
+  const where = [sc.place, sc.loc, sc.summary].filter(Boolean).join(' ');
+  const night = /夜/.test(sc.tod || ''), dusk = /夕/.test(sc.tod || '');
+  const inside = /内/.test(sc.io || '') || /地下|駅|屋内|室内|トンネル|メトロ/.test(where + ' ' + text);
+  const dark = night || inside, vfx = GUIDE_BY.vfx.kw.test(text);
+  const gim = /ジンバル|一脚/.test(text), hand = /手持ち/.test(text);
+  const lines = [], basis = [], sum = [];
+  const cam = KIT.cams.find(y => y.id === S.kitCam) || KIT.cams[0];
+  if (cam) { lines.push({ b: 'カメラ', t: cam.name, why: kitCrop(cam) !== 1 ? `${(SENSORS.find(s => s[0] === cam.sensor) || [])[1]}。案の mm（フルサイズ換算）を ${kitCrop(cam)} で割った mm を付ける` : '' }); sum.push(cam.name); }
+  else lines.push({ b: 'カメラ', t: '登録がありません' });
+  // レンズ：案の換算 mm を、このカメラで付ける mm に直して、いちばん合うものを選ぶ
+  let lens = null;
+  const eq = kitNum(f.mm), crop = kitCrop(cam), need = eq ? Math.round(eq / crop) : 0;
+  if (!eq) lines.push({ b: 'レンズ', t: 'このカットには mm の案がありません' });
+  else if (!KIT.lenses.length) lines.push({ b: 'レンズ', t: `換算 ${eq}mm${crop !== 1 ? `（このカメラでは ${need}mm）` : ''}。レンズの登録がありません` });
+  else {
+    const sc2 = l => { const a = kitNum(l.min), b = kitNum(l.max) || a; if (!a) return 99; const d = need < a ? Math.log(a / need) : need > b ? Math.log(need / b) : 0; return d + (dark ? (kitNum(l.f) || 5) * 0.04 : 0) + (gim ? (kitNum(l.g) || 0) / 20000 : 0); };
+    lens = KIT.lenses.slice().sort((a, b) => sc2(a) - sc2(b))[0];
+    const a = kitNum(lens.min), b = kitNum(lens.max) || a, zoom = b > a;
+    const at = need < a ? a : need > b ? b : need;
+    let t = lens.name + (zoom ? `（${at}mm で）` : ''), why = crop !== 1 ? `案は換算 ${eq}mm。このカメラでは ${need}mm にあたる。` : '';
+    if (at !== need) why += at > need ? `いちばん近くても ${at}mm（換算 ${Math.round(at * crop)}mm）で、案より狭く写る。少し下がって広さを合わせる。` : `いちばん近くても ${at}mm（換算 ${Math.round(at * crop)}mm）で、案より広く写る。少し近づくか、編集で切り出す。`;
+    if (dark && KIT.lenses.length > 1) why += 'このシーンは暗いので、F 値の小さい（明るい）レンズを先に選んだ。';
+    lines.push({ b: 'レンズ', t, why: why.trim() }); sum.push(lens.name + (zoom ? ` ${at}mm` : ''));
+  }
+  // ND：明るい屋外では、シャッターをフレームレートの倍に保つために入れる
+  const fl = ty => KIT.filters.find(y => y.type === ty);
+  if (dark) lines.push({ b: 'ND', t: '外す', why: night ? '夜なので光が足りない' : '地下・屋内なので光が足りない' });
+  else {
+    const nd = cam && cam.nd ? { name: `カメラの内蔵 ND（${cam.nd}）`, short: '内蔵ND' } : fl('vnd') || fl('nd') || fl('ndpl');
+    if (nd) { lines.push({ b: 'ND', t: nd.name + (nd.stops ? `（${nd.stops}）` : ''), why: (dusk ? '夕方なので弱めに。日が傾くにつれて外す。' : '') + 'シャッターをフレームレートの倍（24p なら 1/50 前後）に保ち、絞りを開けたまま明るさを下げる' }); sum.push(nd.short || nd.name); }
+    else lines.push({ b: 'ND', t: '登録がありません', why: '明るい屋外なので、絞って明るさを合わせる（背景のボケは減る）。シャッターは速くしない' });
+    basis.push('nd');
+  }
+  // PL：ガラス・水・濡れた面の反射
+  const pl2 = fl('pl') || fl('ndpl');
+  if (pl2 && /ガラス|窓|水|濡れ|映り込み|反射|ショーウィンドウ|ショーケース/.test(text + ' ' + where)) { lines.push({ b: 'PL', t: pl2.name, why: '反射を抑える。' + (/水/.test(text) ? '水の光り方を見せたいときは、回して弱めるか外す' : '回して効き方を見ながら決める') }); sum.push(pl2.name); }
+  // ミスト・拡散
+  const mist = fl('mist');
+  if (mist) {
+    if (vfx) lines.push({ b: 'ミスト', t: '外す', why: '古写真・ＣＧと重ねる実景なので、にじみで合わなくなる' });
+    else lines.push({ b: 'ミスト', t: `${mist.name}（付けるなら）`, why: '同じシーンのカットは、すべて付けるか、すべて外す（付け外しで画の柔らかさが変わる）。' + (night ? '夜の明かりは大きくにじむ。' : '') });
+  }
+  // 支え
+  const sp = ty => KIT.sups.find(y => y.type === ty);
+  if (gim) {
+    const g = sp('gimbal'), m = /一脚/.test(text) ? sp('mono') : null;
+    if (!g) lines.push({ b: '支え', t: 'ジンバルの登録がありません', warn: 'ジンバルが無ければ、案A（三脚）に戻す' });
+    else {
+      const w = (kitNum(cam && cam.g) || 0) + (kitNum(lens && lens.g) || 0), cap = kitNum(g.kg) * 1000;
+      lines.push({ b: '支え', t: g.name + (m ? ` ＋ ${m.name}` : (/一脚/.test(text) ? '（一脚の登録がありません）' : '')), why: w && cap ? `カメラとレンズで ${w}g（積める重さ ${g.kg}kg の内）` : '', warn: w && cap && w > cap ? `カメラとレンズで ${w}g。${g.name} の積める重さ ${g.kg}kg を超える` : '' });
+      sum.push(g.name + (m ? '＋' + m.name : ''));
+    }
+  } else if (hand) { const g = sp('gimbal'); lines.push({ b: '支え', t: g ? `手持ち（${g.name} を使うと揺れが減る）` : '手持ち' }); sum.push(g ? g.name : '手持ち'); }
+  else { const tp = sp('tripod'); lines.push({ b: '支え', t: (tp ? tp.name : '三脚') + (f.pan || /パン|ティルト/.test(text) ? '（パンのできる雲台で）' : ''), why: vfx ? '古写真・ＣＧと重ねるので、締めて動かさない' : '' }); sum.push(tp ? tp.name : '三脚'); }
+  return { lines, basis, sum: sum.join('／') };
+}
+function kitHtml(sc, c, k) {
+  if (!c || !c.cam) return '';
+  if (!kitCount()) return `<div class="kit"><div class="row-h"><b class="grow">機材の組み合わせ</b><button class="btn small" data-a="openKit">機材を登録する</button></div><p class="small">カメラ・レンズ・フィルター・支えを登録すると、このカットに合う組み合わせが出ます。</p></div>`;
+  const r = kitPlan(sc, c, k);
+  return `<div class="kit"><div class="row-h"><b class="grow">機材の組み合わせ</b><button class="btn small" data-a="openKit">機材</button></div>
+    ${KIT.cams.length > 1 ? `<div class="chips">${KIT.cams.map(y => `<button class="chip" data-a="kitCam" data-id="${y.id}" aria-pressed="${(KIT.cams.find(z => z.id === S.kitCam) || KIT.cams[0]).id === y.id}">${esc(y.name)}</button>`).join('')}</div>` : ''}
+    ${r.lines.map(l => `<div class="kl"><span>${esc(l.b)}</span><div><b>${esc(l.t)}</b>${l.why ? `<div class="small">${esc(l.why)}</div>` : ''}${l.warn ? `<div class="kwarn">${esc(l.warn)}</div>` : ''}</div></div>`).join('')}
+    ${r.basis.length ? `<div class="basis"><span>根拠</span>${r.basis.map(id => `<button data-a="openPrin" data-id="${id}">${esc(GUIDE_BY[id].t.replace(/（.*$/, ''))}</button>`).join('')}</div>` : ''}</div>`;
+}
 const hasCam = sc => !!(sc.axis || sc.link || sc.cuts.some(c => c.cam));
 function camBlock(sc) {
   return `${sc.axis ? `<div class="memo"><b>画面の向き・軸</b>${esc(sc.axis)}</div>` : ''}${sc.link ? `<div class="memo"><b>前後のつながり</b>${esc(sc.link)}</div>` : ''}
@@ -1977,7 +2096,7 @@ function shootCard(sc, isNow, slot) {
     ${cuts ? (withDesc ? `<div class="cutlist"><span class="lbl">撮るもの</span>${cuts}</div>` : `<div class="cutline"><span class="lbl">カット</span>${cuts}</div>`) : ''}
     ${hasCam(sc) ? `<details class="camd" data-open="cam|${sc.id}" ${camOpen ? 'open' : ''}><summary>カメラワーク（案・図・理由）<span class="small">${camCuts.length ? camCuts.length + 'カット' : ''}</span></summary>
       ${camOpen ? `<div class="cutlist">${sc.axis ? `<div class="memo"><b>画面の向き・軸</b>${esc(sc.axis)}</div>` : ''}${sc.link ? `<div class="memo"><b>前後のつながり</b>${esc(sc.link)}</div>` : ''}
-      ${camCuts.map(c => `<div class="camcut"><div class="camcut-h"><span class="cutpill">C${esc(c.no)}</span><span>${c.size ? `<b>${esc(c.size)}</b> ` : ''}${esc(c.desc)}</span></div>${c.fig ? `<button class="figthumb" data-a="openFig" data-sc="${sc.id}" data-id="${c.id}" aria-label="カメラ位置の図を開く">${figSVG(sc.stage, c.fig, { small: true })}<span>図を開く${c.alts && c.alts.length ? `（案A〜${planLabel(c.alts.length)}）` : ''}</span></button>` : ''}${camHtml(c, sc)}</div>`).join('')}</div>` : ''}</details>` : ''}
+      ${camCuts.map(c => `<div class="camcut"><div class="camcut-h"><span class="cutpill">C${esc(c.no)}</span><span>${c.size ? `<b>${esc(c.size)}</b> ` : ''}${esc(c.desc)}</span></div>${c.fig ? `<button class="figthumb" data-a="openFig" data-sc="${sc.id}" data-id="${c.id}" aria-label="カメラ位置の図を開く">${figSVG(sc.stage, c.fig, { small: true })}<span>図を開く${c.alts && c.alts.length ? `（案A〜${planLabel(c.alts.length)}）` : ''}</span></button>` : ''}${camHtml(c, sc)}${kitHtml(sc, c, c.pick || 0)}</div>`).join('')}</div>` : ''}</details>` : ''}
     <div class="btns grid2"><button class="btn" data-a="openScene" data-id="${sc.id}">台本・詳細</button><button class="btn ${done ? '' : 'primary'}" data-a="openRec" data-id="${sc.id}">記録する${ts.length ? `（${ts.length}テイク）` : ''}</button></div>
   </article>`;
 }
@@ -2113,6 +2232,9 @@ function renderOut() {
       <h3>記録の画面の欄</h3>
       <div class="chips">${[['snd', '音声のファイル名'], ['tc', 'タイムコード'], ['cam2', 'B カメのファイル名']].map(([x, l]) => `<button class="chip" role="checkbox" aria-checked="${fld(x)}" data-a="fld" data-k="${x}"><span class="tk"></span>${l}</button>`).join('')}</div>
       <p class="small">使わない欄は外すと、カチンコがすっきりします。音声をカメラ本体で録っているなら「音声のファイル名」は外してかまいません。</p>
+      <h3>機材</h3>
+      <button class="btn wide" data-a="openKit">カメラ・レンズ・フィルター・支え${kitCount() ? `（${kitCount()}）` : ''}</button>
+      <p class="small">登録すると、カットごとに合う組み合わせが「このカットの撮り方」に出て、テイクにも残ります。</p>
       <h3>作品データ</h3>
       <div class="btns grid2">${MODE.artifact ? '' : '<button class="btn" data-a="backup">作品データを保存</button>'}<button class="btn" data-a="restore">作品データを読み込む</button><button class="btn" data-a="openLinkBox">リンクで作品を開く</button><button class="btn danger" data-a="wipe">全部消して始める</button></div>
       <p class="small">別の端末に移す、念のため残すときは「作品データを保存」。読み込むと、今の内容と入れ替わります。</p></section>
@@ -2224,7 +2346,7 @@ function scriptHtml() {
   const okN = P.takes.filter(t => t.r === 'OK').length;
   const rows = data.map(({ sc, ts }) => {
     const head = `<tr class="sh"><td colspan="11">S#${esc(sc.no)}　${esc(sc.place)}${todLine(sc) ? `（${esc(todLine(sc))}）` : ''}${sc.loc ? `　ロケ：${esc(sc.loc)}` : ''}${sc.day ? `　撮影：${esc(dayLabel(dayById(sc.day)))}` : ''}${sc.secs ? `　台本の目安 ${estText(sc.secs)}` : ''}${sc.cont ? `<br>繋がり：${esc(sc.cont)}` : ''}${sc.edit ? `<br>編集へ：${esc(sc.edit)}` : ''}</td></tr>`;
-    const body = ts.length ? ts.map(t => { const c = sc.cuts.find(x => x.id === t.cut); return `<tr><td class="c">${esc(sc.no)}</td><td class="c">${esc(c ? c.no : '一連')}</td><td class="c">${t.n}${t.plan || t.mm ? `<br><small>${esc([t.plan, t.mm ? t.mm + 'mm' : ''].filter(Boolean).join(' '))}</small>` : ''}</td><td class="c ${t.r === 'OK' ? 'ok' : t.r === 'NG' ? 'ng' : ''}">${esc(t.r || '')}</td><td class="c">${fmtSec(t.sec)}</td><td>${esc(t.clip)}${t.clip2 ? `<br>B ${esc(t.clip2)}` : ''}</td><td>${esc(t.snd)}</td><td>${esc(t.tc)}</td><td>${esc(c ? [c.size, c.desc].filter(Boolean).join(' ') : '')}</td><td>${esc(t.note)}</td><td class="c">${fmtAt(t.at)}</td></tr>`; }).join('') : `<tr><td colspan="11" class="ng">記録なし</td></tr>`;
+    const body = ts.length ? ts.map(t => { const c = sc.cuts.find(x => x.id === t.cut); return `<tr><td class="c">${esc(sc.no)}</td><td class="c">${esc(c ? c.no : '一連')}</td><td class="c">${t.n}${t.plan || t.mm ? `<br><small>${esc([t.plan, t.mm ? t.mm + 'mm' : ''].filter(Boolean).join(' '))}</small>` : ''}</td><td class="c ${t.r === 'OK' ? 'ok' : t.r === 'NG' ? 'ng' : ''}">${esc(t.r || '')}</td><td class="c">${fmtSec(t.sec)}</td><td>${esc(t.clip)}${t.clip2 ? `<br>B ${esc(t.clip2)}` : ''}</td><td>${esc(t.snd)}</td><td>${esc(t.tc)}</td><td>${esc(c ? [c.size, c.desc].filter(Boolean).join(' ') : '')}</td><td>${t.kit ? `<small>機材 ${esc(t.kit)}</small><br>` : ''}${esc(t.note)}</td><td class="c">${fmtAt(t.at)}</td></tr>`; }).join('') : `<tr><td colspan="11" class="ng">記録なし</td></tr>`;
     const pi = postItems(sc);
     const post = pi.length ? `<tr class="pm"><td colspan="11">${POST_ORDER.filter(k => pi.some(x => x.k === k)).map(k => `<b>${esc(postName(k))}</b> ${pi.filter(x => x.k === k).map(x => esc(x.t)).join('／')}`).join('<br>')}</td></tr>` : '';
     return head + post + body;
@@ -2296,9 +2418,9 @@ function postCsv() {
   return rows;
 }
 function scriptCsv() {
-  const rows = [['シーン', '場所', '昼夜・内外', 'カット', 'サイズ', 'カット内容', 'カメラの案', 'レンズ（mm）', 'テイク', '判定', '尺（秒）', '尺', 'カメラのファイル名', 'Bカメのファイル名', '音声', 'タイムコード', 'メモ', '撮影日', '記録時刻', '繋がり', '編集へ']];
+  const rows = [['シーン', '場所', '昼夜・内外', 'カット', 'サイズ', 'カット内容', 'カメラの案', 'レンズ（mm）', '機材', 'テイク', '判定', '尺（秒）', '尺', 'カメラのファイル名', 'Bカメのファイル名', '音声', 'タイムコード', 'メモ', '撮影日', '記録時刻', '繋がり', '編集へ']];
   for (const { sc, ts } of scriptData()) {
-    for (const t of ts) { const c = sc.cuts.find(x => x.id === t.cut); rows.push([sc.no, sc.place, todLine(sc), c ? c.no : '一連', c ? c.size : '', c ? c.desc : '', t.plan || '', t.mm || '', t.n, t.r, t.sec || '', fmtSec(t.sec), t.clip, t.clip2 || '', t.snd, t.tc, t.note, sc.day ? dayLabel(dayById(sc.day)) : '', fmtAt(t.at), sc.cont, sc.edit]); }
+    for (const t of ts) { const c = sc.cuts.find(x => x.id === t.cut); rows.push([sc.no, sc.place, todLine(sc), c ? c.no : '一連', c ? c.size : '', c ? c.desc : '', t.plan || '', t.mm || '', t.kit || '', t.n, t.r, t.sec || '', fmtSec(t.sec), t.clip, t.clip2 || '', t.snd, t.tc, t.note, sc.day ? dayLabel(dayById(sc.day)) : '', fmtAt(t.at), sc.cont, sc.edit]); }
   }
   return rows;
 }
@@ -2309,7 +2431,7 @@ function scriptText() {
     L.push('', `■ ${sceneTitle(sc)}`);
     if (sc.cont) L.push(`　繋がり：${sc.cont}`);
     if (sc.edit) L.push(`　編集へ：${sc.edit}`);
-    for (const t of ts) L.push(`${cutLabel(sc, t.cut)} T${t.n}${t.plan ? ' ' + t.plan : ''} ${t.r || '—'} ${fmtSec(t.sec)} ${t.clip || ''} ${t.clip2 ? 'B ' + t.clip2 : ''} ${t.snd ? '音' + t.snd : ''} ${t.tc ? 'TC ' + t.tc : ''} ${t.note || ''}`.replace(/\s+/g, ' ').trim());
+    for (const t of ts) L.push(`${cutLabel(sc, t.cut)} T${t.n}${t.plan ? ' ' + t.plan : ''} ${t.r || '—'} ${fmtSec(t.sec)} ${t.clip || ''} ${t.clip2 ? 'B ' + t.clip2 : ''} ${t.snd ? '音' + t.snd : ''} ${t.tc ? 'TC ' + t.tc : ''} ${t.kit ? '［' + t.kit + '］' : ''} ${t.note || ''}`.replace(/\s+/g, ' ').trim());
   }
   return L.join('\n');
 }
@@ -2333,6 +2455,7 @@ function kobanCsv() {
 }
 async function loadProject(j) {
   const images = j.images || []; delete j.images;
+  kitAdopt(j.kit); delete j.kit;
   busy(true, '作品データを読み込んでいます…');
   try { await IDB.clear(); } catch (e) {}
   for (const k in IMG) delete IMG[k];
@@ -2356,6 +2479,7 @@ async function workIndex() { const idx = await (await fetch('works/index.json', 
 // 新しい版の作品データを、付けた記録（テイク・チェック・撮了・繋がりメモ）を残したまま取り込む
 async function mergeProject(j) {
   const images = j.images || []; delete j.images;
+  kitAdopt(j.kit); delete j.kit;
   for (const im of images) if (!IMG[im.id]) { IMG[im.id] = im.data; try { await IDB.put(im.id, im.data); } catch (e) {} }
   const old = P;
   for (const sc of j.scenes) {
@@ -2379,6 +2503,7 @@ async function openWork(name, key) {
     busy(false);
     if (P.scenes.length && P.title === j.title) {
       P.work = { name, key }; save(true);
+      if ((j.rev || 1) <= (P.rev || 1) && kitAdopt(j.kit)) render();
       if ((j.rev || 1) > (P.rev || 1)) { if (await ask(`「${j.title}」の資料が新しくなっています${j.revNote ? `（${j.revNote}）` : ''}。付けた記録はそのままで、資料だけ新しくしますか？`, '新しくする')) { await mergeProject(j); $('workbar').hidden = true; toast('資料を新しくしました（記録はそのままです）'); } }
       else toast(`「${j.title}」はもう開いています（記録はそのままです）`);
       return true;
@@ -2558,6 +2683,7 @@ const SHEET = {
         ${(() => { const pl = plans(c); if (!pl.length) return ''; const k = Math.min(c.pick || 0, pl.length - 1), x = pl[k];
           return `${pl.length > 1 ? `<div class="chips planchips">${pl.map((p, i) => `<button class="chip" data-a="pickPlan" data-sc="${sc.id}" data-id="${c.id}" data-i="${i}" aria-pressed="${i === k}">案${planLabel(i)}<span class="small">${esc(p.when)}</span></button>`).join('')}</div>` : ''}
             <div class="memo"><b>カメラ${pl.length > 1 ? `（案${planLabel(k)}）` : ''}</b>${esc(x.cam)}${mmLine(planFig(c, k))}${x.why ? `<span class="small">理由：${esc(x.why)}</span>` : ''}${basisHtml(k ? c.alts[k - 1] : c, planFig(c, k), sc)}</div>
+            ${kitHtml(sc, c, k)}
             ${planFig(c, k) ? `<button class="figbtn" data-a="openFig" data-sc="${sc.id}" data-id="${c.id}">${figSVG(sc.stage, planFig(c, k))}</button>` : ''}`; })()}
         ${sc.axis ? `<div class="small"><b>画面の向き・軸：</b>${esc(sc.axis)}</div>` : ''}
         ${sc.dir ? `<div class="memo"><b>演出</b>${esc(sc.dir)}</div>` : ''}
@@ -2580,6 +2706,7 @@ const SHEET = {
         <label class="field"><span>テイク番号</span><input ${b('n')} value="${t.n}" inputmode="numeric"></label>
         <label class="field"><span>カメラの案</span><input ${b('plan')} value="${esc(t.plan || '')}" placeholder="案A"></label>
         <label class="field"><span>レンズ（mm）</span><input ${b('mm')} value="${esc(t.mm || '')}" inputmode="numeric" placeholder="35"></label>
+        <label class="field full"><span>機材</span><input ${b('kit')} value="${esc(t.kit || '')}" placeholder="例：FX6／24-70mm F2.8 50mm／内蔵ND／三脚"></label>
         <label class="field"><span>尺（例 1:05）</span><input ${b('sec')} value="${fmtSec(t.sec)}" inputmode="numeric"></label>
         <label class="field"><span>${t.clip2 || fld('cam2') ? 'A カメのファイル名' : 'カメラのファイル名'}</span><input ${b('clip')} value="${esc(t.clip)}"></label>
         ${t.clip2 || fld('cam2') ? `<label class="field"><span>B カメのファイル名</span><input ${b('clip2')} value="${esc(t.clip2 || '')}"></label>` : ''}
@@ -2607,6 +2734,24 @@ const SHEET = {
       <p class="small">資料を消しても、取り込んだシーンや予定はそのまま残ります。</p>
       ${(d.pages || []).some(id => IMG[id]) ? `<div class="thumbs big">${thumbs(d.pages)}</div>` : ''}
       <pre class="doc">${esc(d.text)}</pre></div></div>`;
+  },
+  kit() {
+    const inp = (c, x, f, l, ph, num) => `<label class="field${f === 'name' ? ' full' : ''}"><span>${l}</span><input data-kit="${c}|${x.id}|${f}" value="${esc(x[f] || '')}" placeholder="${ph}" ${num ? 'inputmode="decimal"' : ''} autocomplete="off"></label>`;
+    const sel = (c, x, f, l, opts) => `<label class="field"><span>${l}</span><select data-kit="${c}|${x.id}|${f}">${opts.map(([v, n]) => `<option value="${v}" ${(x[f] || opts[0][0]) === v ? 'selected' : ''}>${n}</option>`).join('')}</select></label>`;
+    const row = (c, x, body) => `<div class="kitrow"><div class="fields">${body}</div><button class="link danger" data-a="kitDel" data-c="${c}" data-id="${x.id}">消す</button></div>`;
+    const F = {
+      cams: x => inp('cams', x, 'name', '名前', '例：FX6') + sel('cams', x, 'sensor', 'センサー', SENSORS.map(s => [s[0], s[1]])) + inp('cams', x, 'nd', '内蔵 ND（無ければ空）', '例：1/4〜1/128') + inp('cams', x, 'g', '重さ（g）', '例：890', 1),
+      lenses: x => inp('lenses', x, 'name', '名前', '例：24-70mm F2.8') + inp('lenses', x, 'min', '焦点距離（mm）', '例：24', 1) + inp('lenses', x, 'max', 'ズームの長い側（mm）', '単焦点は空', 1) + inp('lenses', x, 'f', '開放 F 値', '例：2.8', 1) + inp('lenses', x, 'g', '重さ（g）', '例：695', 1),
+      filters: x => inp('filters', x, 'name', '名前', '例：可変 ND 82mm') + sel('filters', x, 'type', '種類', FLT_TYPES) + inp('filters', x, 'stops', '強さ', '例：2〜8段、1/4') + inp('filters', x, 'dia', '径（mm）', '例：82', 1),
+      sups: x => inp('sups', x, 'name', '名前', '例：RS 4 Pro') + sel('sups', x, 'type', '種類', SUP_TYPES) + (x.type === 'gimbal' ? inp('sups', x, 'kg', '積める重さ（kg）', '例：4.5', 1) : ''),
+    };
+    return sheetTop('機材') + `<div class="sheet-body"><div class="wrap">
+      <p class="lead">登録した機材から、カットごとにカメラ・レンズ・フィルター・支えの組み合わせを出します。機材はこの端末に保存し、資料の更新や作品の入れ替えでは消えません。</p>
+      ${KIT_CAT.map(([c, l]) => `<section class="card"><div class="row-h"><h3 class="grow">${l}</h3><span class="small">${KIT[c].length}</span></div>
+        ${KIT[c].map(x => row(c, x, F[c](x))).join('') || '<p class="small">まだありません</p>'}
+        <button class="btn" data-a="kitAdd" data-c="${c}">＋ ${l}を足す</button></section>`).join('')}
+      <p class="small">レンズの mm は、レンズに書いてある実際の mm で書きます（スマホだけは換算の mm）。カメラ案の mm はフルサイズ換算なので、センサーの大きさに合わせて直して選びます。重さを書くと、ジンバルに載るかを確かめます。</p>
+    </div></div>`;
   },
   gear() {
     return sheetTop('持ち物・機材') + `<div class="sheet-body"><div class="wrap"><section class="card"><label class="field"><span>1行に1つ</span><textarea class="inp" id="gearText" rows="14">${esc(P.gear.join('\n'))}</textarea></label>
@@ -2858,7 +3003,7 @@ async function scriptPdf() {
       } });
       for (const t of gp.ts) {
         const W = k => (CI(k) < 0 ? 0 : COLS[CI(k)][1] - 4);
-        font(9); const memo = wrap(t.note || '', W('note'));
+        font(9); const memo = (t.kit ? wrap('機材 ' + t.kit, W('note')) : []).concat(t.note ? wrap(t.note, W('note')) : []);
         font(9, 700, PMONO); const clip = wrap(t.clip || '', W('clip')), clip2 = CI('clip2') < 0 ? [] : wrap(t.clip2 || '', W('clip2'));
         font(8.5, 500, PMONO); const snd = CI('snd') < 0 ? [] : wrap(t.snd || '', W('snd'));
         const h = Math.max(memo.length, clip.length, clip2.length, snd.length, 1) * LH + 2.6;
@@ -2973,8 +3118,9 @@ function recResult(scId, r) {
   const sec = S.last && S.last.sc === scId && S.last.cut === cut ? S.last.sec : 0;
   const cc = sc.cuts.find(x => x.id === cut), pk = cc ? Math.min(cc.pick || 0, (cc.alts || []).length) : 0, plan = cc && cc.alts && cc.alts.length ? '案' + planLabel(pk) : '';
   const pf = cc && planFig(cc, pk), mm = pf && pf.mm ? String(pf.mm) : '';
+  const kit = cc && cc.cam && kitCount() ? kitPlan(sc, cc, pk).sum : '';
   const nIn = parseInt(half(($('rc-n') || {}).value || ''), 10);
-  const t = { id: uid(), sc: scId, cut, plan, mm, n: nIn > 0 ? nIn : nextTakeNo(scId, cut), r, sec, clip: half(($('rc-clip') || {}).value || '').trim(), snd: half(($('rc-snd') || {}).value || '').trim(), clip2: half(($('rc-clip2') || {}).value || '').trim(), tc: half(($('rc-tc') || {}).value || '').trim(), note: (($('rc-note') || {}).value || '').trim(), at: Date.now(), day: sc.day || '' };
+  const t = { id: uid(), sc: scId, cut, plan, mm, kit, n: nIn > 0 ? nIn : nextTakeNo(scId, cut), r, sec, clip: half(($('rc-clip') || {}).value || '').trim(), snd: half(($('rc-snd') || {}).value || '').trim(), clip2: half(($('rc-clip2') || {}).value || '').trim(), tc: half(($('rc-tc') || {}).value || '').trim(), note: (($('rc-note') || {}).value || '').trim(), at: Date.now(), day: sc.day || '' };
   const prevCut = S.recCut[scId];
   P.takes.push(t); S.last = null; freshRec = true;
   if (r === 'OK' && sc.cuts.length) { // 次のカットへ
@@ -3068,7 +3214,7 @@ const ACT = {
   csvPost: () => download(fileName('編集素材リスト', 'csv'), toCsv(postCsv()), 'text/csv'),
   printKoban: () => doPrint(kobanHtml(), true),
   csvKoban: () => download(fileName('香盤表', 'csv'), toCsv(kobanCsv()), 'text/csv'),
-  backup: () => download(fileName('作品データ', 'json'), JSON.stringify(Object.assign({}, P, { images: P.imgs.filter(m => IMG[m.id]).map(m => ({ id: m.id, data: IMG[m.id] })) })), 'application/json'),
+  backup: () => download(fileName('作品データ', 'json'), JSON.stringify(Object.assign({}, P, { kit: KIT, images: P.imgs.filter(m => IMG[m.id]).map(m => ({ id: m.id, data: IMG[m.id] })) })), 'application/json'),
   restore: () => $('restore').click(),
   wipe: async () => { if (!await ask('この端末の作品データをすべて消して、新しく始めますか？（先に「作品データを保存」しておくと戻せます）')) return; P = blank(); pending = []; S.sheets = []; S.run = null; S.day = null; S.recCut = {}; for (const k in IMG) delete IMG[k]; IDB.clear().catch(() => {}); save(true); setTab('docs'); toast('新しい作品を始めました'); },
   licenses: () => openSheet({ t: 'lic' }),
@@ -3088,6 +3234,10 @@ const ACT = {
   wake: () => { S.wake = !S.wake; persist(); applyWake(); render(); toast(S.wake ? '撮影中は画面を消しません' : '画面は自動で消えます'); },
   gearAdd: () => { const el = $('gearInput'); const v = el.value.trim(); if (!v) return; P.gear.push(v); save(); S.gearOpen = true; render(); },
   gearEdit: () => openSheet({ t: 'gear' }),
+  openKit: () => openSheet({ t: 'kit' }),
+  kitAdd: b => { const c = b.dataset.c; const x = { id: uid(), name: '' }; if (c === 'cams') x.sensor = 'ff'; if (c === 'filters') x.type = 'vnd'; if (c === 'sups') x.type = 'tripod'; KIT[c].push(x); kitSave(); renderSheets(); setTimeout(() => { const el = document.querySelector(`[data-kit="${c}|${x.id}|name"]`); if (el) el.focus(); }, 50); },
+  kitDel: async b => { const c = b.dataset.c, x = KIT[c].find(y => y.id === b.dataset.id); if (!x) return; if (x.name && !await ask(`「${x.name}」を機材から消しますか？`)) return; KIT[c] = KIT[c].filter(y => y !== x); kitSave(); renderSheets(); RENDER[S.tab](); },
+  kitCam: b => { S.kitCam = b.dataset.id; persist(); renderSheets(); RENDER[S.tab](); },
   gearSave: () => { P.gear = uniq($('gearText').value.split('\n').map(x => x.trim())); save(); closeSheet(); },
 };
 function renderSheetsKeep() { renderSheets(); }
@@ -3124,11 +3274,27 @@ function bindValue(t) {
   else if (kind === 'day') { const d = dayById(id); if (!d) return; d[a] = v; if (a === 'date') sortDays(); }
   save();
 }
+// 機材の欄。レンズは名前に「24-70mm F2.8」のように書いてあれば、空いている焦点距離と F 値を埋める
+function kitBind(t, done) {
+  const [c, id, f] = t.dataset.kit.split('|'), x = KIT[c] && KIT[c].find(y => y.id === id); if (!x) return;
+  x[f] = t.value.trim();
+  if (done && c === 'lenses' && f === 'name') {
+    const v = half(x.name), m = /(\d+(?:\.\d+)?)\s*(?:-|〜|~)\s*(\d+(?:\.\d+)?)\s*mm/i.exec(v) || /(\d+(?:\.\d+)?)\s*mm/i.exec(v), fn = /F\s*(\d+(?:\.\d+)?)/i.exec(v) || /1\s*:\s*(\d+(?:\.\d+)?)/.exec(v);
+    let ch = false;
+    if (m && !x.min) { x.min = m[1]; if (m[2]) x.max = m[2]; ch = true; }
+    if (fn && !x.f) { x.f = fn[1]; ch = true; }
+    if (ch) { kitSave(); renderSheets(); return; }
+  }
+  kitSave();
+  if (done) { if (t.tagName === 'SELECT') renderSheets(); RENDER[S.tab](); }
+}
 document.addEventListener('input', e => { const t = e.target;
+  if (t.dataset && t.dataset.kit) { if (t.tagName !== 'SELECT') kitBind(t, false); return; }
   if (t.id === 'rc-tc' || (t.dataset.b && /\|tc$/.test(t.dataset.b))) { const dg = half(t.value).replace(/\D/g, '').slice(0, 8); const v = (dg.match(/.{1,2}/g) || []).join(':'); if (v !== t.value) t.value = v; }
   if (t.id === 'guideq') { const q = t.value.trim(); t.closest('.sheet-body').querySelectorAll('.gitem').forEach(el => { el.hidden = !!q && !el.dataset.q.includes(q); }); return; } if (t.dataset.b && !t.dataset.list && t.tagName !== 'SELECT') bindValue(t); });
 document.addEventListener('change', e => {
   const t = e.target;
+  if (t.dataset.kit) { kitBind(t, true); return; }
   if (t.dataset.b) { bindValue(t); if (t.tagName === 'SELECT' || t.dataset.list || t.dataset.rerender) render(); else { const top = S.sheets[S.sheets.length - 1]; if (top && top.t === 'scene' && /\|(no|place|tod|io)$/.test(t.dataset.b)) { const el = document.querySelector('#sheets .sheet:last-child .sheet-top .t'); const sc = sceneById(top.id); if (el && sc) el.textContent = sceneTitle(sc); } RENDER[S.tab](); } return; }
   const a = t.dataset.a, p = t.dataset.id && pending.find(x => x.id === t.dataset.id);
   if (a === 'pendKind' && p) { p.kind = t.value; render(); }
@@ -3188,7 +3354,7 @@ async function boot() {
   await openFromLink();
   // 同梱の作品データがあり、この端末にまだ何も入っていなければ、それを開く
   if (PRESET && PRESET.data && !P.scenes.length) {
-    const j = JSON.parse(JSON.stringify(PRESET.data)); const images = j.images || []; delete j.images;
+    const j = JSON.parse(JSON.stringify(PRESET.data)); const images = j.images || []; delete j.images; kitAdopt(j.kit); delete j.kit;
     for (const im of images) { IMG[im.id] = im.data; try { await IDB.put(im.id, im.data); } catch (e) {} }
     P = Object.assign(blank(), j); S.tab = 'shoot'; S.day = null; save(true); persist();
   }
@@ -3203,6 +3369,8 @@ window.addEventListener('hashchange', () => openFromLink());
 applyWake();
 checkUpdate();
 if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost') && !MODE.artifact) navigator.serviceWorker.register('sw.js').catch(() => {});
+// 動作テスト（tools/tests）だけが中を読む入口。確認用のサーバーで開いたときだけ作る
+if (location.hostname === 'localhost') window.__kinekoma = { get P() { return P; }, get KIT() { return KIT; }, S, kitPlan, kitAdopt, kitSave, mergeProject, scriptCsv, applyTheme, planBasis, plans, planFig };
 })();
 </script>
 </body>

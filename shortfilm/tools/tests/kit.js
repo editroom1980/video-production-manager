@@ -79,6 +79,23 @@ const SP = process.env.SP, fs = require('fs');
     // 前に作品データから入った機材は、空いている欄だけが埋まる（この端末で書いた値は残る）
     const fill = await pg.evaluate(() => { const A = window.__kinekoma, l = A.KIT.lenses.find(x => x.g), c = A.KIT.cams[0]; if (!l) return '重さのあるレンズが無い'; const lg = l.g; l.g = ''; const was = c.g; c.g = '999'; A.kitAdopt({ lenses: [{ name: l.name, g: lg }], cams: [{ name: c.name, g: '1' }] }); const r = `${l.name} の重さ ${l.g}（${lg} に戻れば正しい）／${c.name} の重さ ${c.g}（999 のままが正しい）`; c.g = was; A.kitSave(); return r; });
     console.log('空いている欄を埋める', fill);
+    // 優先：作品データで優先にしてあるレンズとミスト
+    const pri = await pg.evaluate(() => { const A = window.__kinekoma; return [...A.KIT.lenses, ...A.KIT.filters].filter(x => x.pri === 'on').map(x => x.name).join('、'); });
+    console.log('優先にしてある機材', pri || 'なし');
+    console.log('優先 S#1 C3（85mm）', await ask('1', 2, 0));
+    console.log('優先 S#1 C1 案B（100mm）', await ask('1', 0, 1));
+    console.log('優先 S#2 C2（重ねる実景）', await ask('2', 1, 0));
+    console.log('優先 S#10 C4 案D', await ask('10', 3, d10));
+    const why = await pg.evaluate(() => { const A = window.__kinekoma, sc = A.P.scenes.find(s => s.no === '1'); return A.kitPlan(sc, sc.cuts[0], 1).lines.find(l => l.b === 'レンズ').why; });
+    console.log('優先を使わない理由', why);
+    // 画面で「優先して使う」を外すと、資料の更新で戻らない
+    await pg.click('[data-a=tab][data-k=out]'); await pg.click('#v-out [data-a=openKit]'); await pg.waitForTimeout(200);
+    const chip = pg.locator('.sheet:last-child [data-a=kitPri][aria-checked=true]').first(); const cid = await chip.getAttribute('data-id');
+    await chip.evaluate(e => e.scrollIntoView({ block: 'center' })); await pg.waitForTimeout(100); await pg.screenshot({ path: SP + '/k-pri.png' });
+    await chip.click(); await pg.waitForTimeout(100);
+    await pg.evaluate(async () => { const A = window.__kinekoma, j = JSON.parse(JSON.stringify(A.P)); j.rev = 99; j.kit = JSON.parse(JSON.stringify(A.KIT)); for (const c of ['lenses', 'filters']) j.kit[c].forEach(x => { if (x.pri) x.pri = 'on'; }); await A.mergeProject(j); });
+    console.log('外した優先が戻らない', await pg.evaluate(id => [...window.__kinekoma.KIT.lenses, ...window.__kinekoma.KIT.filters].find(x => x.id === id).pri, cid) === 'off');
+    await closeAll();
   }
   // 明るい表示の見た目
   await pg.setInputFiles('#restore', SP + '/work.json'); await pg.click('[data-a=askYes]'); await pg.waitForTimeout(2500); await closeAll();

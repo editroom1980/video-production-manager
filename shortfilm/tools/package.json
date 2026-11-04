@@ -1,0 +1,8 @@
+{
+  "name": "kinekoma-tools",
+  "private": true,
+  "description": "キネコマの動作テスト用。tools フォルダで npm install と npx playwright install chromium を実行すると、テストが流せる",
+  "devDependencies": {
+    "playwright": "1.63.0"
+  }
+}

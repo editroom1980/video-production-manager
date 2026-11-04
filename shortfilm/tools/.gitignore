@@ -1,3 +1,6 @@
 # 鍵を外した作品データ・鍵・テストの画像は入れない（公開のリポジトリなので）
 local/
 *.png
+# テスト用の部品（npm install で入る）
+node_modules/
+package-lock.json

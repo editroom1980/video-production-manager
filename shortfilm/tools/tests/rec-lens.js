@@ -1,0 +1,16 @@
+const { chromium } = require('playwright');
+const SP = process.env.SP;
+(async () => { const b = await chromium.launch(); const pg = await b.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2 });
+  const errs = []; pg.on('pageerror', e => errs.push(e.message));
+  const closeAll = async () => { while (await pg.$('.sheet [data-a=close]')) await pg.click('.sheet:last-child [data-a=close]'); };
+  await pg.goto('http://localhost:8765/');
+  await pg.evaluate(async () => { localStorage.clear(); await new Promise(r => { const q = indexedDB.deleteDatabase('satsueicho'); q.onsuccess = q.onerror = q.onblocked = r; }); });
+  await pg.reload(); await pg.setInputFiles('#restore', SP + '/work.json'); await pg.click('[data-a=askYes]'); await pg.waitForTimeout(2500); await closeAll();
+  await pg.click('[data-a=tab][data-k=shoot]'); await pg.click('[data-a=day] >> nth=0');
+  await pg.click('.scard >> nth=0 >> [data-a=openRec]'); await pg.click('[data-a=recCut] >> nth=1'); await pg.waitForTimeout(200);
+  await pg.screenshot({ path: SP + '/m2-rec.png' });
+  await pg.click('[data-a=recResult][data-r=OK]'); await closeAll();
+  const t = await pg.evaluate(() => JSON.parse(localStorage.getItem('satsueicho.v1.project')).takes[0]);
+  console.log('take', t.plan, t.mm);
+  await pg.click('[data-a=tab][data-k=log]'); console.log('log', (await pg.textContent('.take')).replace(/\s+/g, ' '));
+  console.log('errors', errs); await b.close(); })();

@@ -1,0 +1,34 @@
+const { chromium } = require('playwright');
+const SP = process.env.SP;
+(async () => { const b = await chromium.launch();
+  const ctx = await b.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, acceptDownloads: true });
+  const pg = await ctx.newPage(); const errs = []; pg.on('pageerror', e => errs.push(e.message)); pg.on('console', m => { if (m.type() === 'error') errs.push(m.text()); });
+  const closeAll = async () => { while (await pg.$('.sheet [data-a=close]')) await pg.click('.sheet:last-child [data-a=close]'); };
+  await pg.goto('http://localhost:8765/');
+  await pg.evaluate(async () => { localStorage.clear(); await new Promise(r => { const q = indexedDB.deleteDatabase('satsueicho'); q.onsuccess = q.onerror = q.onblocked = r; }); });
+  await pg.reload(); await pg.setInputFiles('#restore', SP + '/work.json'); await pg.click('[data-a=askYes]'); await pg.waitForTimeout(2500); await closeAll(); await pg.waitForTimeout(2500);
+  await pg.click('[data-a=tab][data-k=shoot]'); await pg.click('[data-a=day] >> nth=0'); await pg.waitForTimeout(200);
+  await pg.screenshot({ path: `${SP}/h-shoot.png` });
+  await pg.click('.scard >> nth=0 >> [data-a=openRec]'); await pg.waitForTimeout(200);
+  await pg.screenshot({ path: `${SP}/h-rec0.png` });
+  // C1：T1 NG、T2 OK（ファイル名を入れる）
+  await pg.fill('#rc-clip', 'C0012'); await pg.fill('#rc-snd', 'ZOOM0031'); await pg.fill('#rc-note', '台詞とちり'); await pg.click('[data-a=recResult][data-r=NG]');
+  console.log('次のファイル名', await pg.inputValue('#rc-clip'), await pg.inputValue('#rc-snd'), 'テイク', await pg.inputValue('#rc-n'));
+  await pg.click('[data-a=recStart]'); await pg.waitForTimeout(2200); await pg.screenshot({ path: `${SP}/h-rec1.png` });
+  await pg.click('[data-a=recResult][data-r=OK]');
+  // C2：テイク番号を 3 に直してから KEEP
+  console.log('C2 のテイク', await pg.inputValue('#rc-n'));
+  await pg.click('[data-a=takeStep][data-d="1"]'); await pg.click('[data-a=takeStep][data-d="1"]');
+  await pg.click('[data-a=recResult][data-r=KEEP]');
+  await pg.fill('#rc-clip', 'C0016'); await pg.click('[data-a=recResult][data-r=OK]');
+  const T = await pg.evaluate(() => JSON.parse(localStorage.getItem('satsueicho.v1.project')).takes.map(t => `${t.n}${t.r} ${t.clip} ${t.snd}`));
+  console.log('テイク', T);
+  await closeAll();
+  await pg.click('[data-a=tab][data-k=log]'); await pg.waitForTimeout(200); await pg.screenshot({ path: `${SP}/h-log.png` });
+  await pg.click('[data-a=pdfScript]'); await pg.waitForSelector('.pdfpages img', { timeout: 30000 }); await pg.waitForTimeout(500);
+  await pg.screenshot({ path: `${SP}/h-pdfsheet.png` });
+  const [dl] = await Promise.all([pg.waitForEvent('download'), pg.click('[data-a=pdfSave]')]);
+  await dl.saveAs(SP + '/script.pdf'); console.log('PDF', dl.suggestedFilename());
+  await closeAll();
+  await pg.click('[data-a=tab][data-k=out]'); await pg.waitForTimeout(200); await pg.screenshot({ path: `${SP}/h-out.png`, fullPage: false });
+  console.log('errors', errs); await b.close(); })();

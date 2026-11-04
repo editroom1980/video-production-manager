@@ -1,0 +1,30 @@
+const { chromium } = require('playwright');
+const SP = process.env.SP;
+(async () => { const b = await chromium.launch(); const ctx = await b.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2 }); const pg = await ctx.newPage();
+  const errs = []; pg.on('pageerror', e => errs.push(e.message));
+  const closeAll = async () => { while (await pg.$('.sheet [data-a=close]')) await pg.click('.sheet:last-child [data-a=close]'); };
+  await pg.goto('http://localhost:8765/');
+  await pg.evaluate(async () => { localStorage.clear(); await new Promise(r => { const q = indexedDB.deleteDatabase('satsueicho'); q.onsuccess = q.onerror = q.onblocked = r; }); });
+  await pg.reload(); await pg.setInputFiles('#restore', SP + '/work.json'); await pg.click('[data-a=askYes]'); await pg.waitForTimeout(2500); await closeAll(); await pg.waitForTimeout(2000);
+  await pg.screenshot({ path: `${SP}/k-docs.png` });
+  await pg.click('[data-a=tab][data-k=shoot]'); await pg.click('[data-a=day] >> nth=0'); await pg.waitForTimeout(200);
+  await pg.screenshot({ path: `${SP}/k-shoot.png` });
+  await pg.click('.dayrules > summary'); await pg.waitForTimeout(200); console.log('注意を開く', await pg.$eval('.dayrules', d => d.open && d.querySelectorAll('li').length));
+  await pg.click('.dayrules > summary');
+  await pg.evaluate(() => document.querySelector('.scard').scrollIntoView()); await pg.waitForTimeout(150); await pg.screenshot({ path: `${SP}/k-card.png` });
+  await pg.click('.scard >> nth=0 >> .camd > summary'); await pg.waitForTimeout(300);
+  console.log('カメラワークを開く', await pg.$eval('.scard .camd', d => d.open), await pg.$$eval('.scard:first-of-type .camcut', a => a.length), 'カード', await pg.$eval('.scard', x => Math.round(x.getBoundingClientRect().height)));
+  await pg.evaluate(() => document.querySelector('.scard .camd').scrollIntoView()); await pg.waitForTimeout(150); await pg.screenshot({ path: `${SP}/k-cam.png` });
+  await pg.click('.scard >> nth=0 >> .camd [data-a=openFig] >> nth=0'); await pg.waitForTimeout(300); console.log('図の画面', !!(await pg.$('.sheet .fig'))); await closeAll();
+  // 再描画しても開いたまま
+  await pg.click('[data-a=tab][data-k=plan]'); await pg.click('[data-a=tab][data-k=shoot]'); await pg.waitForTimeout(200);
+  console.log('開いたまま', await pg.$eval('.scard .camd', d => d.open), await pg.$$eval('.scard:first-of-type .camcut', a => a.length));
+  await pg.click('.scard >> nth=0 >> [data-a=openRec]'); await pg.waitForTimeout(200); await pg.screenshot({ path: `${SP}/k-rec.png` });
+  await pg.click('.sheet details.rec-top > summary'); await pg.waitForTimeout(100); await pg.click('[data-a=recResult][data-r=OK]'); await pg.waitForTimeout(200);
+  console.log('撮り方を閉じたまま', await pg.$eval('.sheet details.rec-top', d => !d.open)); await closeAll();
+  await pg.click('[data-a=tab][data-k=out]'); await pg.waitForTimeout(200); await pg.screenshot({ path: `${SP}/k-out.png` });
+  for (const k of ['book', 'post', 'koban', 'check']) { await pg.click(`[data-a=outDoc][data-k=${k}]`); await pg.waitForTimeout(100); console.log(k, await pg.$$eval('.card:nth-of-type(2) .btns .btn', a => a.map(x => x.textContent).join('／'))); }
+  await pg.click('[data-a=view][data-k=check]'); await pg.waitForTimeout(300); console.log('チェックシートを見る', !!(await pg.$('.sheet .docv'))); await closeAll();
+  await pg.click('[data-a=pdfScript]'); await pg.waitForSelector('.pdfpages img', { timeout: 30000 }); console.log('PDF', await pg.textContent('.pdfinfo .small')); await closeAll();
+  await pg.screenshot({ path: `${SP}/k-out2.png` });
+  console.log('errors', errs); await b.close(); })();

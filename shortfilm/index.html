@@ -690,7 +690,7 @@ const KITKEY = 'satsueicho.v1.kit';
 const KIT_CAT = [['cams', 'カメラ'], ['lenses', 'レンズ'], ['filters', 'フィルター'], ['sups', '支え']];
 const SENSORS = [['ff', 'フルサイズ', 1], ['s35', 'スーパー35・APS-C', 1.5], ['mft', 'マイクロフォーサーズ', 2], ['1in', '1型', 2.7], ['phone', 'スマホ（mm は換算で書く）', 1]];
 const FLT_TYPES = [['vnd', '可変 ND'], ['nd', 'ND（固定）'], ['pl', 'PL（偏光）'], ['ndpl', 'ND＋PL'], ['mist', 'ミスト・拡散'], ['other', 'そのほか']];
-const SUP_TYPES = [['tripod', '三脚'], ['mono', '一脚'], ['gimbal', 'ジンバル'], ['slider', 'スライダー'], ['other', 'そのほか']];
+const SUP_TYPES = [['tripod', '三脚'], ['mono', '一脚'], ['gimbal', 'ジンバル'], ['slider', 'スライダー'], ['drone', 'ドローン'], ['other', 'そのほか']];
 function kitBlank() { return { cams: [], lenses: [], filters: [], sups: [], seen: [] }; }
 function kitLoad() { try { const j = JSON.parse(localStorage.getItem(KITKEY)); if (j) return Object.assign(kitBlank(), j); } catch (e) {} return kitBlank(); }
 let KIT = kitLoad();
@@ -708,6 +708,9 @@ function kitAdopt(k) {
 }
 const kitCrop = cam => ((SENSORS.find(s => s[0] === (cam && cam.sensor)) || SENSORS[0])[2]);
 const kitNum = v => { const n = parseFloat(half(v || '').replace(/[^\d.]/g, '')); return n > 0 ? n : 0; };
+// フィルターの径（「82」や、アダプターリングで付く範囲「67〜82」）に、レンズの径が入るか。どちらかが分からなければ確かめない
+const kitDia = v => { const m = half(v || '').match(/\d+(?:\.\d+)?/g) || []; return m.length ? [Math.min(...m.map(Number)), Math.max(...m.map(Number))] : null; };
+const diaFits = (flt, lens) => { const r = kitDia(flt && flt.dia), d = kitNum(lens && lens.dia); return !r || !d || (d >= r[0] && d <= r[1]); };
 
 /* ───────── 画像（端末の IndexedDB に保存） ───────── */
 const IMG = {};
@@ -1061,8 +1064,12 @@ function kitPlan(sc, c, k) {
   const dark = night || inside, vfx = GUIDE_BY.vfx.kw.test(text);
   const gim = /ジンバル|一脚/.test(text), hand = /手持ち/.test(text);
   const lines = [], basis = [], sum = [];
-  const cam = KIT.cams.find(y => y.id === S.kitCam) || KIT.cams[0];
-  if (cam) { lines.push({ b: 'カメラ', t: cam.name, why: kitCrop(cam) !== 1 ? `${(SENSORS.find(s => s[0] === cam.sensor) || [])[1]}。案の mm（フルサイズ換算）を ${kitCrop(cam)} で割った mm を付ける` : '' }); sum.push(cam.name); }
+  const fl = ty => KIT.filters.find(y => y.type === ty);
+  // カメラ：選んだものがあればそれ。ジンバルの案では、重さの分かっている中で軽いものを選ぶ
+  const picked = KIT.cams.find(y => y.id === S.kitCam);
+  let cam = picked || KIT.cams[0], camWhy = '';
+  if (!picked && gim && KIT.cams.length > 1) { const light = KIT.cams.filter(y => kitNum(y.g)).sort((a, b) => kitNum(a.g) - kitNum(b.g))[0]; if (light && light !== cam) { cam = light; camWhy = 'ジンバルの案なので、軽いカメラを選んだ。'; } }
+  if (cam) { lines.push({ b: 'カメラ', t: cam.name, why: camWhy + (kitCrop(cam) !== 1 ? `${(SENSORS.find(s => s[0] === cam.sensor) || [])[1]}。案の mm（フルサイズ換算）を ${kitCrop(cam)} で割った mm を付ける` : '') }); sum.push(cam.name); }
   else lines.push({ b: 'カメラ', t: '登録がありません' });
   // レンズ：案の換算 mm を、このカメラで付ける mm に直して、いちばん合うものを選ぶ
   let lens = null;
@@ -1070,7 +1077,8 @@ function kitPlan(sc, c, k) {
   if (!eq) lines.push({ b: 'レンズ', t: 'このカットには mm の案がありません' });
   else if (!KIT.lenses.length) lines.push({ b: 'レンズ', t: `換算 ${eq}mm${crop !== 1 ? `（このカメラでは ${need}mm）` : ''}。レンズの登録がありません` });
   else {
-    const sc2 = l => { const a = kitNum(l.min), b = kitNum(l.max) || a; if (!a) return 99; const d = need < a ? Math.log(a / need) : need > b ? Math.log(need / b) : 0; return d + (dark ? (kitNum(l.f) || 5) * 0.04 : 0) + (gim ? (kitNum(l.g) || 0) / 20000 : 0); };
+    const fnd = !dark && !(cam && cam.nd) ? fl('vnd') || fl('nd') || fl('ndpl') : null;
+    const sc2 = l => { const a = kitNum(l.min), b = kitNum(l.max) || a; if (!a) return 99; const d = need < a ? Math.log(a / need) : need > b ? Math.log(need / b) : 0; return d + (dark ? (kitNum(l.f) || 5) * 0.04 : 0) + (gim ? (kitNum(l.g) || 0) / 20000 : 0) + (fnd && !diaFits(fnd, l) ? 0.15 : 0); };
     lens = KIT.lenses.slice().sort((a, b) => sc2(a) - sc2(b))[0];
     const a = kitNum(lens.min), b = kitNum(lens.max) || a, zoom = b > a;
     const at = need < a ? a : need > b ? b : need;
@@ -1080,26 +1088,27 @@ function kitPlan(sc, c, k) {
     lines.push({ b: 'レンズ', t, why: why.trim() }); sum.push(lens.name + (zoom ? ` ${at}mm` : ''));
   }
   // ND：明るい屋外では、シャッターをフレームレートの倍に保つために入れる
-  const fl = ty => KIT.filters.find(y => y.type === ty);
+  const diaWarn = y => { if (!y || diaFits(y, lens)) return ''; const r = kitDia(y.dia); return `径が合わない（レンズ ${kitNum(lens.dia)}mm・フィルター ${r[0] === r[1] ? r[0] : r[0] + '〜' + r[1]}mm）。このレンズには付かない`; };
   if (dark) lines.push({ b: 'ND', t: '外す', why: night ? '夜なので光が足りない' : '地下・屋内なので光が足りない' });
   else {
     const nd = cam && cam.nd ? { name: `カメラの内蔵 ND（${cam.nd}）`, short: '内蔵ND' } : fl('vnd') || fl('nd') || fl('ndpl');
-    if (nd) { lines.push({ b: 'ND', t: nd.name + (nd.stops ? `（${nd.stops}）` : ''), why: (dusk ? '夕方なので弱めに。日が傾くにつれて外す。' : '') + 'シャッターをフレームレートの倍（24p なら 1/50 前後）に保ち、絞りを開けたまま明るさを下げる' }); sum.push(nd.short || nd.name); }
+    if (nd) { lines.push({ b: 'ND', t: nd.name + (nd.stops ? `（${nd.stops}）` : ''), warn: diaWarn(nd), why: (dusk ? '夕方なので弱めに。日が傾くにつれて外す。' : '') + 'シャッターをフレームレートの倍（24p なら 1/50 前後）に保ち、絞りを開けたまま明るさを下げる' }); sum.push(nd.short || nd.name); }
     else lines.push({ b: 'ND', t: '登録がありません', why: '明るい屋外なので、絞って明るさを合わせる（背景のボケは減る）。シャッターは速くしない' });
     basis.push('nd');
   }
   // PL：ガラス・水・濡れた面の反射
   const pl2 = fl('pl') || fl('ndpl');
-  if (pl2 && /ガラス|窓|水|濡れ|映り込み|反射|ショーウィンドウ|ショーケース/.test(text + ' ' + where)) { lines.push({ b: 'PL', t: pl2.name, why: '反射を抑える。' + (/水/.test(text) ? '水の光り方を見せたいときは、回して弱めるか外す' : '回して効き方を見ながら決める') }); sum.push(pl2.name); }
+  if (pl2 && /ガラス|窓|水面|水たまり|流れる水|水の流れ|濡れ|映り込み|反射|ショーウィンドウ|ショーケース/.test(text)) { lines.push({ b: 'PL', t: pl2.name, warn: diaWarn(pl2), why: '反射を抑える。' + (/水/.test(text) ? '水の光り方を見せたいときは、回して弱めるか外す。' : '回して効き方を見ながら決める。') + (dark ? 'PL を付けると暗くなるので、明るさが足りなければ外す。' : '') }); sum.push(pl2.name); }
   // ミスト・拡散
   const mist = fl('mist');
   if (mist) {
     if (vfx) lines.push({ b: 'ミスト', t: '外す', why: '古写真・ＣＧと重ねる実景なので、にじみで合わなくなる' });
-    else lines.push({ b: 'ミスト', t: `${mist.name}（付けるなら）`, why: '同じシーンのカットは、すべて付けるか、すべて外す（付け外しで画の柔らかさが変わる）。' + (night ? '夜の明かりは大きくにじむ。' : '') });
+    else lines.push({ b: 'ミスト', t: `${mist.name}（付けるなら）`, warn: diaWarn(mist), why: '同じシーンのカットは、すべて付けるか、すべて外す（付け外しで画の柔らかさが変わる）。' + (night ? '夜の明かりは大きくにじむ。' : '') });
   }
   // 支え
   const sp = ty => KIT.sups.find(y => y.type === ty);
-  if (gim) {
+  if (/ドローン|空撮/.test(text)) { const d = sp('drone'); lines.push({ b: '支え', t: d ? d.name : 'ドローンの登録がありません', warn: '人口集中地区の上空や、人・建物から30m 未満で飛ばすときは、国土交通大臣の許可・承認が要る（航空法）。飛ばす前に、場所と手続きを確かめる' }); if (d) sum.push(d.name); }
+  else if (gim) {
     const g = sp('gimbal'), m = /一脚/.test(text) ? sp('mono') : null;
     if (!g) lines.push({ b: '支え', t: 'ジンバルの登録がありません', warn: 'ジンバルが無ければ、案A（三脚）に戻す' });
     else {
@@ -1109,14 +1118,14 @@ function kitPlan(sc, c, k) {
     }
   } else if (hand) { const g = sp('gimbal'); lines.push({ b: '支え', t: g ? `手持ち（${g.name} を使うと揺れが減る）` : '手持ち' }); sum.push(g ? g.name : '手持ち'); }
   else { const tp = sp('tripod'); lines.push({ b: '支え', t: (tp ? tp.name : '三脚') + (f.pan || /パン|ティルト/.test(text) ? '（パンのできる雲台で）' : ''), why: vfx ? '古写真・ＣＧと重ねるので、締めて動かさない' : '' }); sum.push(tp ? tp.name : '三脚'); }
-  return { lines, basis, sum: sum.join('／') };
+  return { lines, basis, sum: sum.join('／'), cam: cam && cam.id };
 }
 function kitHtml(sc, c, k) {
   if (!c || !c.cam) return '';
   if (!kitCount()) return `<div class="kit"><div class="row-h"><b class="grow">機材の組み合わせ</b><button class="btn small" data-a="openKit">機材を登録する</button></div><p class="small">カメラ・レンズ・フィルター・支えを登録すると、このカットに合う組み合わせが出ます。</p></div>`;
   const r = kitPlan(sc, c, k);
   return `<div class="kit"><div class="row-h"><b class="grow">機材の組み合わせ</b><button class="btn small" data-a="openKit">機材</button></div>
-    ${KIT.cams.length > 1 ? `<div class="chips">${KIT.cams.map(y => `<button class="chip" data-a="kitCam" data-id="${y.id}" aria-pressed="${(KIT.cams.find(z => z.id === S.kitCam) || KIT.cams[0]).id === y.id}">${esc(y.name)}</button>`).join('')}</div>` : ''}
+    ${KIT.cams.length > 1 ? `<div class="chips">${KIT.cams.map(y => `<button class="chip" data-a="kitCam" data-id="${y.id}" aria-pressed="${r.cam === y.id}">${esc(y.name)}</button>`).join('')}</div>` : ''}
     ${r.lines.map(l => `<div class="kl"><span>${esc(l.b)}</span><div><b>${esc(l.t)}</b>${l.why ? `<div class="small">${esc(l.why)}</div>` : ''}${l.warn ? `<div class="kwarn">${esc(l.warn)}</div>` : ''}</div></div>`).join('')}
     ${r.basis.length ? `<div class="basis"><span>根拠</span>${r.basis.map(id => `<button data-a="openPrin" data-id="${id}">${esc(GUIDE_BY[id].t.replace(/（.*$/, ''))}</button>`).join('')}</div>` : ''}</div>`;
 }
@@ -2741,8 +2750,8 @@ const SHEET = {
     const row = (c, x, body) => `<div class="kitrow"><div class="fields">${body}</div><button class="link danger" data-a="kitDel" data-c="${c}" data-id="${x.id}">消す</button></div>`;
     const F = {
       cams: x => inp('cams', x, 'name', '名前', '例：FX6') + sel('cams', x, 'sensor', 'センサー', SENSORS.map(s => [s[0], s[1]])) + inp('cams', x, 'nd', '内蔵 ND（無ければ空）', '例：1/4〜1/128') + inp('cams', x, 'g', '重さ（g）', '例：890', 1),
-      lenses: x => inp('lenses', x, 'name', '名前', '例：24-70mm F2.8') + inp('lenses', x, 'min', '焦点距離（mm）', '例：24', 1) + inp('lenses', x, 'max', 'ズームの長い側（mm）', '単焦点は空', 1) + inp('lenses', x, 'f', '開放 F 値', '例：2.8', 1) + inp('lenses', x, 'g', '重さ（g）', '例：695', 1),
-      filters: x => inp('filters', x, 'name', '名前', '例：可変 ND 82mm') + sel('filters', x, 'type', '種類', FLT_TYPES) + inp('filters', x, 'stops', '強さ', '例：2〜8段、1/4') + inp('filters', x, 'dia', '径（mm）', '例：82', 1),
+      lenses: x => inp('lenses', x, 'name', '名前', '例：24-70mm F2.8') + inp('lenses', x, 'min', '焦点距離（mm）', '例：24', 1) + inp('lenses', x, 'max', 'ズームの長い側（mm）', '単焦点は空', 1) + inp('lenses', x, 'f', '開放 F 値', '例：2.8', 1) + inp('lenses', x, 'dia', 'フィルター径（mm）', '例：82', 1) + inp('lenses', x, 'g', '重さ（g）', '例：695', 1),
+      filters: x => inp('filters', x, 'name', '名前', '例：可変 ND 82mm') + sel('filters', x, 'type', '種類', FLT_TYPES) + inp('filters', x, 'stops', '強さ', '例：2〜8段、1/4') + inp('filters', x, 'dia', '付く径（mm）', '例：82、67〜82'),
       sups: x => inp('sups', x, 'name', '名前', '例：RS 4 Pro') + sel('sups', x, 'type', '種類', SUP_TYPES) + (x.type === 'gimbal' ? inp('sups', x, 'kg', '積める重さ（kg）', '例：4.5', 1) : ''),
     };
     return sheetTop('機材') + `<div class="sheet-body"><div class="wrap">
@@ -2750,7 +2759,7 @@ const SHEET = {
       ${KIT_CAT.map(([c, l]) => `<section class="card"><div class="row-h"><h3 class="grow">${l}</h3><span class="small">${KIT[c].length}</span></div>
         ${KIT[c].map(x => row(c, x, F[c](x))).join('') || '<p class="small">まだありません</p>'}
         <button class="btn" data-a="kitAdd" data-c="${c}">＋ ${l}を足す</button></section>`).join('')}
-      <p class="small">レンズの mm は、レンズに書いてある実際の mm で書きます（スマホだけは換算の mm）。カメラ案の mm はフルサイズ換算なので、センサーの大きさに合わせて直して選びます。重さを書くと、ジンバルに載るかを確かめます。</p>
+      <p class="small">レンズの mm は、レンズに書いてある実際の mm で書きます（スマホだけは換算の mm）。カメラ案の mm はフルサイズ換算なので、センサーの大きさに合わせて直して選びます。重さを書くと、ジンバルに載るかを確かめます。フィルターの径は、アダプターリングで付く範囲（例：67〜82）でも書けます。</p>
     </div></div>`;
   },
   gear() {

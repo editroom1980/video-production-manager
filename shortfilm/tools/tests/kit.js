@@ -7,7 +7,9 @@ const SP = process.env.SP, fs = require('fs');
   const KIT = () => pg.evaluate(() => JSON.parse(localStorage.getItem('satsueicho.v1.kit') || 'null'));
   await pg.goto('http://localhost:8765/');
   await pg.evaluate(async () => { localStorage.clear(); await new Promise(r => { const q = indexedDB.deleteDatabase('satsueicho'); q.onsuccess = q.onerror = q.onblocked = r; }); });
-  await pg.reload(); await pg.setInputFiles('#restore', SP + '/work.json'); await pg.click('[data-a=askYes]'); await pg.waitForTimeout(2500); await closeAll();
+  // 作品データに機材が入っていても、ここでは外した写しで、画面から登録するところを試す
+  const W0 = JSON.parse(fs.readFileSync(SP + '/work.json', 'utf8')), WK = W0.kit; delete W0.kit; fs.writeFileSync(SP + '/work-nokit.json', JSON.stringify(W0));
+  await pg.reload(); await pg.setInputFiles('#restore', SP + '/work-nokit.json'); await pg.click('[data-a=askYes]'); await pg.waitForTimeout(2500); await closeAll();
   // 登録する前は、案内だけが出る
   await pg.click('[data-a=tab][data-k=shoot]'); await pg.click('[data-a=day] >> nth=0');
   await pg.click('.scard >> nth=0 >> [data-a=openRec]'); await pg.waitForTimeout(200);
@@ -58,6 +60,23 @@ const SP = process.env.SP, fs = require('fs');
   K = await KIT(); console.log('消したものは足し直さない', !K.lenses.some(l => /新しい/.test(l.name)));
   await pg.click('[data-a=tab][data-k=out]'); await pg.click('[data-a=wipe]'); await pg.click('[data-a=askYes]'); await pg.waitForTimeout(500);
   K = await KIT(); console.log('全部消すのあと', K.cams.length + K.lenses.length + K.filters.length + K.sups.length);
+  // 作品データに入っている機材が、この端末に入る（第7版から）
+  if (WK) {
+    await pg.evaluate(() => localStorage.removeItem('satsueicho.v1.kit')); await pg.reload();
+    await pg.setInputFiles('#restore', SP + '/work.json'); await pg.click('[data-a=askYes]'); await pg.waitForTimeout(2500); await closeAll();
+    K = await KIT(); const n = c => (WK[c] || []).length;
+    console.log('作品データの機材が入った', K.cams.length === n('cams') && K.lenses.length === n('lenses') && K.filters.length === n('filters') && K.sups.length === n('sups'), K.cams.length + K.lenses.length + K.filters.length + K.sups.length);
+    const ix = no => pg.evaluate(no => { const sc = window.__kinekoma.P.scenes.find(s => s.no === no); return sc.cuts.map(c => (c.alts || []).findIndex(a => a.gim) + 1); }, no);
+    const d4 = (await ix('4'))[0], d10 = (await ix('10'))[3];
+    console.log('S#4 C1 案D（ジンバル）', await ask('4', 0, d4));
+    console.log('S#10 C4 案D（一脚）', await ask('10', 3, d10));
+    console.log('S#6 C1 夜', await ask('6', 0, 0));
+    await pg.evaluate(() => { const A = window.__kinekoma; A.S.kitCam = A.KIT.cams.find(c => !c.nd).id; });
+    console.log('内蔵 ND の無いカメラで望遠（S#1 C1 案B）', await ask('1', 0, 1));
+    const only95 = await pg.evaluate(([no, ci, k]) => { const A = window.__kinekoma, keep = A.KIT.lenses; A.KIT.lenses = keep.filter(l => +l.dia === 95); const sc = A.P.scenes.find(s => s.no === no); const r = A.kitPlan(sc, sc.cuts[ci], k); A.KIT.lenses = keep; return r.lines.filter(l => l.warn).map(l => l.b + '!' + l.warn).join(' | '); }, ['1', 0, 1]);
+    console.log('径 95mm のレンズだけのとき', only95 || '知らせなし');
+    await pg.evaluate(() => { window.__kinekoma.S.kitCam = null; });
+  }
   // 明るい表示の見た目
   await pg.setInputFiles('#restore', SP + '/work.json'); await pg.click('[data-a=askYes]'); await pg.waitForTimeout(2500); await closeAll();
   await pg.evaluate(() => { const A = window.__kinekoma; A.S.theme = 'light'; A.applyTheme(); });

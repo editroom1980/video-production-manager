@@ -638,7 +638,7 @@ details.rec-top > summary { font-size: 13px; font-weight: 800; letter-spacing: .
 <script>
 (() => {
 'use strict';
-const VERSION = '3.7（11/5 機材の優先：優先して使う・いつも付ける）';
+const VERSION = '3.8（11/5 基本のレンズは付けたまま、交換は広すぎる・長すぎる・載らないときだけ）';
 
 /* ───────── 基本 ───────── */
 const $ = id => document.getElementById(id);
@@ -1082,19 +1082,38 @@ function kitPlan(sc, c, k) {
   if (!eq) lines.push({ b: 'レンズ', t: 'このカットには mm の案がありません' });
   else if (!KIT.lenses.length) lines.push({ b: 'レンズ', t: `換算 ${eq}mm${crop !== 1 ? `（このカメラでは ${need}mm）` : ''}。レンズの登録がありません` });
   else {
-    // 付けるフィルター（内蔵 ND の無い明るい屋外の ND、「いつも付ける」のミスト・PL）が付かないレンズは後回し。優先のレンズは、案の mm から25%ほど離れていても先に選ぶ
+    // 付けるフィルター（内蔵 ND の無い明るい屋外の ND、「いつも付ける」のミスト・PL）が付かないレンズは後回し
     const must = [!dark && !(cam && cam.nd) ? fl('vnd') || fl('nd') || fl('ndpl') : null, isPri(fl('mist')) ? fl('mist') : null, isPri(fl('pl')) ? fl('pl') : null].filter(Boolean);
-    const sc2 = l => { const a = kitNum(l.min), b = kitNum(l.max) || a; if (!a) return 99; const d = need < a ? Math.log(a / need) : need > b ? Math.log(need / b) : 0; return d + (dark ? (kitNum(l.f) || 5) * 0.04 : 0) + (gim ? (kitNum(l.g) || 0) / 20000 : 0) + must.filter(y => !diaFits(y, l)).length * 0.15 - (isPri(l) ? 0.25 : 0); };
-    lens = KIT.lenses.slice().sort((a, b) => sc2(a) - sc2(b))[0];
-    const priLens = KIT.lenses.find(isPri);
-    const a = kitNum(lens.min), b = kitNum(lens.max) || a, zoom = b > a;
+    const rng = l => { const a = kitNum(l.min); return [a, kitNum(l.max) || a]; };
+    const dist = l => { const [a, b] = rng(l); if (!a) return 99; return need < a ? Math.log(a / need) : need > b ? Math.log(need / b) : 0; };
+    const sc2 = l => dist(l) + (dark ? (kitNum(l.f) || 5) * 0.04 : 0) + (gim ? (kitNum(l.g) || 0) / 20000 : 0) + must.filter(y => !diaFits(y, l)).length * 0.15;
+    // 基本のレンズ（付けたまま）があれば、撮れる mm（長い側は25%寄れば届くところまで）は付け替えない。
+    // 交換するのは、広すぎる・長すぎる・ジンバルに載らないときだけ。暗い場所では、明るいレンズに替える手を添える
+    const base = KIT.lenses.find(isPri), others = KIT.lenses.filter(l => l !== base);
+    const gb = gim ? priFirst(KIT.sups.filter(y => y.type === 'gimbal'))[0] : null, cap = gb ? kitNum(gb.kg) * 1000 : 0, camg = kitNum(cam && cam.g);
+    const heavy = l => !!(cap && camg && kitNum(l.g) && camg + kitNum(l.g) > cap);
+    const pickOther = ok => others.filter(ok).sort((x, y) => sc2(x) - sc2(y))[0];
+    let swap = '', alt = '';
+    if (base && rng(base)[0]) {
+      const [a, b] = rng(base);
+      if (need < a || need > b * 1.25) { lens = pickOther(() => true) || base; if (lens !== base) swap = need < a ? `${a}mm より広く撮るので交換する。` : `${b}mm から寄っても足りないので交換する。`; }
+      else if (heavy(base)) { const light = pickOther(l => dist(l) < 0.25 && !heavy(l)); lens = light || base; if (light) swap = `基本のレンズでは、ジンバル（${gb.name}）の積める重さを超えるので、軽いレンズに交換する。`; }
+      else lens = base;
+      if (lens === base && dark) {
+        const fast = others.filter(l => dist(l) <= 0.15 && kitNum(l.f) && kitNum(l.f) < kitNum(base.f)).sort((x, y) => kitNum(x.f) - kitNum(y.f))[0];
+        const st = fast ? Math.round(2 * Math.log2(kitNum(base.f) / kitNum(fast.f)) * 10) / 10 : 0;
+        if (st >= 1) alt = `暗くて足りなければ、${fast.name}（F${kitNum(fast.f)}。約${st}段明るい）に替える手もある。`;
+      }
+    } else lens = KIT.lenses.slice().sort((x, y) => sc2(x) - sc2(y))[0];
+    const [a, b] = rng(lens), zoom = b > a;
     const at = need < a ? a : need > b ? b : need;
     let t = lens.name + (zoom ? `（${at}mm で）` : ''), why = crop !== 1 ? `案は換算 ${eq}mm。このカメラでは ${need}mm にあたる。` : '';
-    if (at !== need) why += at > need ? `いちばん近くても ${at}mm（換算 ${Math.round(at * crop)}mm）で、案より狭く写る。少し下がって広さを合わせる。` : `いちばん近くても ${at}mm（換算 ${Math.round(at * crop)}mm）で、案より広く写る。少し近づくか、編集で切り出す。`;
-    if (isPri(lens)) why = '優先にしてあるレンズ。' + why;
-    else if (priLens) why += `優先の ${priLens.name} は ${kitNum(priLens.min)}${kitNum(priLens.max) ? '〜' + kitNum(priLens.max) : ''}mm で、この案の mm から離れるので、ほかを選んだ。`;
-    if (dark && KIT.lenses.length > 1 && !isPri(lens)) why += 'このシーンは暗いので、F 値の小さい（明るい）レンズを先に選んだ。';
-    lines.push({ b: 'レンズ', t, why: why.trim() }); sum.push(lens.name + (zoom ? ` ${at}mm` : ''));
+    const atq = `${at}mm${crop !== 1 ? `（換算 ${Math.round(at * crop)}mm）` : ''}`;
+    if (at !== need) why += at > need ? `いちばん近くても ${atq} で、案より狭く写る。少し下がって広さを合わせる。` : `いちばん近くても ${atq} で、案より広く写る。少し近づくか、編集で切り出す。`;
+    if (base && lens === base) why = '基本のレンズ。付けたまま撮る。' + why;
+    else if (swap) { t = '交換：' + t; why = swap + why; }
+    if (!base && dark && KIT.lenses.length > 1) why += 'このシーンは暗いので、F 値の小さい（明るい）レンズを先に選んだ。';
+    lines.push({ b: 'レンズ', t, why: (why + alt).trim(), swap: !!swap }); sum.push(lens.name + (zoom ? ` ${at}mm` : ''));
   }
   // ND：明るい屋外では、シャッターをフレームレートの倍に保つために入れる
   const diaWarn = y => { if (!y || diaFits(y, lens)) return ''; const r = kitDia(y.dia); return `径が合わない（レンズ ${kitNum(lens.dia)}mm・フィルター ${r[0] === r[1] ? r[0] : r[0] + '〜' + r[1]}mm）。このレンズには付かない`; };
@@ -1128,7 +1147,7 @@ function kitPlan(sc, c, k) {
     }
   } else if (hand) { const g = sp('gimbal'); lines.push({ b: '支え', t: g ? `手持ち（${g.name} を使うと揺れが減る）` : '手持ち' }); sum.push(g ? g.name : '手持ち'); }
   else { const tp = sp('tripod'); lines.push({ b: '支え', t: (tp ? tp.name : '三脚') + (f.pan || /パン|ティルト/.test(text) ? '（パンのできる雲台で）' : ''), why: vfx ? '古写真・ＣＧと重ねるので、締めて動かさない' : '' }); sum.push(tp ? tp.name : '三脚'); }
-  return { lines, basis, sum: sum.join('／'), cam: cam && cam.id };
+  return { lines, basis, sum: sum.join('／'), cam: cam && cam.id, swap: lens && lines.some(l => l.swap) ? lens : null };
 }
 function kitHtml(sc, c, k) {
   if (!c || !c.cam) return '';
@@ -2113,7 +2132,7 @@ function shootCard(sc, isNow, slot) {
     ${sc.notes ? `<div class="memo"><b>備考</b>${esc(sc.notes)}</div>` : ''}
     ${sc.cont ? `<div class="memo"><b>繋がり</b>${esc(sc.cont)}</div>` : ''}
     ${cuts ? (withDesc ? `<div class="cutlist"><span class="lbl">撮るもの</span>${cuts}</div>` : `<div class="cutline"><span class="lbl">カット</span>${cuts}</div>`) : ''}
-    ${hasCam(sc) ? `<details class="camd" data-open="cam|${sc.id}" ${camOpen ? 'open' : ''}><summary>カメラワーク（案・図・理由）<span class="small">${camCuts.length ? camCuts.length + 'カット' : ''}</span></summary>
+    ${hasCam(sc) ? `<details class="camd" data-open="cam|${sc.id}" ${camOpen ? 'open' : ''}><summary>カメラワーク（案・図・理由）<span class="small">${camCuts.length ? camCuts.length + 'カット' : ''}${(() => { if (!kitCount()) return ''; const sw = camCuts.filter(c => kitPlan(sc, c, c.pick || 0).swap); return sw.length ? `・レンズ交換 ${sw.map(c => 'C' + c.no).join('・')}` : ''; })()}</span></summary>
       ${camOpen ? `<div class="cutlist">${sc.axis ? `<div class="memo"><b>画面の向き・軸</b>${esc(sc.axis)}</div>` : ''}${sc.link ? `<div class="memo"><b>前後のつながり</b>${esc(sc.link)}</div>` : ''}
       ${camCuts.map(c => `<div class="camcut"><div class="camcut-h"><span class="cutpill">C${esc(c.no)}</span><span>${c.size ? `<b>${esc(c.size)}</b> ` : ''}${esc(c.desc)}</span></div>${c.fig ? `<button class="figthumb" data-a="openFig" data-sc="${sc.id}" data-id="${c.id}" aria-label="カメラ位置の図を開く">${figSVG(sc.stage, c.fig, { small: true })}<span>図を開く${c.alts && c.alts.length ? `（案A〜${planLabel(c.alts.length)}）` : ''}</span></button>` : ''}${camHtml(c, sc)}${kitHtml(sc, c, c.pick || 0)}</div>`).join('')}</div>` : ''}</details>` : ''}
     <div class="btns grid2"><button class="btn" data-a="openScene" data-id="${sc.id}">台本・詳細</button><button class="btn ${done ? '' : 'primary'}" data-a="openRec" data-id="${sc.id}">記録する${ts.length ? `（${ts.length}テイク）` : ''}</button></div>
@@ -2757,8 +2776,16 @@ const SHEET = {
   kit() {
     const inp = (c, x, f, l, ph, num) => `<label class="field${f === 'name' ? ' full' : ''}"><span>${l}</span><input data-kit="${c}|${x.id}|${f}" value="${esc(x[f] || '')}" placeholder="${ph}" ${num ? 'inputmode="decimal"' : ''} autocomplete="off"></label>`;
     const sel = (c, x, f, l, opts) => `<label class="field"><span>${l}</span><select data-kit="${c}|${x.id}|${f}">${opts.map(([v, n]) => `<option value="${v}" ${(x[f] || opts[0][0]) === v ? 'selected' : ''}>${n}</option>`).join('')}</select></label>`;
-    const priL = (c, x) => (c === 'filters' && (x.type === 'mist' || x.type === 'pl') ? 'いつも付ける' : '優先して使う');
-    const row = (c, x, body) => `<div class="kitrow"><div class="fields">${body}</div><div class="row-h"><button class="chip" role="checkbox" aria-checked="${isPri(x)}" data-a="kitPri" data-c="${c}" data-id="${x.id}"><span class="tk"></span>${priL(c, x)}</button><span class="grow"></span><button class="link danger" data-a="kitDel" data-c="${c}" data-id="${x.id}">消す</button></div></div>`;
+    const row = (c, x, body) => `<div class="kitrow"><div class="fields">${body}</div><div class="row-h"><span class="grow"></span><button class="link danger" data-a="kitDel" data-c="${c}" data-id="${x.id}">消す</button></div></div>`;
+    const baseSel = (c, l, none) => `<label class="field"><span>${l}</span><select data-kitbase="${c}"><option value="">${none}</option>${KIT[c].map(x => `<option value="${x.id}" ${isPri(x) ? 'selected' : ''}>${esc(x.name || '（名前なし）')}</option>`).join('')}</select></label>`;
+    const bl = KIT.lenses.find(isPri), br = bl && kitNum(bl.min) ? [kitNum(bl.min), kitNum(bl.max) || kitNum(bl.min)] : null, always = KIT.filters.filter(x => x.type === 'mist' || x.type === 'pl');
+    const top = `<section class="card kitbase"><h3>いつもの組み方</h3>
+      ${baseSel('lenses', '基本のレンズ（カメラに付けたままにする）', '決めない（カットごとに選ぶ）')}
+      <p class="small">${br ? `案が ${br[0]}〜${Math.floor(br[1] * 1.25)}mm なら、付け替えずにこのレンズで撮ります（${br[1]}mm より長い案は、少し近づいて合わせる）。交換を出すのは、${br[0]}mm より広く撮るとき、${Math.floor(br[1] * 1.25)}mm より長く撮るとき、ジンバルに載らないときだけです。暗い場所では、明るいレンズに替える手も添えます。` : '決めると、そのレンズで撮れるカットは付け替えずに撮る組み合わせを出します。'}</p>
+      ${baseSel('cams', '優先のカメラ', '決めない')}
+      <p class="small">決めないときは、登録の1台目を使います。ジンバルの案では、重さの軽いカメラを選びます。</p>
+      ${always.length ? `<div class="field"><span>いつも付けるフィルター</span><div class="chips">${always.map(x => `<button class="chip" role="checkbox" aria-checked="${isPri(x)}" data-a="kitPri" data-c="filters" data-id="${x.id}"><span class="tk"></span>${esc(x.name)}</button>`).join('')}</div></div>` : ''}
+    </section>`;
     const F = {
       cams: x => inp('cams', x, 'name', '名前', '例：FX6') + sel('cams', x, 'sensor', 'センサー', SENSORS.map(s => [s[0], s[1]])) + inp('cams', x, 'nd', '内蔵 ND（無ければ空）', '例：1/4〜1/128') + inp('cams', x, 'g', '重さ（g）', '例：890', 1),
       lenses: x => inp('lenses', x, 'name', '名前', '例：24-70mm F2.8') + inp('lenses', x, 'min', '焦点距離（mm）', '例：24', 1) + inp('lenses', x, 'max', 'ズームの長い側（mm）', '単焦点は空', 1) + inp('lenses', x, 'f', '開放 F 値', '例：2.8', 1) + inp('lenses', x, 'dia', 'フィルター径（mm）', '例：82', 1) + inp('lenses', x, 'g', '重さ（g）', '例：695', 1),
@@ -2767,7 +2794,7 @@ const SHEET = {
     };
     return sheetTop('機材') + `<div class="sheet-body"><div class="wrap">
       <p class="lead">登録した機材から、カットごとにカメラ・レンズ・フィルター・支えの組み合わせを出します。機材はこの端末に保存し、資料の更新や作品の入れ替えでは消えません。</p>
-      <p class="small">「優先して使う」にした機材は、合うときに先に選びます（レンズは、案の mm から少し離れていても優先のものを使います）。ミストと PL は「いつも付ける」にすると、すべてのカットに付けます。</p>
+      ${kitCount() ? top : ''}
       ${KIT_CAT.map(([c, l]) => `<section class="card"><div class="row-h"><h3 class="grow">${l}</h3><span class="small">${KIT[c].length}</span></div>
         ${KIT[c].map(x => row(c, x, F[c](x))).join('') || '<p class="small">まだありません</p>'}
         <button class="btn" data-a="kitAdd" data-c="${c}">＋ ${l}を足す</button></section>`).join('')}
@@ -3317,6 +3344,7 @@ document.addEventListener('input', e => { const t = e.target;
 document.addEventListener('change', e => {
   const t = e.target;
   if (t.dataset.kit) { kitBind(t, true); return; }
+  if (t.dataset.kitbase) { for (const x of KIT[t.dataset.kitbase] || []) x.pri = x.id === t.value ? 'on' : 'off'; kitSave(); renderSheets(); RENDER[S.tab](); return; }
   if (t.dataset.b) { bindValue(t); if (t.tagName === 'SELECT' || t.dataset.list || t.dataset.rerender) render(); else { const top = S.sheets[S.sheets.length - 1]; if (top && top.t === 'scene' && /\|(no|place|tod|io)$/.test(t.dataset.b)) { const el = document.querySelector('#sheets .sheet:last-child .sheet-top .t'); const sc = sceneById(top.id); if (el && sc) el.textContent = sceneTitle(sc); } RENDER[S.tab](); } return; }
   const a = t.dataset.a, p = t.dataset.id && pending.find(x => x.id === t.dataset.id);
   if (a === 'pendKind' && p) { p.kind = t.value; render(); }

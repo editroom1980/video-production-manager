@@ -88,6 +88,22 @@ const SP = process.env.SP, fs = require('fs');
     console.log('優先 S#10 C4 案D', await ask('10', 3, d10));
     const why = await pg.evaluate(() => { const A = window.__kinekoma, sc = A.P.scenes.find(s => s.no === '1'); return A.kitPlan(sc, sc.cuts[0], 1).lines.find(l => l.b === 'レンズ').why; });
     console.log('優先を使わない理由', why);
+    // 基本のレンズ（付けたまま）。交換は、広すぎる・長すぎる・ジンバルに載らないときだけ
+    const L = (no, ci, k, mm, kg) => pg.evaluate(([no, ci, k, mm, kg]) => { const A = window.__kinekoma, sc = A.P.scenes.find(s => s.no === no), c = JSON.parse(JSON.stringify(sc.cuts[ci])); const f = k ? c.alts[k - 1].fig : c.fig; if (mm) f.mm = mm; const g = A.KIT.sups.find(s => s.type === 'gimbal'), was = g.kg; if (kg) g.kg = kg; const l = A.kitPlan(sc, c, k).lines.find(x => x.b === 'レンズ'); g.kg = was; return l.t + '｜' + l.why; }, [no, ci, k, mm, kg]);
+    console.log('基本 35mm の案（S#2 C2）', await L('2', 1, 0));
+    console.log('基本 85mm の案（S#1 C3）', await L('1', 2, 0));
+    console.log('交換 18mm にした案', await L('2', 1, 0, 18));
+    console.log('交換 100mm の案（S#1 C1 案B）', await L('1', 0, 1));
+    console.log('夜 35mm（S#6 C2）', await L('6', 1, 0));
+    console.log('ジンバル 1.5kg（S#10 C4 案D）', await L('10', 3, d10, 0, '1.5'));
+    // 機材の画面の上の「いつもの組み方」で、基本のレンズを選び直す
+    await pg.click('[data-a=tab][data-k=out]'); await pg.click('#v-out [data-a=openKit]'); await pg.waitForTimeout(200);
+    await pg.screenshot({ path: SP + '/k-base.png' });
+    const other = await pg.evaluate(() => window.__kinekoma.KIT.lenses.find(l => /16-35/.test(l.name)).id);
+    await pg.selectOption('.sheet:last-child [data-kitbase=lenses]', other); await pg.waitForTimeout(150);
+    console.log('基本のレンズを選び直す', await pg.evaluate(() => window.__kinekoma.KIT.lenses.filter(l => l.pri === 'on').map(l => l.name).join('、')));
+    const back = await pg.evaluate(() => window.__kinekoma.KIT.lenses.find(l => /24-70/.test(l.name)).id);
+    await pg.selectOption('.sheet:last-child [data-kitbase=lenses]', back); await pg.waitForTimeout(150); await closeAll();
     // 画面で「優先して使う」を外すと、資料の更新で戻らない
     await pg.click('[data-a=tab][data-k=out]'); await pg.click('#v-out [data-a=openKit]'); await pg.waitForTimeout(200);
     const chip = pg.locator('.sheet:last-child [data-a=kitPri][aria-checked=true]').first(); const cid = await chip.getAttribute('data-id');

@@ -648,7 +648,7 @@ details.rec-top > summary { font-size: 13px; font-weight: 800; letter-spacing: .
 <script>
 (() => {
 'use strict';
-const VERSION = '3.9（11/5 技術の手引き：設定・照明のちらつき・説明書の要点・計算）';
+const VERSION = '3.9.1（11/5 古写真・CG と重ねるカットはミストを外す）';
 
 /* ───────── 基本 ───────── */
 const $ = id => document.getElementById(id);
@@ -969,6 +969,10 @@ Object.assign(SRC, {
   cisa: { k: '資料', t: 'US-CERT（米国 CISA）「Data Backup Options」（3-2-1 の控え方）', u: 'https://www.cisa.gov/sites/default/files/publications/data_backup_options.pdf', n: '原文はこちらの環境から開けず、複数の解説記事で中身を確かめた' },
   mlit: { k: '資料', t: '国土交通省「無人航空機の飛行ルール」', u: 'https://www.mlit.go.jp/koku/koku_fr10_000042.html' },
   road1: { k: '資料', t: '埼玉県警察「道路使用許可（道路交通法第77条第1項）の審査基準」', u: 'https://www.police.pref.saitama.lg.jp/documents/32088/77-1dourosiyou.pdf' },
+  dcwatch: { k: '記事', t: 'デジカメ Watch「NiSi、ブラックミストフィルター」（ハイライトを抑え、シャドウを持ち上げる）', u: 'https://dc.watch.impress.co.jp/docs/news/1294594.html' },
+  nisibm: { k: '資料', t: 'Focus Nordic「NiSi Black Mist 1/8」（1/8 は効果が小さい・逆光でよく効く）', u: 'https://www.focusnordic.com/products/video/circular-filters/soft-filters/nisi-filter-black-mist-1-8-82mm' },
+  deakins: { k: '記事', t: 'Roger Deakins のフォーラム「Diffusion Filters」（先に試して決める・薄めにして編集で強める）', u: 'https://www.rogerdeakins.com/?p=216260' },
+  wevideo: { k: '記事', t: 'WeVideo「Mister filters」（編集では本物ほど似せられないという意見）', u: 'https://www.wevideo.com/blog/mister-filters' },
   road2: { k: '資料', t: '鹿児島県警察「道路使用許可の申請」（ロケーション・撮影会は4号許可）', u: 'https://www.pref.kagoshima.jp/ja21/police/shinsei/sonota/documents/13112_20220624172610-1.pdf' },
 });
 const TECH_CATS = ['フレームレートとシャッター', '明るさ（露出・感度・ND）', '色（ホワイトバランス・Log・LUT）', 'ピントと手ぶれ', '記録とデータ', '音', 'タイムコードと複数のカメラ', '現場の安全と法令'];
@@ -984,6 +988,7 @@ const TECH = [
   { id: 't_wb', cat: 2, t: 'ホワイトバランス', do: 'オートにせず、シーンごとに決めて固定する。カメラのプリセットの 3200K は電球の明かり、5600K（Log では 5500K）は昼の光の目安。照明が混ざる場所では、白い紙を被写体と同じ光の所に置いて、カメラで白を取る（FX6 はメモリー A・B を選んで WB SET ボタン）。', why: 'オート（ATW）のままだと、同じシーンの中でも色が変わり、つないだときに合わない。空・海・草花など1色が多い画面や、色温度の極端な光では、オートでは合わないことがある（説明書）。', chk: '1つのシーンの中で WB を変えない。2台のカメラは同じ値にする。FX6 の Cine EI では ATW は使えない。', src: ['fx6om'] },
   { id: 't_look', cat: 2, t: 'ルックの選び方（S-Cinetone・Log・HLG）', do: '編集で色を作る時間と道具があれば Log（S-Log3）、無ければ S-Cinetone のように、そのまま使える画で撮る。HDR で納品するなら HLG。FX6 の Custom モードには、S-Cinetone・Standard・Still・ITU709・709tone などが入っている。', why: '色づくりの自由度は Log が高いが、専用のソフトでのグレーディングが要る（ソニーの手引き）。', chk: '2台のカメラは同じルックにそろえる。FX3 は「Log 撮影」を切にして、ピクチャープロファイルで S-Cinetone を選ぶ。', src: ['fx6om', 'sonypp', 'fx3hg'] },
   { id: 't_lut', cat: 2, t: 'LUT（モニターに当てる・取り込む）', do: 'Log で撮るときは、モニター（VF・HDMI・SDI）に LUT を当てて、ふつうのコントラストで見ながら撮る。記録する映像（Internal Rec）には当てないのが基本（当てると焼き込まれる）。FX6 には s709・709(800%)・S-Log3 が入っていて、自分の LUT（.cube、17 または 33 格子、入力は S-Gamut3.Cine/S-Log3 か S-Gamut3/S-Log3）を16個まで取り込める。', why: 'Log の画はコントラストが低く、ピントや露出を判断しにくい。', chk: 'FX6 は Shooting メニュー > LUT On/Off で、VF・SDI/HDMI・Internal Rec を別々に切り替える。取り込むファイルは、SD なら /PRIVATE/SONY/PRO/LUT/、CFexpress なら /SONY/PRO/LUT/ に置いて、スロット B に入れる。FX3 は SD カードのとき、LUT の埋め込みが「切」に固定される。', src: ['fx6om', 'fx3hg', 'sonypp'] },
+  { id: 't_mist', cat: 2, t: 'ミスト（拡散フィルター）と合成', do: 'ミストは、明るい所を抑えて影を少し持ち上げ、明暗の差をおだやかにする。光源や反射の周りに柔らかいにじみが出て、逆光でいちばん効く。1/8 はいちばん弱い濃さで、1段濃い 1/4 はおよそ2倍の効き方。古写真・ＣＧと重ねる実景のカットでは外して撮り、合成したあとで、編集で柔らかさを画全体に足す。', why: 'にじみは画に焼き込まれるので、輪郭に合わせて重ねにくくなる。上に重ねる CG はくっきりしたままなので、実景と CG の柔らかさが食い違う。', chk: '曇りや真上からの光では差が小さい。同じシーンの中で付け外しすると画の柔らかさが変わるので、外したカットは編集で足して合わせる（編集で足したにじみは本物と少し違う、という意見もある）。撮影の初めに、付けた画と外した画を数秒ずつ撮って比べる。', src: ['dcwatch', 'nisibm', 'deakins', 'wevideo'] },
   { id: 't_focus', cat: 3, t: 'ピントの合わせ方（拡大・プッシュ AF）', do: '映画のカットは基本をマニュアルにし、拡大表示（FX6 は約3倍・約6倍）で確かめる。急いで合わせたいときは、マニュアルのままプッシュ AF（ボタンを押している間だけ AF）を使う。AF に任せるなら、乗り移りの速さを遅く、乗り移り感度を粘る側にする。', why: '水滴の多いもの、背景とのコントラストが弱いもの、手前から奥へわざと送るときは、AF では狙いどおりにならない（説明書）。拡大は、記録や出力の画には影響しない。', chk: 'レンズ側のスイッチが MF（Full MF）だと、カメラからの AF・プッシュ AF が効かない。', src: ['fx6om'] },
   { id: 't_stab', cat: 3, t: '手ぶれ補正', do: '三脚に載せたら、手ぶれ補正を切る。手持ちで強く効かせたいときは、FX3 の「アクティブ」を使う（画角が狭くなる）。', why: '三脚の上で補正を入れると、誤動作することがある（説明書）。', chk: 'FX3 のアクティブは、119.88p 以上や、S&Q の 120fps 以上では選べない。ジンバルに載せるときの補正は、試し撮りして決める。', src: ['fx3hg'] },
   { id: 't_breath', cat: 3, t: 'ピントを送ると画角が変わる（ブリージング）', do: 'ピント送りのあるカットは、ピントを動かしたときに画角が変わらないかを先に見る。FX3（本体 Ver.3.00 以降）は、レンズ補正の「ブリージング補正」で抑えられる（対応レンズのみ）。', why: 'ピント送りのたびに画が伸び縮みすると、ズームしたように見える。', chk: 'ブリージング補正を入れると、画角と画質がわずかに変わる。レンズによっては補正しきれない。', src: ['fx3hg'] },
@@ -1220,7 +1225,7 @@ function kitPlan(sc, c, k) {
   else if (!KIT.lenses.length) lines.push({ b: 'レンズ', t: `換算 ${eq}mm${crop !== 1 ? `（このカメラでは ${need}mm）` : ''}。レンズの登録がありません` });
   else {
     // 付けるフィルター（内蔵 ND の無い明るい屋外の ND、「いつも付ける」のミスト・PL）が付かないレンズは後回し
-    const must = [!dark && !(cam && cam.nd) ? fl('vnd') || fl('nd') || fl('ndpl') : null, isPri(fl('mist')) ? fl('mist') : null, isPri(fl('pl')) ? fl('pl') : null].filter(Boolean);
+    const must = [!dark && !(cam && cam.nd) ? fl('vnd') || fl('nd') || fl('ndpl') : null, isPri(fl('mist')) && !vfx ? fl('mist') : null, isPri(fl('pl')) ? fl('pl') : null].filter(Boolean);
     const rng = l => { const a = kitNum(l.min); return [a, kitNum(l.max) || a]; };
     const dist = l => { const [a, b] = rng(l); if (!a) return 99; return need < a ? Math.log(a / need) : need > b ? Math.log(need / b) : 0; };
     const sc2 = l => dist(l) + (dark ? (kitNum(l.f) || 5) * 0.04 : 0) + (gim ? (kitNum(l.g) || 0) / 20000 : 0) + must.filter(y => !diaFits(y, l)).length * 0.15;
@@ -1281,11 +1286,10 @@ function kitPlan(sc, c, k) {
   if (pl2 && (isPri(pl2) || /ガラス|窓|水面|水たまり|流れる水|水の流れ|濡れ|映り込み|反射|ショーウィンドウ|ショーケース/.test(text))) { lines.push({ b: 'PL', t: pl2.name, warn: diaWarn(pl2), why: (isPri(pl2) ? '「いつも付ける」にしてある。' : '') + '反射を抑える。' + (/水/.test(text) ? '水の光り方を見せたいときは、回して弱めるか外す。' : '回して効き方を見ながら決める。') + (dark ? 'PL を付けると暗くなるので、明るさが足りなければ外す。' : '') }); sum.push(pl2.name); }
   // ミスト・拡散
   const mist = fl('mist');
-  if (isPri(mist)) { lines.push({ b: 'ミスト', t: mist.name, warn: diaWarn(mist), why: (vfx ? '古写真・ＣＧと重ねる実景だが、「いつも付ける」にしてあるので付ける。重ねにくいときは、このカットだけ外す。' : '「いつも付ける」にしてあるので、すべてのカットに付ける。') + (night ? '夜の明かりは大きくにじむ。' : '') }); sum.push(mist.name); }
-  else if (mist) {
-    if (vfx) lines.push({ b: 'ミスト', t: '外す', why: '古写真・ＣＧと重ねる実景なので、にじみで合わなくなる' });
-    else lines.push({ b: 'ミスト', t: `${mist.name}（付けるなら）`, warn: diaWarn(mist), why: '同じシーンのカットは、すべて付けるか、すべて外す（付け外しで画の柔らかさが変わる）。' + (night ? '夜の明かりは大きくにじむ。' : '') });
-  }
+  // 古写真・ＣＧと重ねる実景は、「いつも付ける」でも外す（にじみが焼き込まれて輪郭が合わせにくく、上に重ねる CG だけがくっきりする）
+  if (mist && vfx) { lines.push({ b: 'ミスト', t: '外す', why: '古写真・ＣＧと重ねる実景なので外す。にじみが画に焼き込まれて輪郭が合わせにくくなり、上に重ねる CG だけがくっきりして柔らかさが食い違う。柔らかさは、合成したあとに編集で実景と CG にまとめて足す。' + (isPri(mist) ? '同じシーンのほかのカットはミストを付けるので、編集で足して合わせる。時間があれば、付けたテイクも1本控えに撮る。' : '') }); basis.push('t_mist'); }
+  else if (isPri(mist)) { lines.push({ b: 'ミスト', t: mist.name, warn: diaWarn(mist), why: '「いつも付ける」にしてあるので付ける（古写真・ＣＧと重ねる実景のカットだけは外す）。' + (night ? '夜の明かりは大きくにじむ。' : '') }); sum.push(mist.name); }
+  else if (mist) lines.push({ b: 'ミスト', t: `${mist.name}（付けるなら）`, warn: diaWarn(mist), why: '同じシーンのカットは、すべて付けるか、すべて外す（付け外しで画の柔らかさが変わる）。' + (night ? '夜の明かりは大きくにじむ。' : '') });
   // 支え
   const sp = ty => priFirst(KIT.sups.filter(y => y.type === ty))[0];
   if (/ドローン|空撮/.test(text)) { const d = sp('drone'); lines.push({ b: '支え', t: d ? d.name : 'ドローンの登録がありません', warn: '人口集中地区の上空や、人・建物から30m 未満で飛ばすときは、国土交通大臣の許可・承認が要る（航空法）。飛ばす前に、場所と手続きを確かめる' }); if (d) sum.push(d.name); }
@@ -2941,7 +2945,7 @@ const SHEET = {
       <div class="fields"><label class="field"><span>フレームレート</span><select data-kitset="fps">${FPS_OPTS.map(([v, n]) => `<option value="${v}" ${+v === kitFps() ? 'selected' : ''}>${esc(n)}</option>`).join('')}</select></label>
         <label class="field"><span>電源の周波数</span><select data-kitset="hz">${HZ_OPTS.map(([v, n]) => `<option value="${v}" ${+v === kitHz() ? 'selected' : ''}>${esc(n)}</option>`).join('')}</select></label></div>
       <p class="small">この撮影のフレームレート（映画・上映は 23.98p、日本の放送・配信は 29.97p）と、撮る場所の電源の周波数（静岡県の富士川・新潟県の糸魚川より西は 60Hz、東は 50Hz。境目の近くは電力会社に確かめる）。カットごとの組み合わせに、シャッターの値を出します。昼の屋外は 180°（${esc(shutLabel(shutDay(kitFps())))}）、夜・屋内・看板や街灯の写るカットは、照明がちらつかない速さです。</p>
-      ${always.length ? `<div class="field"><span>いつも付けるフィルター</span><div class="chips">${always.map(x => `<button class="chip" role="checkbox" aria-checked="${isPri(x)}" data-a="kitPri" data-c="filters" data-id="${x.id}"><span class="tk"></span>${esc(x.name)}</button>`).join('')}</div></div>` : ''}
+      ${always.length ? `<div class="field"><span>いつも付けるフィルター</span><div class="chips">${always.map(x => `<button class="chip" role="checkbox" aria-checked="${isPri(x)}" data-a="kitPri" data-c="filters" data-id="${x.id}"><span class="tk"></span>${esc(x.name)}</button>`).join('')}</div><p class="small">いつも付けるミストも、古写真・ＣＧと重ねる実景のカットだけは外す案を出します（にじみで輪郭が合わせにくくなるため。柔らかさは合成のあとに編集で足す）。</p></div>` : ''}
     </section>`;
     const F = {
       cams: x => inp('cams', x, 'name', '名前', '例：FX6') + sel('cams', x, 'sensor', 'センサー', SENSORS.map(s => [s[0], s[1]])) + inp('cams', x, 'nd', '内蔵 ND（無ければ空）', '例：1/4〜1/128') + inp('cams', x, 'g', '重さ（g）', '例：890', 1) + (manualFor(x.name) ? `<button class="btn small full" data-a="openManual" data-id="${manualFor(x.name).id}">説明書の要点を見る（${esc(manualFor(x.name).t)}）</button>` : ''),

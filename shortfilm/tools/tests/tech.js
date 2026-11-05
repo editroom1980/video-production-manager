@@ -69,7 +69,12 @@ const SP = process.env.SP;
   await pg.selectOption('.sheet:last-child [data-kitset=hz]', '60'); await pg.waitForTimeout(100);
   console.log('夜', night.split('｜')[0], '／昼', day.split('｜')[0], '／50Hz の夜', night50.split('｜')[0]);
   await closeAll();
-  // 撮影のカードの根拠から、技術の項目が開く
+  // ミスト：いつも付けるにしてあっても、古写真・ＣＧと重ねる実景のカットは外す
+  const mi = (no, ci) => pg.evaluate(([no, ci]) => { const A = window.__kinekoma, sc = A.P.scenes.find(s => s.no === no); const r = A.kitPlan(sc, sc.cuts[ci], 0); const l = r.lines.find(x => x.b === 'ミスト'); return [l ? l.t : 'なし', r.basis.includes('t_mist'), r.sum]; }, [no, ci]);
+  const pr = await pg.evaluate(() => window.__kinekoma.KIT.filters.filter(x => x.type === 'mist' && x.pri === 'on').length);
+  const mv = await mi('2', 1), mn = await mi('1', 0);
+  ok(pr === 1, 'いつも付けるミストが無い'); ok(mv[0] === '外す' && mv[1] && !/ミスト/.test(mv[2]), '重ねる実景のミスト：' + mv.join('｜')); ok(/ミスト/.test(mn[0]) && mn[0] !== '外す', 'ふつうのカットのミスト：' + mn.join('｜'));
+  console.log('ミスト 重ねる実景', mv[0], '／ふつう', mn[0]);
   await pg.click('[data-a=tab][data-k=shoot]'); await pg.click('[data-a=day] >> nth=0');
   await pg.click('.scard >> nth=0 >> [data-a=openRec]'); await pg.waitForTimeout(200);
   const kb = await pg.evaluate(() => [...document.querySelectorAll('.sheet:last-child .kit .basis button')].map(x => x.dataset.id));

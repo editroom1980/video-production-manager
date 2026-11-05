@@ -648,7 +648,7 @@ details.rec-top > summary { font-size: 13px; font-weight: 800; letter-spacing: .
 <script>
 (() => {
 'use strict';
-const VERSION = '3.9.1（11/5 古写真・CG と重ねるカットはミストを外す）';
+const VERSION = '3.9.2（11/5 使用機材の表示を用語に統一・ミストは常用のときだけ表示）';
 
 /* ───────── 基本 ───────── */
 const $ = id => document.getElementById(id);
@@ -698,7 +698,7 @@ function persist() { try { localStorage.setItem(UIKEY, JSON.stringify(S)); } cat
 
 /* ───────── 機材（作品とは別に、この端末に保存。資料の更新・作品の入れ替え・全部消すでは消えない） ───────── */
 const KITKEY = 'satsueicho.v1.kit';
-const KIT_CAT = [['cams', 'カメラ'], ['lenses', 'レンズ'], ['filters', 'フィルター'], ['sups', '支え']];
+const KIT_CAT = [['cams', 'カメラ'], ['lenses', 'レンズ'], ['filters', 'フィルター'], ['sups', 'カメラサポート']];
 const SENSORS = [['ff', 'フルサイズ', 1], ['s35', 'スーパー35・APS-C', 1.5], ['mft', 'マイクロフォーサーズ', 2], ['1in', '1型', 2.7], ['phone', 'スマホ（mm は換算で書く）', 1]];
 const FLT_TYPES = [['vnd', '可変 ND'], ['nd', 'ND（固定）'], ['pl', 'PL（偏光）'], ['ndpl', 'ND＋PL'], ['mist', 'ミスト・拡散'], ['other', 'そのほか']];
 const SUP_TYPES = [['tripod', '三脚'], ['mono', '一脚'], ['gimbal', 'ジンバル'], ['slider', 'スライダー'], ['drone', 'ドローン'], ['other', 'そのほか']];
@@ -719,7 +719,7 @@ function kitAdopt(k) {
   }
   if (n) kitSave(); return n;
 }
-const isPri = y => !!y && y.pri === 'on'; // 「優先して使う」「いつも付ける」
+const isPri = y => !!y && y.pri === 'on'; // 常用レンズ・メインカメラ・常用フィルター
 const priFirst = list => list.slice().sort((a, b) => isPri(b) - isPri(a));
 const kitCrop = cam => ((SENSORS.find(s => s[0] === (cam && cam.sensor)) || SENSORS[0])[2]);
 const kitNum = v => { const n = parseFloat(half(v || '').replace(/[^\d.]/g, '')); return n > 0 ? n : 0; };
@@ -988,7 +988,7 @@ const TECH = [
   { id: 't_wb', cat: 2, t: 'ホワイトバランス', do: 'オートにせず、シーンごとに決めて固定する。カメラのプリセットの 3200K は電球の明かり、5600K（Log では 5500K）は昼の光の目安。照明が混ざる場所では、白い紙を被写体と同じ光の所に置いて、カメラで白を取る（FX6 はメモリー A・B を選んで WB SET ボタン）。', why: 'オート（ATW）のままだと、同じシーンの中でも色が変わり、つないだときに合わない。空・海・草花など1色が多い画面や、色温度の極端な光では、オートでは合わないことがある（説明書）。', chk: '1つのシーンの中で WB を変えない。2台のカメラは同じ値にする。FX6 の Cine EI では ATW は使えない。', src: ['fx6om'] },
   { id: 't_look', cat: 2, t: 'ルックの選び方（S-Cinetone・Log・HLG）', do: '編集で色を作る時間と道具があれば Log（S-Log3）、無ければ S-Cinetone のように、そのまま使える画で撮る。HDR で納品するなら HLG。FX6 の Custom モードには、S-Cinetone・Standard・Still・ITU709・709tone などが入っている。', why: '色づくりの自由度は Log が高いが、専用のソフトでのグレーディングが要る（ソニーの手引き）。', chk: '2台のカメラは同じルックにそろえる。FX3 は「Log 撮影」を切にして、ピクチャープロファイルで S-Cinetone を選ぶ。', src: ['fx6om', 'sonypp', 'fx3hg'] },
   { id: 't_lut', cat: 2, t: 'LUT（モニターに当てる・取り込む）', do: 'Log で撮るときは、モニター（VF・HDMI・SDI）に LUT を当てて、ふつうのコントラストで見ながら撮る。記録する映像（Internal Rec）には当てないのが基本（当てると焼き込まれる）。FX6 には s709・709(800%)・S-Log3 が入っていて、自分の LUT（.cube、17 または 33 格子、入力は S-Gamut3.Cine/S-Log3 か S-Gamut3/S-Log3）を16個まで取り込める。', why: 'Log の画はコントラストが低く、ピントや露出を判断しにくい。', chk: 'FX6 は Shooting メニュー > LUT On/Off で、VF・SDI/HDMI・Internal Rec を別々に切り替える。取り込むファイルは、SD なら /PRIVATE/SONY/PRO/LUT/、CFexpress なら /SONY/PRO/LUT/ に置いて、スロット B に入れる。FX3 は SD カードのとき、LUT の埋め込みが「切」に固定される。', src: ['fx6om', 'fx3hg', 'sonypp'] },
-  { id: 't_mist', cat: 2, t: 'ミスト（拡散フィルター）と合成', do: 'ミストは、明るい所を抑えて影を少し持ち上げ、明暗の差をおだやかにする。光源や反射の周りに柔らかいにじみが出て、逆光でいちばん効く。1/8 はいちばん弱い濃さで、1段濃い 1/4 はおよそ2倍の効き方。古写真・ＣＧと重ねる実景のカットでは外して撮り、合成したあとで、編集で柔らかさを画全体に足す。', why: 'にじみは画に焼き込まれるので、輪郭に合わせて重ねにくくなる。上に重ねる CG はくっきりしたままなので、実景と CG の柔らかさが食い違う。', chk: '曇りや真上からの光では差が小さい。同じシーンの中で付け外しすると画の柔らかさが変わるので、外したカットは編集で足して合わせる（編集で足したにじみは本物と少し違う、という意見もある）。撮影の初めに、付けた画と外した画を数秒ずつ撮って比べる。', src: ['dcwatch', 'nisibm', 'deakins', 'wevideo'] },
+  { id: 't_mist', cat: 2, t: 'ミスト（拡散フィルター）と合成', do: 'ミストは、明るい所を抑えて影を少し持ち上げ、明暗の差をおだやかにする。光源や反射の周りに柔らかいにじみが出て、逆光でいちばん効く。1/8 はいちばん弱い濃さで、1段濃い 1/4 はおよそ2倍の効き方。古写真・ＣＧと重ねる実景（合成カット）では外す。編集で柔らかさを足せない体制なら、合成カットのあるシーンでは使わない。', why: 'にじみは画に焼き込まれるので、輪郭に合わせて重ねにくくなる。上に重ねる CG はくっきりしたままなので、実景と CG の柔らかさが食い違う。', chk: '曇りや真上からの光では差が小さい。同じシーンの中で付け外しすると画の柔らかさが変わるので、外したカットは編集で足して合わせる（編集で足したにじみは本物と少し違う、という意見もある）。撮影の初めに、付けた画と外した画を数秒ずつ撮って比べる。', src: ['dcwatch', 'nisibm', 'deakins', 'wevideo'] },
   { id: 't_focus', cat: 3, t: 'ピントの合わせ方（拡大・プッシュ AF）', do: '映画のカットは基本をマニュアルにし、拡大表示（FX6 は約3倍・約6倍）で確かめる。急いで合わせたいときは、マニュアルのままプッシュ AF（ボタンを押している間だけ AF）を使う。AF に任せるなら、乗り移りの速さを遅く、乗り移り感度を粘る側にする。', why: '水滴の多いもの、背景とのコントラストが弱いもの、手前から奥へわざと送るときは、AF では狙いどおりにならない（説明書）。拡大は、記録や出力の画には影響しない。', chk: 'レンズ側のスイッチが MF（Full MF）だと、カメラからの AF・プッシュ AF が効かない。', src: ['fx6om'] },
   { id: 't_stab', cat: 3, t: '手ぶれ補正', do: '三脚に載せたら、手ぶれ補正を切る。手持ちで強く効かせたいときは、FX3 の「アクティブ」を使う（画角が狭くなる）。', why: '三脚の上で補正を入れると、誤動作することがある（説明書）。', chk: 'FX3 のアクティブは、119.88p 以上や、S&Q の 120fps 以上では選べない。ジンバルに載せるときの補正は、試し撮りして決める。', src: ['fx3hg'] },
   { id: 't_breath', cat: 3, t: 'ピントを送ると画角が変わる（ブリージング）', do: 'ピント送りのあるカットは、ピントを動かしたときに画角が変わらないかを先に見る。FX3（本体 Ver.3.00 以降）は、レンズ補正の「ブリージング補正」で抑えられる（対応レンズのみ）。', why: 'ピント送りのたびに画が伸び縮みすると、ズームしたように見える。', chk: 'ブリージング補正を入れると、画角と画質がわずかに変わる。レンズによっては補正しきれない。', src: ['fx3hg'] },
@@ -1214,22 +1214,22 @@ function kitPlan(sc, c, k) {
   const fl = ty => priFirst(KIT.filters.filter(y => y.type === ty))[0];
   // カメラ：選んだもの → 優先にしたもの → 1台目。どれも決めていなければ、ジンバルの案では重さの分かっている中で軽いものを選ぶ
   const picked = KIT.cams.find(y => y.id === S.kitCam), priCam = KIT.cams.find(isPri);
-  let cam = picked || priCam || KIT.cams[0], camWhy = !picked && priCam ? '優先にしてあるカメラ。' : '';
-  if (!picked && !priCam && gim && KIT.cams.length > 1) { const light = KIT.cams.filter(y => kitNum(y.g)).sort((a, b) => kitNum(a.g) - kitNum(b.g))[0]; if (light && light !== cam) { cam = light; camWhy = 'ジンバルの案なので、軽いカメラを選んだ。'; } }
-  if (cam) { lines.push({ b: 'カメラ', t: cam.name, why: camWhy + (kitCrop(cam) !== 1 ? `${(SENSORS.find(s => s[0] === cam.sensor) || [])[1]}。案の mm（フルサイズ換算）を ${kitCrop(cam)} で割った mm を付ける` : '') }); sum.push(cam.name); }
-  else lines.push({ b: 'カメラ', t: '登録がありません' });
+  let cam = picked || priCam || KIT.cams[0], camWhy = !picked && priCam ? 'メインカメラ。' : '';
+  if (!picked && !priCam && gim && KIT.cams.length > 1) { const light = KIT.cams.filter(y => kitNum(y.g)).sort((a, b) => kitNum(a.g) - kitNum(b.g))[0]; if (light && light !== cam) { cam = light; camWhy = 'ジンバル搭載のため軽量機。'; } }
+  if (cam) { lines.push({ b: 'カメラ', t: cam.name, why: camWhy + (kitCrop(cam) !== 1 ? `${(SENSORS.find(s => s[0] === cam.sensor) || [])[1]}。焦点距離はフルサイズ換算 ÷ ${kitCrop(cam)}。` : '') }); sum.push(cam.name); }
+  else lines.push({ b: 'カメラ', t: '未登録' });
   // レンズ：案の換算 mm を、このカメラで付ける mm に直して、いちばん合うものを選ぶ
   let lens = null;
   const eq = kitNum(f.mm), crop = kitCrop(cam), need = eq ? Math.round(eq / crop) : 0;
-  if (!eq) lines.push({ b: 'レンズ', t: 'このカットには mm の案がありません' });
-  else if (!KIT.lenses.length) lines.push({ b: 'レンズ', t: `換算 ${eq}mm${crop !== 1 ? `（このカメラでは ${need}mm）` : ''}。レンズの登録がありません` });
+  if (!eq) lines.push({ b: 'レンズ', t: '焦点距離の指定なし' });
+  else if (!KIT.lenses.length) lines.push({ b: 'レンズ', t: `換算 ${eq}mm${crop !== 1 ? `（実焦点距離 ${need}mm）` : ''}・レンズ未登録` });
   else {
-    // 付けるフィルター（内蔵 ND の無い明るい屋外の ND、「いつも付ける」のミスト・PL）が付かないレンズは後回し
+    // 付けるフィルター（内蔵 ND の無い明るい屋外の ND、常用フィルターのミスト・PL）が付かないレンズは後回し
     const must = [!dark && !(cam && cam.nd) ? fl('vnd') || fl('nd') || fl('ndpl') : null, isPri(fl('mist')) && !vfx ? fl('mist') : null, isPri(fl('pl')) ? fl('pl') : null].filter(Boolean);
     const rng = l => { const a = kitNum(l.min); return [a, kitNum(l.max) || a]; };
     const dist = l => { const [a, b] = rng(l); if (!a) return 99; return need < a ? Math.log(a / need) : need > b ? Math.log(need / b) : 0; };
     const sc2 = l => dist(l) + (dark ? (kitNum(l.f) || 5) * 0.04 : 0) + (gim ? (kitNum(l.g) || 0) / 20000 : 0) + must.filter(y => !diaFits(y, l)).length * 0.15;
-    // 基本のレンズ（付けたまま）があれば、撮れる mm（長い側は25%寄れば届くところまで）は付け替えない。
+    // 常用レンズ（付けたまま）があれば、撮れる mm（長い側は25%寄れば届くところまで）は付け替えない。
     // 交換するのは、広すぎる・長すぎる・ジンバルに載らないときだけ。暗い場所では、明るいレンズに替える手を添える
     const base = KIT.lenses.find(isPri), others = KIT.lenses.filter(l => l !== base);
     const gb = gim ? priFirst(KIT.sups.filter(y => y.type === 'gimbal'))[0] : null, cap = gb ? kitNum(gb.kg) * 1000 : 0, camg = kitNum(cam && cam.g);
@@ -1238,23 +1238,23 @@ function kitPlan(sc, c, k) {
     let swap = '', alt = '';
     if (base && rng(base)[0]) {
       const [a, b] = rng(base);
-      if (need < a || need > b * 1.25) { lens = pickOther(() => true) || base; if (lens !== base) swap = need < a ? `${a}mm より広く撮るので交換する。` : `${b}mm から寄っても足りないので交換する。`; }
-      else if (heavy(base)) { const light = pickOther(l => dist(l) < 0.25 && !heavy(l)); lens = light || base; if (light) swap = `基本のレンズでは、ジンバル（${gb.name}）の積める重さを超えるので、軽いレンズに交換する。`; }
+      if (need < a || need > b * 1.25) { lens = pickOther(() => true) || base; if (lens !== base) swap = need < a ? `${a}mm より広角が必要。` : `${b}mm では焦点距離が足りない。`; }
+      else if (heavy(base)) { const light = pickOther(l => dist(l) < 0.25 && !heavy(l)); lens = light || base; if (light) swap = `常用レンズでは ${gb.name} の最大積載量を超えるため、軽量レンズに交換。`; }
       else lens = base;
       if (lens === base && dark) {
         const fast = others.filter(l => dist(l) <= 0.15 && kitNum(l.f) && kitNum(l.f) < kitNum(base.f)).sort((x, y) => kitNum(x.f) - kitNum(y.f))[0];
         const st = fast ? Math.round(2 * Math.log2(kitNum(base.f) / kitNum(fast.f)) * 10) / 10 : 0;
-        if (st >= 1) alt = `暗くて足りなければ、${fast.name}（F${kitNum(fast.f)}。約${st}段明るい）に替える手もある。`;
+        if (st >= 1) alt = `光量が足りなければ ${fast.name}（F${kitNum(fast.f)}・約${st}段明るい）に交換も可。`;
       }
     } else lens = KIT.lenses.slice().sort((x, y) => sc2(x) - sc2(y))[0];
     const [a, b] = rng(lens), zoom = b > a;
     const at = need < a ? a : need > b ? b : need;
-    let t = lens.name + (zoom ? `（${at}mm で）` : ''), why = crop !== 1 ? `案は換算 ${eq}mm。このカメラでは ${need}mm にあたる。` : '';
+    let t = lens.name + (zoom ? `（${at}mm）` : ''), why = crop !== 1 ? `換算 ${eq}mm（実焦点距離 ${need}mm）。` : '';
     const atq = `${at}mm${crop !== 1 ? `（換算 ${Math.round(at * crop)}mm）` : ''}`;
-    if (at !== need) why += at > need ? `いちばん近くても ${atq} で、案より狭く写る。少し下がって広さを合わせる。` : `いちばん近くても ${atq} で、案より広く写る。少し近づくか、編集で切り出す。`;
-    if (base && lens === base) why = '基本のレンズ。付けたまま撮る。' + why;
-    else if (swap) { t = '交換：' + t; why = swap + why; }
-    if (!base && dark && KIT.lenses.length > 1) why += 'このシーンは暗いので、F 値の小さい（明るい）レンズを先に選んだ。';
+    if (at !== need) why += at > need ? `広角端 ${atq} でも画角が狭い。カメラを引いて合わせる。` : `望遠端 ${atq} でも画角が広い。寄って合わせる。`;
+    if (base && lens === base) why = '常用レンズ（交換なし）。' + why;
+    else if (swap) { t = 'レンズ交換：' + t; why = swap + why; }
+    if (!base && dark && KIT.lenses.length > 1) why += '低照度のため、開放 F 値の小さいレンズを優先。';
     lines.push({ b: 'レンズ', t, why: (why + alt).trim(), swap: !!swap }); sum.push(lens.name + (zoom ? ` ${at}mm` : ''));
   }
   // シャッター：昼の屋外は 180°。照明の下（夜・屋内・看板や街灯の写るカット）は、電源の周波数でちらつかない速さ
@@ -1262,54 +1262,52 @@ function kitPlan(sc, c, k) {
   const lit = dark || /照明|ネオン|看板|街灯|蛍光灯|LED|電飾|ショーウィンドウ|ショーケース/.test(text + ' ' + where);
   if (/スロー/.test(text)) {
     const t2 = lit ? shutFlicker(119.88, hz) : 0;
-    lines.push({ b: 'スロー', t: `119.88fps で撮り、${fpsName(fps)} の台で使う（${Math.round(119.88 / fps * 10) / 10}倍のスロー）`, why: `シャッターは ${t2 ? shutLabel(t2) + '（照明の下）' : shutLabel(shutDay(119.88)) + ' 前後'}。そのぶん暗くなるので、光を足すか感度を上げる。`, warn: 'スロー＆クイックでは音が記録されない' + (lit && !t2 ? `。${hz}Hz の照明の下では、ちらつかない速さが無い` : '') + (man && man.id === 'fx3' ? '。FX3 の 4K 119.88p は画角が少し狭くなる' : '') });
+    lines.push({ b: 'スロー', t: `119.88fps（${fpsName(fps)} で ${Math.round(119.88 / fps * 10) / 10}倍）`, why: `シャッター ${t2 ? shutLabel(t2) + '（フリッカー対策）' : shutLabel(shutDay(119.88))}。露出不足は照明か感度で補う。`, warn: 'S&Q では音声は記録されない' + (lit && !t2 ? `。${hz}Hz の照明下ではフリッカーの出ない速度が無い` : '') + (man && man.id === 'fx3' ? '。FX3 の 4K 119.88p は画角が狭くなる' : '') });
     basis.push('t_slow');
   } else if (lit) {
     const fl = shutFlicker(fps, hz);
-    lines.push({ b: 'シャッター', t: fl ? `${shutLabel(fl)}（${shutAngle(fl, fps)}°）` : '照明に合う速さがありません', why: `${night ? '夜' : inside ? '屋内・地下' : '照明の写るカット'}なので、照明のちらつきを避ける。${hz}Hz の地域では照明が1秒に${hz * 2}回明滅するので、その整数倍の時間にする。` + (man && man.id === 'fx6' ? `FX6 は Shooting メニューの Flicker Reduce を ${hz}Hz にしておくと、さらに抑えられる。` : ''), warn: fl ? '' : 'フリッカー補正を使うか、フレームレートを変える' });
+    lines.push({ b: 'シャッター', t: fl ? `${shutLabel(fl)}（${shutAngle(fl, fps)}°）` : 'フリッカーの出ない速度なし', why: `${night ? '夜間' : inside ? '屋内・地下' : '人工光源あり'}のためフリッカー対策。${hz}Hz 地域は光源が毎秒${hz * 2}回明滅するので、その整数倍の露光時間。` + (man && man.id === 'fx6' ? `FX6 は Flicker Reduce（Shooting メニュー）を ${hz}Hz に。` : ''), warn: fl ? '' : 'フリッカー補正を使うか、フレームレートを変更' });
     basis.push('t_flicker');
   } else {
-    lines.push({ b: 'シャッター', t: `${shutLabel(shutDay(fps))}（180°）`, why: `昼の屋外。${fpsName(fps)} の倍の速さで、動きのぶれが自然に見える。` + (Math.abs(fps - 24) < 0.1 ? '1/48 が無いカメラは 1/50 でよい。' : '') });
+    lines.push({ b: 'シャッター', t: `${shutLabel(shutDay(fps))}（180°）`, why: `日中屋外・180° シャッター。` + (Math.abs(fps - 24) < 0.1 ? '1/48 が選べない機種は 1/50。' : '') });
     basis.push('t_shut');
   }
   // ND：明るい屋外では、シャッターをフレームレートの倍に保つために入れる
-  const diaWarn = y => { if (!y || diaFits(y, lens)) return ''; const r = kitDia(y.dia); return `径が合わない（レンズ ${kitNum(lens.dia)}mm・フィルター ${r[0] === r[1] ? r[0] : r[0] + '〜' + r[1]}mm）。このレンズには付かない`; };
-  if (dark) lines.push({ b: 'ND', t: '外す', why: night ? '夜なので光が足りない' : '地下・屋内なので光が足りない' });
+  const diaWarn = y => { if (!y || diaFits(y, lens)) return ''; const r = kitDia(y.dia); return `径が合わない（レンズ ${kitNum(lens.dia)}mm／フィルター ${r[0] === r[1] ? r[0] : r[0] + '〜' + r[1]}mm）`; };
+  if (dark) lines.push({ b: 'ND', t: 'なし', why: night ? '夜間・低照度' : '屋内・地下・低照度' });
   else {
-    const nd = cam && cam.nd ? { name: `カメラの内蔵 ND（${cam.nd}）`, short: '内蔵ND' } : fl('vnd') || fl('nd') || fl('ndpl');
-    if (nd) { lines.push({ b: 'ND', t: nd.name + (nd.stops ? `（${nd.stops}）` : ''), warn: diaWarn(nd), why: (dusk ? '夕方なので弱めに。日が傾くにつれて外す。' : '') + `シャッターを ${shutLabel(shutDay(fps))}（180°）に保ち、絞りを開けたまま明るさを下げる` }); sum.push(nd.short || nd.name); }
-    else lines.push({ b: 'ND', t: '登録がありません', why: '明るい屋外なので、絞って明るさを合わせる（背景のボケは減る）。シャッターは速くしない' });
+    const nd = cam && cam.nd ? { name: `内蔵 ND（${cam.nd}）`, short: '内蔵ND' } : fl('vnd') || fl('nd') || fl('ndpl');
+    if (nd) { lines.push({ b: 'ND', t: nd.name + (nd.stops ? `（${nd.stops}）` : ''), warn: diaWarn(nd), why: (dusk ? '夕方は弱めから。日没に合わせて外す。' : '') + `シャッター ${shutLabel(shutDay(fps))}・絞りを保ったまま減光。` }); sum.push(nd.short || nd.name); }
+    else lines.push({ b: 'ND', t: '未登録', why: '絞りで露出を合わせる（被写界深度が深くなる）。シャッターは上げない。' });
     basis.push('nd');
   }
   // PL：ガラス・水・濡れた面の反射
   const pl2 = fl('pl') || fl('ndpl');
-  if (pl2 && (isPri(pl2) || /ガラス|窓|水面|水たまり|流れる水|水の流れ|濡れ|映り込み|反射|ショーウィンドウ|ショーケース/.test(text))) { lines.push({ b: 'PL', t: pl2.name, warn: diaWarn(pl2), why: (isPri(pl2) ? '「いつも付ける」にしてある。' : '') + '反射を抑える。' + (/水/.test(text) ? '水の光り方を見せたいときは、回して弱めるか外す。' : '回して効き方を見ながら決める。') + (dark ? 'PL を付けると暗くなるので、明るさが足りなければ外す。' : '') }); sum.push(pl2.name); }
-  // ミスト・拡散
+  if (pl2 && (isPri(pl2) || /ガラス|窓|水面|水たまり|流れる水|水の流れ|濡れ|映り込み|反射|ショーウィンドウ|ショーケース/.test(text))) { lines.push({ b: 'PL', t: pl2.name, warn: diaWarn(pl2), why: (isPri(pl2) ? '常用フィルター。' : '') + '反射を抑える。' + (/水/.test(text) ? '水面の輝きを残すなら効きを弱める。' : '回して効きを確認。') + (dark ? '光量が落ちるので、足りなければ外す。' : '') }); sum.push(pl2.name); }
+  // ミスト：常用フィルターにしたときだけ出す。古写真・ＣＧと重ねる実景（合成カット）では外す
   const mist = fl('mist');
-  // 古写真・ＣＧと重ねる実景は、「いつも付ける」でも外す（にじみが焼き込まれて輪郭が合わせにくく、上に重ねる CG だけがくっきりする）
-  if (mist && vfx) { lines.push({ b: 'ミスト', t: '外す', why: '古写真・ＣＧと重ねる実景なので外す。にじみが画に焼き込まれて輪郭が合わせにくくなり、上に重ねる CG だけがくっきりして柔らかさが食い違う。柔らかさは、合成したあとに編集で実景と CG にまとめて足す。' + (isPri(mist) ? '同じシーンのほかのカットはミストを付けるので、編集で足して合わせる。時間があれば、付けたテイクも1本控えに撮る。' : '') }); basis.push('t_mist'); }
-  else if (isPri(mist)) { lines.push({ b: 'ミスト', t: mist.name, warn: diaWarn(mist), why: '「いつも付ける」にしてあるので付ける（古写真・ＣＧと重ねる実景のカットだけは外す）。' + (night ? '夜の明かりは大きくにじむ。' : '') }); sum.push(mist.name); }
-  else if (mist) lines.push({ b: 'ミスト', t: `${mist.name}（付けるなら）`, warn: diaWarn(mist), why: '同じシーンのカットは、すべて付けるか、すべて外す（付け外しで画の柔らかさが変わる）。' + (night ? '夜の明かりは大きくにじむ。' : '') });
-  // 支え
+  if (isPri(mist) && vfx) { lines.push({ b: 'ミスト', t: 'なし', why: '合成カットのため外す（にじみが焼き込まれ、重ねる CG と輪郭・質感が合わない）。同じシーンのミスト付きのカットとは質感が変わる。' }); basis.push('t_mist'); }
+  else if (isPri(mist)) { lines.push({ b: 'ミスト', t: mist.name, warn: diaWarn(mist), why: '常用フィルター。' + (night ? '夜間は光源のにじみが大きい。' : '') }); sum.push(mist.name); }
+  // カメラサポート：見出しは機材の種類（三脚・ジンバル・ドローン・手持ち）
   const sp = ty => priFirst(KIT.sups.filter(y => y.type === ty))[0];
-  if (/ドローン|空撮/.test(text)) { const d = sp('drone'); lines.push({ b: '支え', t: d ? d.name : 'ドローンの登録がありません', warn: '人口集中地区の上空や、人・建物から30m 未満で飛ばすときは、国土交通大臣の許可・承認が要る（航空法）。飛ばす前に、場所と手続きを確かめる' }); if (d) sum.push(d.name); }
+  if (/ドローン|空撮/.test(text)) { const d = sp('drone'); lines.push({ b: 'ドローン', t: d ? d.name : '未登録', warn: '人口集中地区の上空、人・物件から30m 未満などの飛行は、国土交通大臣の許可・承認が必要（航空法）' }); if (d) sum.push(d.name); }
   else if (gim) {
     const g = sp('gimbal'), m = /一脚/.test(text) ? sp('mono') : null;
-    if (!g) lines.push({ b: '支え', t: 'ジンバルの登録がありません', warn: 'ジンバルが無ければ、案A（三脚）に戻す' });
+    if (!g) lines.push({ b: 'ジンバル', t: '未登録', warn: '案A（三脚）で撮る' });
     else {
       const w = (kitNum(cam && cam.g) || 0) + (kitNum(lens && lens.g) || 0), cap = kitNum(g.kg) * 1000;
-      lines.push({ b: '支え', t: g.name + (m ? ` ＋ ${m.name}` : (/一脚/.test(text) ? '（一脚の登録がありません）' : '')), why: w && cap ? `カメラとレンズで ${w}g（積める重さ ${g.kg}kg の内）` : '', warn: w && cap && w > cap ? `カメラとレンズで ${w}g。${g.name} の積める重さ ${g.kg}kg を超える` : '' });
+      lines.push({ b: 'ジンバル', t: g.name + (m ? ` ＋ ${m.name}` : (/一脚/.test(text) ? ' ＋ 一脚（未登録）' : '')), why: w && cap ? `搭載 ${w}g／最大積載量 ${g.kg}kg` : '', warn: w && cap && w > cap ? `搭載 ${w}g が最大積載量 ${g.kg}kg を超える` : '' });
       sum.push(g.name + (m ? '＋' + m.name : ''));
     }
-  } else if (hand) { const g = sp('gimbal'); lines.push({ b: '支え', t: g ? `手持ち（${g.name} を使うと揺れが減る）` : '手持ち' }); sum.push(g ? g.name : '手持ち'); }
-  else { const tp = sp('tripod'); lines.push({ b: '支え', t: (tp ? tp.name : '三脚') + (f.pan || /パン|ティルト/.test(text) ? '（パンのできる雲台で）' : ''), why: vfx ? '古写真・ＣＧと重ねるので、締めて動かさない' : '' }); sum.push(tp ? tp.name : '三脚'); }
+  } else if (hand) { const g = sp('gimbal'); lines.push({ b: '手持ち', t: '手持ち撮影', why: g ? `揺れを抑えるなら ${g.name}。` : '' }); sum.push('手持ち'); }
+  else { const tp = sp('tripod'); lines.push({ b: '三脚', t: (tp ? tp.name : '未登録') + (f.pan || /パン|ティルト/.test(text) ? '（パン・ティルト）' : ''), why: vfx ? '合成カットのため固定（ロックオフ）。' : '' }); if (tp) sum.push(tp.name); }
   return { lines, basis, sum: sum.join('／'), cam: cam && cam.id, swap: lens && lines.some(l => l.swap) ? lens : null };
 }
 function kitHtml(sc, c, k) {
   if (!c || !c.cam) return '';
-  if (!kitCount()) return `<div class="kit"><div class="row-h"><b class="grow">機材の組み合わせ</b><button class="btn small" data-a="openKit">機材を登録する</button></div><p class="small">カメラ・レンズ・フィルター・支えを登録すると、このカットに合う組み合わせが出ます。</p></div>`;
+  if (!kitCount()) return `<div class="kit"><div class="row-h"><b class="grow">使用機材</b><button class="btn small" data-a="openKit">機材を登録</button></div><p class="small">機材を登録すると、カットごとの使用機材を表示します。</p></div>`;
   const r = kitPlan(sc, c, k);
-  return `<div class="kit"><div class="row-h"><b class="grow">機材の組み合わせ</b><button class="btn small" data-a="openKit">機材</button></div>
+  return `<div class="kit"><div class="row-h"><b class="grow">使用機材</b><button class="btn small" data-a="openKit">機材</button></div>
     ${KIT.cams.length > 1 ? `<div class="chips">${KIT.cams.map(y => `<button class="chip" data-a="kitCam" data-id="${y.id}" aria-pressed="${r.cam === y.id}">${esc(y.name)}</button>`).join('')}</div>` : ''}
     ${r.lines.map(l => `<div class="kl"><span>${esc(l.b)}</span><div><b>${esc(l.t)}</b>${l.why ? `<div class="small">${esc(l.why)}</div>` : ''}${l.warn ? `<div class="kwarn">${esc(l.warn)}</div>` : ''}</div></div>`).join('')}
     ${r.basis.length ? `<div class="basis"><span>根拠</span>${r.basis.map(id => `<button data-a="openPrin" data-id="${id}">${esc(PRIN_BY[id].t.replace(/（.*$/, ''))}</button>`).join('')}</div>` : ''}</div>`;
@@ -2428,7 +2426,7 @@ function renderOut() {
       <div class="chips">${[['snd', '音声のファイル名'], ['tc', 'タイムコード'], ['cam2', 'B カメのファイル名']].map(([x, l]) => `<button class="chip" role="checkbox" aria-checked="${fld(x)}" data-a="fld" data-k="${x}"><span class="tk"></span>${l}</button>`).join('')}</div>
       <p class="small">使わない欄は外すと、カチンコがすっきりします。音声をカメラ本体で録っているなら「音声のファイル名」は外してかまいません。</p>
       <h3>機材</h3>
-      <button class="btn wide" data-a="openKit">カメラ・レンズ・フィルター・支え${kitCount() ? `（${kitCount()}）` : ''}</button>
+      <button class="btn wide" data-a="openKit">カメラ・レンズ・フィルター・カメラサポート${kitCount() ? `（${kitCount()}）` : ''}</button>
       <p class="small">登録すると、カットごとに合う組み合わせが「このカットの撮り方」に出て、テイクにも残ります。</p>
       <h3>作品データ</h3>
       <div class="btns grid2">${MODE.artifact ? '' : '<button class="btn" data-a="backup">作品データを保存</button>'}<button class="btn" data-a="restore">作品データを読み込む</button><button class="btn" data-a="openLinkBox">リンクで作品を開く</button><button class="btn danger" data-a="wipe">全部消して始める</button></div>
@@ -2934,32 +2932,32 @@ const SHEET = {
   kit() {
     const inp = (c, x, f, l, ph, num) => `<label class="field${f === 'name' ? ' full' : ''}"><span>${l}</span><input data-kit="${c}|${x.id}|${f}" value="${esc(x[f] || '')}" placeholder="${ph}" ${num ? 'inputmode="decimal"' : ''} autocomplete="off"></label>`;
     const sel = (c, x, f, l, opts) => `<label class="field"><span>${l}</span><select data-kit="${c}|${x.id}|${f}">${opts.map(([v, n]) => `<option value="${v}" ${(x[f] || opts[0][0]) === v ? 'selected' : ''}>${n}</option>`).join('')}</select></label>`;
-    const row = (c, x, body) => `<div class="kitrow"><div class="fields">${body}</div><div class="row-h"><span class="grow"></span><button class="link danger" data-a="kitDel" data-c="${c}" data-id="${x.id}">消す</button></div></div>`;
+    const row = (c, x, body) => `<div class="kitrow"><div class="fields">${body}</div><div class="row-h"><span class="grow"></span><button class="link danger" data-a="kitDel" data-c="${c}" data-id="${x.id}">削除</button></div></div>`;
     const baseSel = (c, l, none) => `<label class="field"><span>${l}</span><select data-kitbase="${c}"><option value="">${none}</option>${KIT[c].map(x => `<option value="${x.id}" ${isPri(x) ? 'selected' : ''}>${esc(x.name || '（名前なし）')}</option>`).join('')}</select></label>`;
     const bl = KIT.lenses.find(isPri), br = bl && kitNum(bl.min) ? [kitNum(bl.min), kitNum(bl.max) || kitNum(bl.min)] : null, always = KIT.filters.filter(x => x.type === 'mist' || x.type === 'pl');
-    const top = `<section class="card kitbase"><h3>いつもの組み方</h3>
-      ${baseSel('lenses', '基本のレンズ（カメラに付けたままにする）', '決めない（カットごとに選ぶ）')}
-      <p class="small">${br ? `案が ${br[0]}〜${Math.floor(br[1] * 1.25)}mm なら、付け替えずにこのレンズで撮ります（${br[1]}mm より長い案は、少し近づいて合わせる）。交換を出すのは、${br[0]}mm より広く撮るとき、${Math.floor(br[1] * 1.25)}mm より長く撮るとき、ジンバルに載らないときだけです。暗い場所では、明るいレンズに替える手も添えます。` : '決めると、そのレンズで撮れるカットは付け替えずに撮る組み合わせを出します。'}</p>
-      ${baseSel('cams', '優先のカメラ', '決めない')}
-      <p class="small">決めないときは、登録の1台目を使います。ジンバルの案では、重さの軽いカメラを選びます。</p>
+    const top = `<section class="card kitbase"><h3>基本設定</h3>
+      ${baseSel('lenses', '常用レンズ', 'なし（カットごとに選択）')}
+      <p class="small">${br ? `${br[0]}〜${Math.floor(br[1] * 1.25)}mm のカットは常用レンズのまま撮影（${br[1]}mm を超える分は寄って合わせる）。レンズ交換を表示するのは、${br[0]}mm より広角・${Math.floor(br[1] * 1.25)}mm より望遠・ジンバルの最大積載量を超えるときだけ。低照度では明るいレンズへの交換案も表示。` : '設定すると、撮れるカットはレンズ交換なしで表示。'}</p>
+      ${baseSel('cams', 'メインカメラ', 'なし')}
+      <p class="small">なしの場合は登録順の1台目。ジンバルのカットは軽量機を選択。</p>
       <div class="fields"><label class="field"><span>フレームレート</span><select data-kitset="fps">${FPS_OPTS.map(([v, n]) => `<option value="${v}" ${+v === kitFps() ? 'selected' : ''}>${esc(n)}</option>`).join('')}</select></label>
         <label class="field"><span>電源の周波数</span><select data-kitset="hz">${HZ_OPTS.map(([v, n]) => `<option value="${v}" ${+v === kitHz() ? 'selected' : ''}>${esc(n)}</option>`).join('')}</select></label></div>
-      <p class="small">この撮影のフレームレート（映画・上映は 23.98p、日本の放送・配信は 29.97p）と、撮る場所の電源の周波数（静岡県の富士川・新潟県の糸魚川より西は 60Hz、東は 50Hz。境目の近くは電力会社に確かめる）。カットごとの組み合わせに、シャッターの値を出します。昼の屋外は 180°（${esc(shutLabel(shutDay(kitFps())))}）、夜・屋内・看板や街灯の写るカットは、照明がちらつかない速さです。</p>
-      ${always.length ? `<div class="field"><span>いつも付けるフィルター</span><div class="chips">${always.map(x => `<button class="chip" role="checkbox" aria-checked="${isPri(x)}" data-a="kitPri" data-c="filters" data-id="${x.id}"><span class="tk"></span>${esc(x.name)}</button>`).join('')}</div><p class="small">いつも付けるミストも、古写真・ＣＧと重ねる実景のカットだけは外す案を出します（にじみで輪郭が合わせにくくなるため。柔らかさは合成のあとに編集で足す）。</p></div>` : ''}
+      <p class="small">フレームレート：映画・上映は 23.98p、日本の放送・配信は 29.97p。電源の周波数：富士川（静岡県）・糸魚川（新潟県）より西は 60Hz、東は 50Hz（境界付近は電力会社に確認）。シャッターは、日中屋外が 180°（${esc(shutLabel(shutDay(kitFps())))}）、夜間・屋内・人工光源のあるカットはフリッカーの出ない速度で表示。</p>
+      ${always.length ? `<div class="field"><span>常用フィルター（チェックしたものを全カットに装着）</span><div class="chips">${always.map(x => `<button class="chip" role="checkbox" aria-checked="${isPri(x)}" data-a="kitPri" data-c="filters" data-id="${x.id}"><span class="tk"></span>${esc(x.name)}</button>`).join('')}</div><p class="small">ミストはチェックしたときだけ表示。PL はチェックしたときと、反射のあるカットで表示。ミストは合成カット（古写真・CG と重ねる実景）では外す。合成カットのあるシーンで使うと、同じシーンの中で質感が揃わない。</p></div>` : ''}
     </section>`;
     const F = {
       cams: x => inp('cams', x, 'name', '名前', '例：FX6') + sel('cams', x, 'sensor', 'センサー', SENSORS.map(s => [s[0], s[1]])) + inp('cams', x, 'nd', '内蔵 ND（無ければ空）', '例：1/4〜1/128') + inp('cams', x, 'g', '重さ（g）', '例：890', 1) + (manualFor(x.name) ? `<button class="btn small full" data-a="openManual" data-id="${manualFor(x.name).id}">説明書の要点を見る（${esc(manualFor(x.name).t)}）</button>` : ''),
       lenses: x => inp('lenses', x, 'name', '名前', '例：24-70mm F2.8') + inp('lenses', x, 'min', '焦点距離（mm）', '例：24', 1) + inp('lenses', x, 'max', 'ズームの長い側（mm）', '単焦点は空', 1) + inp('lenses', x, 'f', '開放 F 値', '例：2.8', 1) + inp('lenses', x, 'dia', 'フィルター径（mm）', '例：82', 1) + inp('lenses', x, 'g', '重さ（g）', '例：695', 1),
       filters: x => inp('filters', x, 'name', '名前', '例：可変 ND 82mm') + sel('filters', x, 'type', '種類', FLT_TYPES) + inp('filters', x, 'stops', '強さ', '例：2〜8段、1/4') + inp('filters', x, 'dia', '付く径（mm）', '例：82、67〜82'),
-      sups: x => inp('sups', x, 'name', '名前', '例：RS 4 Pro') + sel('sups', x, 'type', '種類', SUP_TYPES) + (x.type === 'gimbal' ? inp('sups', x, 'kg', '積める重さ（kg）', '例：4.5', 1) : ''),
+      sups: x => inp('sups', x, 'name', '名前', '例：RS 4 Pro') + sel('sups', x, 'type', '種類', SUP_TYPES) + (x.type === 'gimbal' ? inp('sups', x, 'kg', '最大積載量（kg）', '例：4.5', 1) : ''),
     };
     return sheetTop('機材') + `<div class="sheet-body"><div class="wrap">
-      <p class="lead">登録した機材から、カットごとにカメラ・レンズ・フィルター・支えの組み合わせを出します。機材はこの端末に保存し、資料の更新や作品の入れ替えでは消えません。</p>
+      <p class="lead">登録した機材から、カットごとの使用機材を表示します。機材はこの端末に保存され、資料の更新や作品の入れ替えでは消えません。</p>
       ${kitCount() ? top : ''}
       ${KIT_CAT.map(([c, l]) => `<section class="card"><div class="row-h"><h3 class="grow">${l}</h3><span class="small">${KIT[c].length}</span></div>
         ${KIT[c].map(x => row(c, x, F[c](x))).join('') || '<p class="small">まだありません</p>'}
-        <button class="btn" data-a="kitAdd" data-c="${c}">＋ ${l}を足す</button></section>`).join('')}
-      <p class="small">レンズの mm は、レンズに書いてある実際の mm で書きます（スマホだけは換算の mm）。カメラ案の mm はフルサイズ換算なので、センサーの大きさに合わせて直して選びます。重さを書くと、ジンバルに載るかを確かめます。フィルターの径は、アダプターリングで付く範囲（例：67〜82）でも書けます。</p>
+        <button class="btn" data-a="kitAdd" data-c="${c}">＋ ${l}を追加</button></section>`).join('')}
+      <p class="small">焦点距離はレンズの表記どおり（スマホのみ換算値）。カメラ案はフルサイズ換算なので、センサーサイズに合わせて換算して選択。重さを入れると、ジンバルの最大積載量を確認。フィルター径はステップアップリングで付く範囲（例：67〜82）でも可。</p>
     </div></div>`;
   },
   gear() {
@@ -3056,7 +3054,7 @@ const SHEET = {
       </ol>`)}
       ${step('カメラワーク案', '<p>撮影のカードの<b>「カメラワーク（案・図・理由）」</b>を押すと、そのシーンの画面の向き（イマジナリーライン）、前後のシーンとのつながり、カットごとのカメラの位置・サイズ・動きと理由が出ます。「記録する」の画面にも、今撮るカットの案が出ます。現場で人が多い・時間が押したなどのときは、記録の画面の<b>「案A・案B・案C」</b>を押すと別案に切り替わり、どの案で撮ったかがテイクに残ります（スクリプトシートにも出ます）。作品全体の決まりごとは「撮影」の画面のいちばん上にあります。</p>')}
       ${step('撮り方の根拠', '<p>カメラ案の下の<b>「根拠」</b>のボタンを押すと、その撮り方の原則（何をする・なぜ・現場で確かめること・出典）が開きます。「撮影」の画面の上と「資料」の画面の<b>「撮り方の手引き」</b>で、すべての原則を見て、さがせます。この作品以外の撮影でも使えます。</p>')}
-      ${step('技術の手引き', '<p>「資料」の画面の<b>「技術の手引き」</b>で、フレームレート・シャッター・照明のちらつき・露出・ホワイトバランス・Log・カード・音・タイムコード・ドローンや道路の許可を、出典つきで見られます。<b>FX6・FX3 の説明書の要点</b>（ページ番号つき）と、シャッター・記録時間・ND の段数・換算 mm の<b>計算</b>もあります。機材の画面の「いつもの組み方」でフレームレートと電源の周波数を決めると、カットごとの組み合わせにシャッターの値が出ます。</p>')}
+      ${step('技術の手引き', '<p>「資料」の画面の<b>「技術の手引き」</b>で、フレームレート・シャッター・照明のちらつき・露出・ホワイトバランス・Log・カード・音・タイムコード・ドローンや道路の許可を、出典つきで見られます。<b>FX6・FX3 の説明書の要点</b>（ページ番号つき）と、シャッター・記録時間・ND の段数・換算 mm の<b>計算</b>もあります。機材の画面の「基本設定」でフレームレートと電源の周波数を決めると、カットごとの使用機材にシャッター速度が出ます。</p>')}
       ${step('シーンのくわしい中身：「台本・詳細」', '<p>撮影のカードの「台本・詳細」、または「香盤」でシーンを押すと開きます。台本の本文、編集素材（写真・ＣＧ・字幕・ナレーションなど）、参考画像の追加、撮るものの書き直しができます。</p>')}
       ${step('全体の予定：「香盤」', '<p>「台本の順」で全シーン、「撮影日ごと」で日ごとの並び（↑↓で入れ替え）、「人物」で出番の表を見られます。</p>')}
       ${step('カメラのファイル名とテイク番号', '<p>記録の画面のカチンコに、<b>カメラのファイル名</b>（カメラの画面に出ている名前。例：C0012）と<b>音声のファイル名</b>を書きます。前のテイクの番号を一つ進めて先に入れてあるので、カメラと違うときだけ直してください。<b>テイク番号</b>は自動で進みますが、「−」「＋」や数字の入力で直せます。</p>')}

@@ -229,6 +229,16 @@ table.mx { border-collapse: collapse; font-size: 13px; min-width: 100%; }
 .srcs { margin-left: 1.1em; font-size: 13px; display: flex; flex-direction: column; gap: 4px; }
 .srcs a { color: var(--accent); word-break: break-word; }
 .gitem { border-top: 1px solid var(--line); padding-top: 4px; }
+.ttbl { width: 100%; border-collapse: collapse; font-size: 13px; margin: 6px 0; }
+.ttbl th, .ttbl td { border-top: 1px solid var(--line); padding: 5px 6px; text-align: left; vertical-align: top; }
+.ttbl th { width: 34%; font-weight: 700; }
+.ttbl td { white-space: pre-line; }
+.mlist .mrow { border-top: 1px solid var(--line); padding: 7px 0; font-size: 14px; }
+.mlist .mrow > b { display: block; font-size: 13px; }
+.mlist .pg { color: var(--muted); font-size: 12px; margin-left: 6px; white-space: nowrap; }
+.calc .cbox { border-top: 1px solid var(--line); padding: 10px 0 6px; }
+.calc .cbox > b { font-size: 14px; }
+.calc .cout { font-size: 15px; line-height: 1.6; margin-top: 2px; }
 .gitem:first-of-type { border-top: 0; }
 .docv .bref, #print .bref { margin: 2mm 0 3mm; font-size: 13px; }
 #print .bref { font-size: 9pt; }
@@ -259,8 +269,8 @@ table.mx { border-collapse: collapse; font-size: 13px; min-width: 100%; }
 .memo b { color: var(--muted); font-size: 12px; margin-right: 4px; }
 .kit { margin-top: 8px; font-size: 13px; background: var(--surface2); border-left: 2px solid var(--accent); border-radius: 4px 10px 10px 4px; padding: 8px 10px; display: flex; flex-direction: column; gap: 6px; }
 .kit > .row-h > b { font-size: 12px; color: var(--muted); letter-spacing: .08em; }
-.kl { display: grid; grid-template-columns: 4.5em 1fr; gap: 8px; align-items: baseline; }
-.kl > span { font-size: 12px; font-weight: 800; color: var(--muted); letter-spacing: .04em; }
+.kl { display: grid; grid-template-columns: 5.4em 1fr; gap: 8px; align-items: baseline; }
+.kl > span { font-size: 12px; font-weight: 800; color: var(--muted); letter-spacing: .04em; white-space: nowrap; }
 .kl > div { min-width: 0; overflow-wrap: anywhere; }
 .kwarn { color: var(--warn); font-weight: 700; font-size: 13px; margin-top: 2px; }
 .kitrow { border-top: 1px solid var(--line); padding: 10px 0 6px; display: flex; flex-direction: column; gap: 6px; }
@@ -638,7 +648,7 @@ details.rec-top > summary { font-size: 13px; font-weight: 800; letter-spacing: .
 <script>
 (() => {
 'use strict';
-const VERSION = '3.8（11/5 基本のレンズは付けたまま、交換は広すぎる・長すぎる・載らないときだけ）';
+const VERSION = '3.9（11/5 技術の手引き：設定・照明のちらつき・説明書の要点・計算）';
 
 /* ───────── 基本 ───────── */
 const $ = id => document.getElementById(id);
@@ -943,6 +953,115 @@ const GUIDE = [
   { id: 'kinu', cat: 6, t: '撮影日の前の準備と、現場の心得（衣笠竜屯『映画制作の教科書』）', do: '撮影日の前の不安はチェックリストで解決する。パート別に現場での心得を決めておく。撮影当日の服・荷物・集合は、アウトドアに出かけるつもりで用意する。', why: '準備と段取りが決まっていると、現場では撮ることに集中できる。', chk: '持ち物・機材・集合をチェックリストで確かめる（このアプリの「当日の持ち物・機材」）。', kw: /(?!)/, src: ['kinu'], note: '確認できたのは目次の見出し（TAKE24〜26）だけ。本文は未確認' },
 ];
 const GUIDE_BY = Object.fromEntries(GUIDE.map(g => [g.id, g]));
+
+/* ───────── 技術の手引き（フレームレート・露出・色・記録・音・タイムコード・法令。カメラの説明書の要点も）。どの作品・どの現場でも使う ───────── */
+Object.assign(SRC, {
+  fx6om: { k: '説明書', t: 'ソニー「FX6（ILME-FX6V/FX6VK）取扱説明書 ソフトウェアバージョン5.0」（5-024-458-07）', u: 'https://www.sony.jp/support/pro-cam/products/ilme-fx6v/', n: 'ソニーのサポートページで配っている版。ページ番号はこの版のもの。本体のソフトが新しいと、メニューの名前や中身が違うことがある' },
+  fx6spec: { k: '資料', t: 'ソニー「FX6 主な仕様」（ND・フレームレート・入出力）', u: 'https://www.sony.jp/pro-cam/products/ILME-FX6V/specification.html' },
+  fx3hg: { k: '説明書', t: 'ソニー「ILME-FX3 ヘルプガイド（本体 Ver.2 以降）」', u: 'https://helpguide.sony.net/ilc/2210/v1/ja/index.html', n: 'ページ番号は印刷用 PDF（print.pdf）のもの。本体が Ver.2.0 未満なら別の版（helpguide.sony.net/ilc/2035）' },
+  sonypp: { k: '資料', t: 'ソニー「ピクチャープロファイル・Log 撮影 ヘルプガイド」（Base ISO・EI・LUT）', u: 'https://helpguide.sony.net/di/pp/v1/ja/index.html' },
+  slog3exp: { k: '記事', t: 'Sony Cine（ソニーの業務用シネマの公式サイト）Alister Chapman「How to correctly expose S-Log3」', u: 'https://sony-cinematography.com/articles/how-correctly-expose-s-log3-a7s-iii-fx3-fx6-fx9/' },
+  redshut: { k: '記事', t: 'RED「Shutter Angles & Creative Control」（シャッター角度と動きのぶれ）', u: 'https://www.red.com/red-101/shutter-angle-tutorial' },
+  pvc: { k: '記事', t: 'ProVideo Coalition「Video Framerates and the Tower of Babel: A Translation Guide」（「24」と表示して 23.976 の機種がある）', u: 'https://www.provideocoalition.com/video-framerates-and-the-tower-of-babel-a-translation-guide/' },
+  applefr: { k: '資料', t: 'Apple「Final Cut Pro XML：Frame Rate」（23.976・24・25・29.97・59.94 の区別）', u: 'https://developer.apple.com/library/archive/documentation/AppleApplications/Reference/FinalCutPro_XML/FrameRate/FrameRate.html' },
+  hzsharp: { k: '資料', t: 'シャープ「電源周波数地域（50Hz 地域／60Hz 地域）について」', u: 'https://jp.sharp/support/info/info_hz_1.html' },
+  adorama: { k: '記事', t: 'Adorama「Mastering Audio Levels: A Filmmaker\'s Guide to Decibels and Metering」', u: 'https://www.adorama.com/alc/mastering-audio-levels/' },
+  cisa: { k: '資料', t: 'US-CERT（米国 CISA）「Data Backup Options」（3-2-1 の控え方）', u: 'https://www.cisa.gov/sites/default/files/publications/data_backup_options.pdf', n: '原文はこちらの環境から開けず、複数の解説記事で中身を確かめた' },
+  mlit: { k: '資料', t: '国土交通省「無人航空機の飛行ルール」', u: 'https://www.mlit.go.jp/koku/koku_fr10_000042.html' },
+  road1: { k: '資料', t: '埼玉県警察「道路使用許可（道路交通法第77条第1項）の審査基準」', u: 'https://www.police.pref.saitama.lg.jp/documents/32088/77-1dourosiyou.pdf' },
+  road2: { k: '資料', t: '鹿児島県警察「道路使用許可の申請」（ロケーション・撮影会は4号許可）', u: 'https://www.pref.kagoshima.jp/ja21/police/shinsei/sonota/documents/13112_20220624172610-1.pdf' },
+});
+const TECH_CATS = ['フレームレートとシャッター', '明るさ（露出・感度・ND）', '色（ホワイトバランス・Log・LUT）', 'ピントと手ぶれ', '記録とデータ', '音', 'タイムコードと複数のカメラ', '現場の安全と法令'];
+const TECH = [
+  { id: 't_fps', cat: 0, t: 'フレームレートの選び方（納品先で決める）', do: '撮る前に納品先で決め、すべてのカメラ・編集の台・書き出しを同じ数字にする。映画・映画祭・上映は 23.98p（指定があれば 24.00p）、日本と北米のテレビ・配信は 29.97p か 59.94p、50Hz の国（ヨーロッパなど）の放送は 25p か 50p。', why: '途中で混ざると、変換で動きがかくついたり、音とずれたりする。24 で撮ったものを 25 で流すと、25÷24 で約4％速くなる。カメラや編集ソフトの「24」「30」「60」の表示は、23.976・29.97・59.94 のことが多い。', chk: '2台以上なら、すべてのカメラで小数点まで同じ数字か。編集の台を作るときも同じ数字か。', src: ['applefr', 'pvc', 'fx6om'], tbl: [['23.98p（23.976）', '映画・映画祭・上映。日本・北米の機器で扱いやすい'], ['24.00p', '上映先から 24.00 と指定されたとき'], ['25p・50p', '50Hz の国の放送'], ['29.97p・59.94p', '日本・北米の放送・配信'], ['119.88p など', 'スロー用（23.98p の台で5倍）']] },
+  { id: 't_shut', cat: 0, t: 'シャッターは180度（フレームレートの倍）', do: 'シャッターの開く時間を、1コマの時間の半分にする（シャッター角度 180°）。24p なら 1/48（1/50 でもよい）、30p なら 1/60、60p なら 1/120。角度 ＝ シャッター速度 × フレームレート × 360。', why: '映画で見慣れた自然な動きのぶれになる。速くする（角度を小さくする）と、動きがとぎれとぎれになり、古いニュース映画のような硬い感じになる。遅くすると、ぶれて流れる。', chk: '明るすぎてシャッターを速くしたくなったら、ND で明るさを下げる。照明の下では「照明のちらつき」の値にする。スローは、撮るフレームレートの倍（120fps なら 1/250 前後）。', src: ['redshut', 'ndls', 'fx6om'] },
+  { id: 't_flicker', cat: 0, t: '照明のちらつき（フリッカー）と電源の周波数', do: '蛍光灯・LED・街灯・看板などの照明の下では、シャッターを電源の周波数に合わせる。照明は電源の周波数の2倍の速さで明滅するので、シャッターの時間をその明滅の整数倍にする。60Hz（西日本）なら 1/60・1/120、50Hz（東日本）なら 1/50・1/100。境目はおおよそ静岡県の富士川と新潟県の糸魚川。', why: '合っていないと、画面が明滅したり、色が変わったり、横の帯が流れたりする（FX6 の説明書にも、蛍光灯・ナトリウム灯・水銀灯・LED の下で起きると書いてある）。', chk: '撮る前に照明をモニターに写し、明滅や帯が無いかを見る。境目の近くは 50Hz と 60Hz が混ざる地区があるので、電力会社に確かめる。FX6 は Shooting メニューの Flicker Reduce（周波数を 50Hz／60Hz）でも補正できる。', src: ['fx6om', 'hzsharp', 'redshut'], tbl: [['23.98p・24p', '60Hz：1/60（約144°）\n50Hz：1/50（約173°）'], ['25p', '60Hz：1/60（150°）\n50Hz：1/50（180°）'], ['29.97p', '60Hz：1/60（約180°）\n50Hz：1/50（約216°）'], ['59.94p', '60Hz：1/120（約180°）\n50Hz：1/100（約216°）'], ['119.88p', '60Hz：1/120（約360°）\n50Hz：合う速さが無い']] },
+  { id: 't_slow', cat: 0, t: 'スローモーション（ハイフレームレート）', do: '使うフレームレートより速く撮って、編集で同じ速さの台に置く。23.98p の作品なら、59.94fps で2.5倍、119.88fps で5倍、239.76fps（HD）で10倍のスロー。FX6・FX3 は「スロー＆クイック（S&Q）」で撮ると、カメラの中でスローの映像になる。', why: '一瞬の動きを長く見せられる。ただし S&Q では音が記録されない（説明書）。', chk: 'シャッターは撮るフレームレートの倍。そのぶん暗くなるので、光を足すか感度を上げる。照明の下では、60Hz なら 1/120。FX3 の 4K 119.88p は画角が少し狭くなる。FX3 は 4K で 240fps を選べない。', src: ['fx6om', 'fx3hg', 'fx6spec'], tbl: [['59.94fps', '23.98p の台で2.5倍のスロー'], ['119.88fps', '5倍'], ['239.76fps（HD）', '10倍']] },
+  { id: 't_expo', cat: 1, t: '露出の決め方（ゼブラ・波形）', do: '明るさは目で決めず、ゼブラか波形で測る。FX6 のゼブラは Zebra1（初期値 70％）と Zebra2（初期値 100％）の2つで、どちらもレベルを変えられる。白飛びさせたくないもの（顔・空・白い服）に何％が出ているかを見る。', why: 'モニターの明るさは、周りの明るさで違って見える。数字で見れば、カットの間で明るさをそろえられる。', chk: 'シーンの初めに、空の白飛びをどこまで許すかを決める。2台のカメラは同じものを写して、同じ％になるかを比べる。', src: ['fx6om', 'slog3exp'] },
+  { id: 't_slog', cat: 1, t: '露出の目安（S-Log3）', do: 'S-Log3 では、18％グレーのカードを 41％、白いカード（反射 90％）を 61％、肌を 48〜52％ くらいに合わせる。ゼブラを 61％ にして、白いカードに出るかで確かめられる。', why: 'Log は、わざと眠い画で記録して、編集で色を作る前提の撮り方。暗く撮るとノイズが増え、明るすぎると白が飛ぶ。', chk: 'Log のままの画では判断しにくいので、モニターに LUT（s709 など）を当てて見る。編集で色を作る時間と道具が無ければ、S-Cinetone などそのまま使える画で撮る。', src: ['slog3exp', 'sonypp', 'fx6om'] },
+  { id: 't_baseiso', cat: 1, t: 'ベース ISO（低い方と高い方）と EI', do: 'FX6・FX3 の Log 撮影（Cine EI）は、ISO 800 と ISO 12800 の2つのベース ISO から選ぶ。ふつうの明るさなら 800、暗い場所なら 12800。EI を変えても、記録される感度はベース ISO のまま（変わるのは、モニターの明るさと、明るい側・暗い側への割り振り）。', why: 'ベース ISO は、センサーの明暗の幅（ラチチュード）がいちばん広くなる感度。ゲインで上げると、明るい側の情報が収まらなくなる（ソニーの手引き）。', chk: '画面の「800EI/6.0E」の 6.0E は、18％グレーより明るい側に何段を割り振っているか。暗いところを明るく残したいときは、EI をベースより下げ、モニターが適正に見えるように撮る（例：EI 400）。ノイズが最も少ないのは、ベースと同じ EI。', src: ['sonypp', 'fx6om', 'fx3hg', 'slog3exp'] },
+  { id: 't_nd', cat: 1, t: 'ND の強さと段数', do: 'ND の数字は、光を何分の1にするか。1/2 で1段、1/4 で2段、1/8 で3段、1/16 で4段、1/64 で6段、1/128 で7段暗くなる。FX6 の内蔵 ND は、プリセットが 1/4・1/16・1/64（1/4〜1/128 に変えられる）、可変が 1/4〜1/128。', why: 'シャッターと絞りを決めたまま、明るさだけを下げられる。絞りを絞りすぎると、回折でピントが甘くなる（FX6 の説明書）ので、ND で合わせる。', chk: 'FX6 で撮影中に ND を CLEAR をまたいで切り替えると、ND の枠が写り、動作音が入る（説明書）。切り替えはカットの間に。下の「計算」で段数を出せる。', src: ['fx6om', 'fx6spec', 'ndls'] },
+  { id: 't_wb', cat: 2, t: 'ホワイトバランス', do: 'オートにせず、シーンごとに決めて固定する。カメラのプリセットの 3200K は電球の明かり、5600K（Log では 5500K）は昼の光の目安。照明が混ざる場所では、白い紙を被写体と同じ光の所に置いて、カメラで白を取る（FX6 はメモリー A・B を選んで WB SET ボタン）。', why: 'オート（ATW）のままだと、同じシーンの中でも色が変わり、つないだときに合わない。空・海・草花など1色が多い画面や、色温度の極端な光では、オートでは合わないことがある（説明書）。', chk: '1つのシーンの中で WB を変えない。2台のカメラは同じ値にする。FX6 の Cine EI では ATW は使えない。', src: ['fx6om'] },
+  { id: 't_look', cat: 2, t: 'ルックの選び方（S-Cinetone・Log・HLG）', do: '編集で色を作る時間と道具があれば Log（S-Log3）、無ければ S-Cinetone のように、そのまま使える画で撮る。HDR で納品するなら HLG。FX6 の Custom モードには、S-Cinetone・Standard・Still・ITU709・709tone などが入っている。', why: '色づくりの自由度は Log が高いが、専用のソフトでのグレーディングが要る（ソニーの手引き）。', chk: '2台のカメラは同じルックにそろえる。FX3 は「Log 撮影」を切にして、ピクチャープロファイルで S-Cinetone を選ぶ。', src: ['fx6om', 'sonypp', 'fx3hg'] },
+  { id: 't_lut', cat: 2, t: 'LUT（モニターに当てる・取り込む）', do: 'Log で撮るときは、モニター（VF・HDMI・SDI）に LUT を当てて、ふつうのコントラストで見ながら撮る。記録する映像（Internal Rec）には当てないのが基本（当てると焼き込まれる）。FX6 には s709・709(800%)・S-Log3 が入っていて、自分の LUT（.cube、17 または 33 格子、入力は S-Gamut3.Cine/S-Log3 か S-Gamut3/S-Log3）を16個まで取り込める。', why: 'Log の画はコントラストが低く、ピントや露出を判断しにくい。', chk: 'FX6 は Shooting メニュー > LUT On/Off で、VF・SDI/HDMI・Internal Rec を別々に切り替える。取り込むファイルは、SD なら /PRIVATE/SONY/PRO/LUT/、CFexpress なら /SONY/PRO/LUT/ に置いて、スロット B に入れる。FX3 は SD カードのとき、LUT の埋め込みが「切」に固定される。', src: ['fx6om', 'fx3hg', 'sonypp'] },
+  { id: 't_focus', cat: 3, t: 'ピントの合わせ方（拡大・プッシュ AF）', do: '映画のカットは基本をマニュアルにし、拡大表示（FX6 は約3倍・約6倍）で確かめる。急いで合わせたいときは、マニュアルのままプッシュ AF（ボタンを押している間だけ AF）を使う。AF に任せるなら、乗り移りの速さを遅く、乗り移り感度を粘る側にする。', why: '水滴の多いもの、背景とのコントラストが弱いもの、手前から奥へわざと送るときは、AF では狙いどおりにならない（説明書）。拡大は、記録や出力の画には影響しない。', chk: 'レンズ側のスイッチが MF（Full MF）だと、カメラからの AF・プッシュ AF が効かない。', src: ['fx6om'] },
+  { id: 't_stab', cat: 3, t: '手ぶれ補正', do: '三脚に載せたら、手ぶれ補正を切る。手持ちで強く効かせたいときは、FX3 の「アクティブ」を使う（画角が狭くなる）。', why: '三脚の上で補正を入れると、誤動作することがある（説明書）。', chk: 'FX3 のアクティブは、119.88p 以上や、S&Q の 120fps 以上では選べない。ジンバルに載せるときの補正は、試し撮りして決める。', src: ['fx3hg'] },
+  { id: 't_breath', cat: 3, t: 'ピントを送ると画角が変わる（ブリージング）', do: 'ピント送りのあるカットは、ピントを動かしたときに画角が変わらないかを先に見る。FX3（本体 Ver.3.00 以降）は、レンズ補正の「ブリージング補正」で抑えられる（対応レンズのみ）。', why: 'ピント送りのたびに画が伸び縮みすると、ズームしたように見える。', chk: 'ブリージング補正を入れると、画角と画質がわずかに変わる。レンズによっては補正しきれない。', src: ['fx3hg'] },
+  { id: 't_crop', cat: 3, t: 'センサーの使う範囲（フルサイズ・S35）', do: 'FX6・FX3 は、センサーの使う範囲をフルサイズと S35（APS-C）で切り替えられる。S35 ではレンズの mm の約1.5倍の画角になる。FX6 の S35 は 1920×1080 に限られ、FX3 の S35 では 4K を撮れない。', why: '望遠が足りないときに寄れるが、解像度が下がる。設定を変えると画角が変わるので、同じシーンの途中で変えない。', chk: 'FX3 の 4K 119.88p は、ほかのフレームレートより少し狭い画角になる。換算の mm は下の「計算」で出せる。', src: ['fx6om', 'fx3hg'] },
+  { id: 't_codec', cat: 4, t: '記録の方式（Intra と Long GOP）', do: '編集を軽くしたいなら Intra（FX6 の XAVC-I、FX3 の XAVC S-I）、容量を節約したいなら Long GOP（FX6 の XAVC-L、FX3 の XAVC S・XAVC HS）。', why: 'Intra は1コマずつ圧縮するので、編集の反応が速く自由がきく。Long GOP は何コマかまとめて圧縮するので、容量が小さい（説明書）。', chk: 'XAVC HS・XAVC S は、対応していない機器では再生できない（説明書）。2台のカメラは同じ方式にそろえると編集が楽。', src: ['fx3hg', 'fx6om'], tbl: [['FX6 XAVC-I 4K・QFHD', '最大 600Mbps。QFHD 59.94p で CEA-G160T に約30分'], ['FX6 XAVC-L QFHD', '最大 150Mbps。59.94p で同じカードに約115分'], ['FX3 XAVC S-I 4K 23.98p', '240Mbps（4:2:2 10bit）'], ['FX3 XAVC S-I 4K 59.94p', '600Mbps。128GB の SD に約25分']] },
+  { id: 't_media', cat: 4, t: 'カードの選び方', do: '記録する方式と速さに合うカードを使う。FX6 の XAVC-I 4K は、SD なら 29.97p 以下で V60 以上、59.94p・50p では V90。S&Q の 100・120fps は CFexpress Type A（VPG400）だけ。', why: '遅いカードだと記録が止まる。説明書の推奨の表に無い組み合わせは、動作が保証されない。', chk: '2つのスロットに入れて同時記録・リレー記録するなら、両方とも推奨のカードにする。FX6 は1枚に約600クリップまで。', src: ['fx6om'] },
+  { id: 't_rectime', cat: 4, t: '記録できる時間の見積もり', do: '1分の容量（GB）＝ ビットレート（Mbps）× 60 ÷ 8 ÷ 1000。240Mbps なら1分で約1.8GB。撮影日の分量から、カードの枚数と、控えのディスクの容量を先に出しておく。', why: 'カードが足りなくなると、その日にしか撮れないものを逃す。', chk: '説明書の表は、計算より1割ほど短い（例：600Mbps・128GB は計算で約28分、FX3 の説明書で約25分）。下の「計算」で確かめ、余裕を持って用意する。', src: ['fx3hg', 'fx6om'] },
+  { id: 't_backup', cat: 4, t: '控え（バックアップ）とカードの扱い', do: 'カードの中身は、その日のうちに別々のディスク2つ以上に写し、1つは別の場所に置く（3-2-1：写しを3つ・置き場を2種類・1つは離れた所）。写し終わって中身を確かめるまで、カードをフォーマットしない。', why: 'カードもディスクも壊れる。1か所だけだと、1回の故障で全部を失う。', chk: 'カードを抜くのは、アクセスランプが緑か消えてから（FX6。記録中に抜くと、カードのすべてのデータが壊れることがある）。ほかのカメラで使ったカードは、使うカメラでフォーマットし直す。', src: ['cisa', 'fx6om'] },
+  { id: 't_name', cat: 4, t: 'ファイル名とカメラの区別', do: '2台以上で撮るときは、カメラごとにファイル名の頭を変える。FX6 はクリップ名を「Cam ID＋Reel#」にでき、カメラ ID（A〜Z）とリール番号（001〜999）を決められる。', why: '同じ名前のファイルが2台から出ると、編集で取り違える。', chk: 'カードを替えるたびにリール番号を1つ進める。スクリプトシートのファイル名と合っているか。', src: ['fx6om'] },
+  { id: 't_level', cat: 5, t: '録音レベル', do: '台詞の大きいところが -12〜-6 dBFS に来るように合わせ、0 dBFS は超えないようにする。オートにせず、マニュアル（FX6 は CH1・CH2 のスイッチを MAN）で合わせる。', why: '0 dBFS を超えて歪んだ音は、あとで直せない。小さすぎる（-30 dBFS より下）と、持ち上げたときに雑音が目立つ。', chk: '本番と同じ声の大きさ（叫ぶ・笑う）でリハーサルして合わせる。ヘッドホンで聞く。', src: ['adorama', 'fx6om'] },
+  { id: 't_mic', cat: 5, t: 'マイクの入力（LINE・MIC・+48V）', do: 'FX6 の INPUT1・2（XLR）は、つなぐ機器に合わせて切り替える。ミキサーなどは LINE、ダイナミックマイクや電池の入ったマイクは MIC、ファンタム電源の要るマイクは MIC+48V。', why: '+48V に対応していない機器を MIC+48V のままつなぐと、壊れることがある（説明書）。', chk: 'つながない端子の雑音が気になるときは LINE にしておく。FX6 はハンドルを付けると、内蔵のマイクはハンドルのものだけになる。XLR を4つ使うなら、XLR アダプター（XLR-K2M・K3M）をシューに付ける。', src: ['fx6om'] },
+  { id: 't_sqaudio', cat: 5, t: 'スロー・インターバルでは音が入らない', do: 'スロー＆クイック（S&Q）とインターバル記録では、音が記録されない。音の要るカットは普通の撮影で撮るか、別の録音機で録る。', why: 'あとで「音が無い」と気づいても、撮り直せないことがある。', chk: 'S&Q のカットの前後に、同じ場所の音（環境音）を別に録っておく。', src: ['fx6om', 'fx3hg'] },
+  { id: 't_ext', cat: 5, t: '別の録音機と合わせる', do: '音を別の録音機で録るときも、カメラにも音（ガンマイクか内蔵マイク）を録っておき、編集で波形を合わせる。FX6 の本体のマイクは、ほかの機器とのタイミング合わせに使える（説明書）。', why: '画と音を別に録ると、合わせる目印が要る。', chk: 'カチンコは画面に写る所で、音がはっきり入る強さで打つ。タイムコードを合わせておくと、さらに速い（「タイムコードと複数のカメラ」）。', src: ['fx6om'] },
+  { id: 't_tc', cat: 6, t: 'タイムコードの決め方', do: '1台なら Rec Run（記録している間だけ進む）でよい。2台以上や別の録音機と合わせるなら Free Run（いつも進む）にして、すべての機器を同じ時刻に合わせる。FX6 は Mode を Preset・Regen・Clock から、TC Format を DF・NDF から選ぶ。', why: '同じ時刻のタイムコードが入っていれば、編集で何台分でもまとめて並べられる。', chk: 'DF・NDF は編集の担当と合わせる。日をまたぐ撮影では、毎朝合わせ直す。', src: ['fx6om'] },
+  { id: 't_tcsync', cat: 6, t: '複数のカメラのタイムコードを合わせる', do: 'FX6 は TC IN/OUT（BNC）で、ほかの機器のタイムコードにロックできる。TC/Media メニューの Timecode を Mode：Preset、Run：Free Run にして、TC IN に基準をつなぐ。ロックして約10秒たてば、ケーブルを外してもロックが続く。', why: '時刻がそろえば、編集でカメラを切り替えるのが速い。', chk: '基準に対して1時間で1コマずれることがある（説明書）ので、休憩のあとなどに合わせ直す。システム周波数を変えたり、S&Q・インターバルで撮ると、ロックが外れる。', src: ['fx6om'] },
+  { id: 't_heat', cat: 7, t: '熱・寒さ・結露', do: '暑い日は直射日光を避け、こまめに電源を切る。寒い日はバッテリーを温めておく。寒い所から暖かい所に入ったら、すぐに電源を入れない。', why: 'カメラの温度が上がると、自動で電源が切れたり、動画が撮れなくなる。寒いと 4K の撮影時間が短くなる。結露したまま使うと故障の原因になる（説明書）。FX6 の動作温度は 0〜40℃。', chk: '温度の警告が出たら、電源を切って冷めるまで待つ。結露したら、電源を切って水滴が無くなるまで待つ。', src: ['fx3hg', 'fx6om'] },
+  { id: 't_drone', cat: 7, t: 'ドローン（航空法）', do: '100g 以上の機体は登録が要る。空港の周り、地面から 150m 以上、人口集中地区の上空を飛ばすとき、夜、目で見えない所、人や物から 30m 未満、催しの上空、物を落とすときは、国土交通大臣の許可・承認を取る（DIPS2.0 で申請）。', why: '許可・承認なしに飛ばすと、拘禁刑または罰金になる。小型無人機等飛行禁止法や自治体の条例で、飛ばせない場所もある。', chk: '飛ばす場所が人口集中地区か、禁止の場所かを、国土交通省の案内で確かめる。許可・承認の要る飛行では、飛行計画の通報と飛行日誌が要る。', src: ['mlit'] },
+  { id: 't_road', cat: 7, t: '道路で撮る（道路使用許可）', do: '道路でのロケ・撮影は、道路交通法第77条の道路使用許可が要ることがある。撮る場所を受け持つ警察署の交通課に申請する。', why: '通行の妨げにならないかを、警察が審査する。手数料や日数は都道府県で違う（例：鹿児島県は 2,400円、埼玉県は標準で7日以内）。', chk: '撮影日より前に、受け持ちの警察署に相談する。人数や機材の置き方で、要るかどうかが変わるので、撮り方を伝えて聞く。', src: ['road1', 'road2'] },
+];
+const TECH_BY = Object.fromEntries(TECH.map(g => [g.id, g]));
+const PRIN_BY = Object.assign({}, GUIDE_BY, TECH_BY);
+// カメラの説明書から、現場で引く要点（機材の名前に当てはまると、機材の画面から開ける）
+const MANUALS = [
+  { id: 'fx6', t: 'ソニー FX6（ILME-FX6）', kw: /FX6/i, src: 'fx6om', rows: [
+    ['ベース ISO', 'ISO 800／12800（Cine EI・Flexible ISO）。ふつうの明るさは 800、暗い所は 12800', '46・81・150'],
+    ['撮影モード', 'Custom／Cine EI／Cine EI Quick／Flexible ISO。Cine EI ではゲインを変えられず、シャッターでの自動露出も効かない', '46'],
+    ['内蔵 ND', 'プリセット 1/4・1/16・1/64（Preset1〜3 で 1/4〜1/128 に変更可）。可変 1/4〜1/128。オート ND あり', '47・48・81・150'],
+    ['ND の注意', '撮影中に CLEAR をまたいで切り替えると、ND の枠が写り、動作音が入る', '48'],
+    ['シャッター', 'Speed と Angle を切り替え。23.98p では 1/24・1/32・1/48・1/50・1/60・1/96・1/100・1/120〜1/8000。Angle は 360°〜5.6° など', '81・82'],
+    ['フリッカー補正', 'Shooting > Flicker Reduce：Mode（Auto／On／Off）と Frequency（50Hz／60Hz）', '86'],
+    ['ホワイトバランス', 'プリセットは Custom で 3200K・4300K・5600K・6300K、Log で 3200K・4300K・5500K。メモリー A・B は WB SET で白を取る。Cine EI では ATW は使えない', '49'],
+    ['記録方式', 'XAVC-I（4K・QFHD 最大 600Mbps、HD 最大 223Mbps）、XAVC-L（QFHD 150Mbps、HD 50・35Mbps）。音は LPCM 24bit 48kHz 4ch', '150'],
+    ['フレームレート', '4096×2160 は 59.94・50・29.97・25・24・23.98p（24p はここだけ）。3840×2160 と HD は 59.94・50・29.97・25・23.98p', '150'],
+    ['S&Q', '4096：1〜60fps、3840：1〜60・100・120fps、HD：1〜60・100〜240fps。音は記録されない。プロキシ記録と同時には使えない', '50・58'],
+    ['カード', 'CFexpress Type A（VPG400）と SDXC。XAVC-I 4K の SD は 29.97p 以下で V60 以上、59.94p で V90。S&Q 100・120fps は CFexpress だけ。1枚に約600クリップ', '27〜35'],
+    ['記録時間', 'XAVC-I QFHD 59.94p：CEA-G160T で約30分。XAVC-L QFHD 59.94p：約115分', '150'],
+    ['S35', 'Imager Scan を S35 にすると、1920×1080 に限られる', '26'],
+    ['LUT', 's709・709(800%)・S-Log3 が入っている。.cube（17・33 格子）を16個まで取り込める。VF・SDI/HDMI・内部記録で別々に On/Off', '59・61・86'],
+    ['音声入力', 'INPUT1・2（XLR）を LINE／MIC／MIC+48V。CH1・2 は AUTO／MAN。XLR アダプターで4系統', '50・51・151'],
+    ['タイムコード', 'Preset／Regen／Clock、Rec Run／Free Run、DF／NDF。TC IN/OUT（BNC）で外部にロック', '97・123'],
+    ['ファイル名', 'Cam ID＋Reel#（カメラ ID A〜Z、リール 001〜999）か Title', '97'],
+    ['電源・温度', 'BP-U35 で約105分（QFHD 59.94p・VF 点灯・外部機器なし）。動作温度 0〜40℃', '150'],
+    ['結露・ちらつき', '結露したら電源を切って待つ。蛍光灯・ナトリウム灯・水銀灯・LED の下では、明滅や色の変化が出ることがある', '125'],
+  ] },
+  { id: 'fx3', t: 'ソニー FX3（ILME-FX3）', kw: /FX3/i, src: 'fx3hg', rows: [
+    ['ベース ISO', 'Log 撮影（Cine EI）で ISO 800／12800', '212'],
+    ['Log 撮影', '切／Flexible ISO／Cine EI Quick／Cine EI。Cine EI はベース ISO の設定が要り、Cine EI Quick は EI に合わせて自動で切り替わる', '206・207'],
+    ['記録方式', 'XAVC S-I 4K：23.98p 240M、29.97p 300M、59.94p 600M（4:2:2 10bit Intra）。DCI 4K（本体 Ver.3.00 以降）は 24.00p も', '247・251'],
+    ['S&Q', '23.98p で記録するなら、60fps で2.5倍、120fps で5倍、240fps で10倍のスロー（240fps は 4K では選べない）。音は記録されない', '253・254'],
+    ['4K 119.88p', 'ほかのフレームレートより少し狭い画角になる', '261'],
+    ['S35', '画角はレンズの mm の約1.5倍。4K は撮れない', '261'],
+    ['手ぶれ補正', 'アクティブ／スタンダード／切。アクティブは画角が狭くなり、119.88p 以上では選べない。三脚では切る', '299'],
+    ['ブリージング補正', 'レンズ補正の中（本体 Ver.3.00 以降。対応レンズのみ）', '302'],
+    ['シャッター角度', '5.6°〜64F（119.88p のときは 5.6°〜360°）', '127'],
+    ['記録時間', 'XAVC S-I 4K 59.94p 600M：SD 64GB で約10分、128GB で約25分。1回の連続撮影は最大約13時間', '506'],
+    ['LUT の埋め込み', 'SD カードのときは「切」に固定される', '208'],
+    ['熱・寒さ', '温度が上がると自動で電源が切れ、動画が撮れなくなることがある。寒いと 4K の撮影時間が短くなる', '25'],
+    ['ちらつき', 'フリッカーレス撮影は静止画だけ。動画は、シャッター速度を照明に合わせる', '276'],
+  ] },
+];
+const manualFor = name => MANUALS.find(m => m.kw.test(name || ''));
+// ちらつかないシャッター：照明は電源の周波数の2倍で明滅するので、露光時間を 1/(2×Hz) の整数倍にする。
+// 180°（1コマの半分）にいちばん近いものを選び、長くなる側が近いときは、3割以内なら短い側を選ぶ（ぶれを増やしすぎない）
+const FPS_OPTS = [['23.976', '23.98p'], ['24', '24.00p'], ['25', '25p'], ['29.97', '29.97p'], ['50', '50p'], ['59.94', '59.94p'], ['119.88', '119.88p']];
+const HZ_OPTS = [['60', '60Hz（西日本）'], ['50', '50Hz（東日本）']];
+const shutLabel = t => { const d = 1 / t; return `1/${Math.abs(d - Math.round(d)) <= d * 0.01 ? Math.round(d) : Math.round(d * 10) / 10}`; };
+const shutAngle = (t, fps) => Math.round(t * fps * 360 * 10) / 10;
+function shutFlicker(fps, hz) {
+  const half = 1 / (2 * fps), step = 1 / (2 * hz), c = [];
+  for (let n = 1; n * step <= 1 / fps + 1e-9; n++) c.push(n * step);
+  if (!c.length) return null;
+  const best = c.slice().sort((a, b) => Math.abs(Math.log(a / half)) - Math.abs(Math.log(b / half)))[0];
+  const shorter = c.filter(x => x <= half + 1e-9).pop();
+  return best > half && shorter && half / shorter <= 1.3 ? shorter : best;
+}
+const shutDay = fps => 1 / (2 * fps);
+const kitFps = () => +(KIT.fps || 23.976), kitHz = () => +(KIT.hz || 60);
+const fpsName = v => (FPS_OPTS.find(o => +o[0] === +v) || [0, v + 'p'])[1];
 // カメラ案の言葉と図から、当てはまる原則を選ぶ（新しい作品の案にも使える）
 function autoBasis(p, f, sc) {
   const text = [p && p.cam, f && f.size, f && f.h, f && f.note].filter(Boolean).join(' ');
@@ -964,13 +1083,31 @@ function autoBasis(p, f, sc) {
 const planBasis = (p, f, sc) => ((p && p.basis) || autoBasis(p, f, sc)).filter(id => GUIDE_BY[id]);
 function basisHtml(p, f, sc) {
   const ids = planBasis(p, f, sc); if (!ids.length) return '';
-  return `<div class="basis"><span>根拠</span>${ids.map(id => `<button data-a="openPrin" data-id="${id}">${esc(GUIDE_BY[id].t.replace(/（.*$/, ''))}</button>`).join('')}</div>`;
+  return `<div class="basis"><span>根拠</span>${ids.map(id => `<button data-a="openPrin" data-id="${id}">${esc(PRIN_BY[id].t.replace(/（.*$/, ''))}</button>`).join('')}</div>`;
 }
 function srcHtml(k) { const s = SRC[k]; if (!s) return ''; return `<li><span class="badge">${esc(s.k)}</span> <a href="${esc(s.u)}" target="_blank" rel="noopener">${esc(s.t)}</a>${s.n ? `<div class="small">${esc(s.n)}</div>` : ''}</li>`; }
 function prinHtml(g, open) {
   return `<details class="prin" ${open ? 'open' : ''}><summary>${esc(g.t)}</summary>
-    <div class="pd"><b>何をする</b>${esc(g.do)}</div><div class="pd"><b>なぜ</b>${esc(g.why)}</div><div class="pd"><b>現場で確かめる</b>${esc(g.chk)}</div>
+    <div class="pd"><b>何をする</b>${esc(g.do)}</div>${g.tbl ? `<table class="ttbl">${g.tbl.map(r => `<tr><th>${esc(r[0])}</th><td>${esc(r[1])}</td></tr>`).join('')}</table>` : ''}<div class="pd"><b>なぜ</b>${esc(g.why)}</div><div class="pd"><b>現場で確かめる</b>${esc(g.chk)}</div>
     ${g.note ? `<div class="small">※ ${esc(g.note)}</div>` : ''}<div class="pd"><b>出典</b><ul class="srcs">${g.src.map(srcHtml).join('')}</ul></div></details>`;
+}
+function manualHtml(m, open) {
+  const body = `<div class="mlist">${m.rows.map(r => `<div class="mrow"><b>${esc(r[0])}</b><div>${esc(r[1])}<span class="pg">p.${esc(r[2])}</span></div></div>`).join('')}</div>
+    <div class="pd"><b>出典</b><ul class="srcs">${srcHtml(m.src)}</ul></div>`;
+  return open ? body : `<details class="prin"><summary>${esc(m.t)}</summary>${body}</details>`;
+}
+// 技術の手引きの「計算」。入力が変わるたびに結果を書き直す
+function techCalc() {
+  const v = id => { const el = $(id); return el ? el.value : ''; }, put = (id, h) => { const el = $(id); if (el) el.innerHTML = h; };
+  if (!$('cx-shut')) return;
+  const fps = +v('cx-fps') || 23.976, hz = +v('cx-hz') || 60, day = shutDay(fps), fl = shutFlicker(fps, hz);
+  put('cx-shut', `昼の屋外（180°）：<b>${shutLabel(day)}</b><br>照明の下（${hz}Hz）：${fl ? `<b>${shutLabel(fl)}</b>（${shutAngle(fl, fps)}°）` : '<b>ちらつかない速さがありません</b>（フリッカー補正を使うか、照明の下では撮らない）'}`);
+  const mb = kitNum(v('cx-mbps')), gb = kitNum(v('cx-gb'));
+  put('cx-rec', mb ? `1分で約 <b>${Math.round(mb * 60 / 8 / 100) / 10}GB</b>${gb ? `。${gb}GB で計算では約 <b>${Math.floor(gb * 1000 * 8 / mb / 60)}分</b>（説明書の表は1割ほど短い）` : ''}` : 'ビットレートを入れてください');
+  const st = kitNum(v('cx-st')), nd = kitNum(v('cx-nd'));
+  put('cx-ndo', st ? `${st}段 ＝ <b>1/${Math.round(2 ** st)}</b>（ND${Math.round(2 ** st)}）` : nd ? `1/${nd} ＝ <b>${Math.round(Math.log2(nd) * 10) / 10}段</b>暗くなる` : 'ND の数字か段数を入れてください');
+  const mm = kitNum(v('cx-mm')), cr = +v('cx-sens') || 1;
+  put('cx-mmo', mm ? `フルサイズ換算 <b>${Math.round(mm * cr)}mm</b>。フルサイズの ${mm}mm と同じ広さにするなら、このセンサーで <b>${Math.round(mm / cr)}mm</b>` : 'mm を入れてください');
 }
 
 /* ───────── カメラ位置の図（上から見た図。北が上） ───────── */
@@ -1115,12 +1252,27 @@ function kitPlan(sc, c, k) {
     if (!base && dark && KIT.lenses.length > 1) why += 'このシーンは暗いので、F 値の小さい（明るい）レンズを先に選んだ。';
     lines.push({ b: 'レンズ', t, why: (why + alt).trim(), swap: !!swap }); sum.push(lens.name + (zoom ? ` ${at}mm` : ''));
   }
+  // シャッター：昼の屋外は 180°。照明の下（夜・屋内・看板や街灯の写るカット）は、電源の周波数でちらつかない速さ
+  const fps = kitFps(), hz = kitHz(), man = manualFor(cam && cam.name);
+  const lit = dark || /照明|ネオン|看板|街灯|蛍光灯|LED|電飾|ショーウィンドウ|ショーケース/.test(text + ' ' + where);
+  if (/スロー/.test(text)) {
+    const t2 = lit ? shutFlicker(119.88, hz) : 0;
+    lines.push({ b: 'スロー', t: `119.88fps で撮り、${fpsName(fps)} の台で使う（${Math.round(119.88 / fps * 10) / 10}倍のスロー）`, why: `シャッターは ${t2 ? shutLabel(t2) + '（照明の下）' : shutLabel(shutDay(119.88)) + ' 前後'}。そのぶん暗くなるので、光を足すか感度を上げる。`, warn: 'スロー＆クイックでは音が記録されない' + (lit && !t2 ? `。${hz}Hz の照明の下では、ちらつかない速さが無い` : '') + (man && man.id === 'fx3' ? '。FX3 の 4K 119.88p は画角が少し狭くなる' : '') });
+    basis.push('t_slow');
+  } else if (lit) {
+    const fl = shutFlicker(fps, hz);
+    lines.push({ b: 'シャッター', t: fl ? `${shutLabel(fl)}（${shutAngle(fl, fps)}°）` : '照明に合う速さがありません', why: `${night ? '夜' : inside ? '屋内・地下' : '照明の写るカット'}なので、照明のちらつきを避ける。${hz}Hz の地域では照明が1秒に${hz * 2}回明滅するので、その整数倍の時間にする。` + (man && man.id === 'fx6' ? `FX6 は Shooting メニューの Flicker Reduce を ${hz}Hz にしておくと、さらに抑えられる。` : ''), warn: fl ? '' : 'フリッカー補正を使うか、フレームレートを変える' });
+    basis.push('t_flicker');
+  } else {
+    lines.push({ b: 'シャッター', t: `${shutLabel(shutDay(fps))}（180°）`, why: `昼の屋外。${fpsName(fps)} の倍の速さで、動きのぶれが自然に見える。` + (Math.abs(fps - 24) < 0.1 ? '1/48 が無いカメラは 1/50 でよい。' : '') });
+    basis.push('t_shut');
+  }
   // ND：明るい屋外では、シャッターをフレームレートの倍に保つために入れる
   const diaWarn = y => { if (!y || diaFits(y, lens)) return ''; const r = kitDia(y.dia); return `径が合わない（レンズ ${kitNum(lens.dia)}mm・フィルター ${r[0] === r[1] ? r[0] : r[0] + '〜' + r[1]}mm）。このレンズには付かない`; };
   if (dark) lines.push({ b: 'ND', t: '外す', why: night ? '夜なので光が足りない' : '地下・屋内なので光が足りない' });
   else {
     const nd = cam && cam.nd ? { name: `カメラの内蔵 ND（${cam.nd}）`, short: '内蔵ND' } : fl('vnd') || fl('nd') || fl('ndpl');
-    if (nd) { lines.push({ b: 'ND', t: nd.name + (nd.stops ? `（${nd.stops}）` : ''), warn: diaWarn(nd), why: (dusk ? '夕方なので弱めに。日が傾くにつれて外す。' : '') + 'シャッターをフレームレートの倍（24p なら 1/50 前後）に保ち、絞りを開けたまま明るさを下げる' }); sum.push(nd.short || nd.name); }
+    if (nd) { lines.push({ b: 'ND', t: nd.name + (nd.stops ? `（${nd.stops}）` : ''), warn: diaWarn(nd), why: (dusk ? '夕方なので弱めに。日が傾くにつれて外す。' : '') + `シャッターを ${shutLabel(shutDay(fps))}（180°）に保ち、絞りを開けたまま明るさを下げる` }); sum.push(nd.short || nd.name); }
     else lines.push({ b: 'ND', t: '登録がありません', why: '明るい屋外なので、絞って明るさを合わせる（背景のボケは減る）。シャッターは速くしない' });
     basis.push('nd');
   }
@@ -1156,7 +1308,7 @@ function kitHtml(sc, c, k) {
   return `<div class="kit"><div class="row-h"><b class="grow">機材の組み合わせ</b><button class="btn small" data-a="openKit">機材</button></div>
     ${KIT.cams.length > 1 ? `<div class="chips">${KIT.cams.map(y => `<button class="chip" data-a="kitCam" data-id="${y.id}" aria-pressed="${r.cam === y.id}">${esc(y.name)}</button>`).join('')}</div>` : ''}
     ${r.lines.map(l => `<div class="kl"><span>${esc(l.b)}</span><div><b>${esc(l.t)}</b>${l.why ? `<div class="small">${esc(l.why)}</div>` : ''}${l.warn ? `<div class="kwarn">${esc(l.warn)}</div>` : ''}</div></div>`).join('')}
-    ${r.basis.length ? `<div class="basis"><span>根拠</span>${r.basis.map(id => `<button data-a="openPrin" data-id="${id}">${esc(GUIDE_BY[id].t.replace(/（.*$/, ''))}</button>`).join('')}</div>` : ''}</div>`;
+    ${r.basis.length ? `<div class="basis"><span>根拠</span>${r.basis.map(id => `<button data-a="openPrin" data-id="${id}">${esc(PRIN_BY[id].t.replace(/（.*$/, ''))}</button>`).join('')}</div>` : ''}</div>`;
 }
 const hasCam = sc => !!(sc.axis || sc.link || sc.cuts.some(c => c.cam));
 function camBlock(sc) {
@@ -1944,6 +2096,7 @@ function renderDocs() {
       <button class="btn" data-a="view" data-k="post">編集素材リスト</button>
       <button class="btn" data-a="view" data-k="script">スクリプトシート</button>
       <button class="btn" data-a="openGuide">撮り方の手引き</button>
+      <button class="btn" data-a="openTech">技術の手引き</button>
     </div>
     ${P.docs.length ? `<p class="small">もとの資料（台本・作品意図・写真と実景まとめなど）は、この画面のいちばん下の「取り込んだ資料」から開けます。</p>` : ''}</section>`;
   if (P.scenes.length) h += `<section class="card" id="vercard"><div class="row-h"><span class="grow">資料：この端末は<b>第${P.rev || 1}版</b>・最新は<b id="latestrev">確かめています…</b></span></div>
@@ -2157,7 +2310,7 @@ function renderShoot() {
     <details class="dayrules" data-open="dayrules" ${S.open && S.open.dayrules ? 'open' : ''}><summary>現場の注意・カメラの決まりごと<span class="small">${(P.rules || []).length + (P.camPlan || []).length || ''}</span></summary>
       ${(P.rules || []).length ? `<h3>現場の注意</h3><ul>${P.rules.map(r => `<li>${esc(r)}</li>`).join('')}</ul>` : ''}
       ${(P.camPlan || []).length ? `<h3>カメラの決まりごと（作品全体）</h3><ul>${P.camPlan.map(r => `<li>${esc(r)}</li>`).join('')}</ul>` : ''}
-      <button class="btn small" data-a="openGuide">撮り方の手引き（原則と出典）を開く</button></details>
+      <div class="btns grid2"><button class="btn small" data-a="openGuide">撮り方の手引き（原則と出典）</button><button class="btn small" data-a="openTech">技術の手引き（設定・説明書）</button></div></details>
     <div class="sum"><div><b>${doneN}/${scs.length}</b><span>撮了シーン</span></div><div><b>${miss}</b><span>OKが無いカット</span></div><div><b>${takeN}</b><span>テイク</span></div></div>
     <div class="bar"><i style="width:${scs.length ? doneN / scs.length * 100 : 0}%"></i></div>
     ${nowSc ? `<button class="btn primary wide" data-a="openRec" data-id="${nowSc.id}">次：S#${esc(nowSc.no)} ${esc(nowSc.place)} を記録する</button>` : scs.length ? '<div class="badge ok" style="text-align:center;padding:8px">この日のシーンはすべて撮了です</div>' : ''}
@@ -2436,7 +2589,7 @@ function bookHtml() {
         ${sc.notes ? `<tr><th>備考</th><td>${esc(sc.notes)}</td></tr>` : ''}
         ${sc.axis ? `<tr><th>軸</th><td>${esc(sc.axis)}</td></tr>` : ''}
         ${sc.link ? `<tr><th>前後</th><td>${esc(sc.link)}</td></tr>` : ''}
-        ${sc.cuts.length ? `<tr><th>撮るもの</th><td>${sc.cuts.map(c => `<div class="bcut">${cutState(sc, c.id).ok ? '☑' : pbox}C${esc(c.no)}　${c.size ? `<b>${esc(c.size)}</b>　` : ''}${esc(c.desc)}${c.fig ? `<div class="bfig">${figSVG(sc.stage, c.fig, { small: true })}</div>` : ''}${c.cam ? `<div class="dir">カメラ${c.alts && c.alts.length ? '（案A）' : ''}：${esc(c.cam)}${c.fig && c.fig.mm ? `（${esc(c.fig.mm)}mm）` : ''}${c.why ? `<br>理由：${esc(c.why)}` : ''}${planBasis(c, c.fig, sc).length ? `<br>根拠：${planBasis(c, c.fig, sc).map(id => esc(GUIDE_BY[id].t.replace(/（.*$/, ''))).join('、')}` : ''}</div>` : ''}${(c.alts || []).map((a, i) => `<div class="dir">案${planLabel(i + 1)}（${esc(a.when)}）：${esc(a.cam)}${a.fig && a.fig.mm ? `（${esc(a.fig.mm)}mm）` : ''}${a.why ? `<br>理由：${esc(a.why)}` : ''}</div>`).join('')}</div>`).join('')}</td></tr>` : ''}
+        ${sc.cuts.length ? `<tr><th>撮るもの</th><td>${sc.cuts.map(c => `<div class="bcut">${cutState(sc, c.id).ok ? '☑' : pbox}C${esc(c.no)}　${c.size ? `<b>${esc(c.size)}</b>　` : ''}${esc(c.desc)}${c.fig ? `<div class="bfig">${figSVG(sc.stage, c.fig, { small: true })}</div>` : ''}${c.cam ? `<div class="dir">カメラ${c.alts && c.alts.length ? '（案A）' : ''}：${esc(c.cam)}${c.fig && c.fig.mm ? `（${esc(c.fig.mm)}mm）` : ''}${c.why ? `<br>理由：${esc(c.why)}` : ''}${planBasis(c, c.fig, sc).length ? `<br>根拠：${planBasis(c, c.fig, sc).map(id => esc(PRIN_BY[id].t.replace(/（.*$/, ''))).join('、')}` : ''}</div>` : ''}${(c.alts || []).map((a, i) => `<div class="dir">案${planLabel(i + 1)}（${esc(a.when)}）：${esc(a.cam)}${a.fig && a.fig.mm ? `（${esc(a.fig.mm)}mm）` : ''}${a.why ? `<br>理由：${esc(a.why)}` : ''}</div>`).join('')}</div>`).join('')}</td></tr>` : ''}
         ${sc.edit ? `<tr><th>編集へ</th><td>${esc(sc.edit)}</td></tr>` : ''}
       </tbody></table>
       ${imgs.length ? `<h2>参考画像</h2><div class="imgs">${imgs.map(id => `<figure data-a="viewImg" data-id="${id}" data-list="${imgs.join(',')}"><img src="${IMG[id]}" alt=""><figcaption>${esc(name(id))}</figcaption></figure>`).join('')}</div>` : ''}
@@ -2632,6 +2785,7 @@ function renderSheets() {
   document.body.classList.toggle('has-sheet', S.sheets.length > 0);
   if (S.sheets.length && S.sheets[S.sheets.length - 1].t === 'rec') tickTimer();
   applyWake();
+  techCalc();
 }
 const sheetTop = (title, extra = '') => `<div class="sheet-top perf-b"><button class="x" data-a="close" aria-label="閉じる">×</button><div class="t">${title}</div>${extra}</div>`;
 function scriptLinesHtml(sc) {
@@ -2784,10 +2938,13 @@ const SHEET = {
       <p class="small">${br ? `案が ${br[0]}〜${Math.floor(br[1] * 1.25)}mm なら、付け替えずにこのレンズで撮ります（${br[1]}mm より長い案は、少し近づいて合わせる）。交換を出すのは、${br[0]}mm より広く撮るとき、${Math.floor(br[1] * 1.25)}mm より長く撮るとき、ジンバルに載らないときだけです。暗い場所では、明るいレンズに替える手も添えます。` : '決めると、そのレンズで撮れるカットは付け替えずに撮る組み合わせを出します。'}</p>
       ${baseSel('cams', '優先のカメラ', '決めない')}
       <p class="small">決めないときは、登録の1台目を使います。ジンバルの案では、重さの軽いカメラを選びます。</p>
+      <div class="fields"><label class="field"><span>フレームレート</span><select data-kitset="fps">${FPS_OPTS.map(([v, n]) => `<option value="${v}" ${+v === kitFps() ? 'selected' : ''}>${esc(n)}</option>`).join('')}</select></label>
+        <label class="field"><span>電源の周波数</span><select data-kitset="hz">${HZ_OPTS.map(([v, n]) => `<option value="${v}" ${+v === kitHz() ? 'selected' : ''}>${esc(n)}</option>`).join('')}</select></label></div>
+      <p class="small">この撮影のフレームレート（映画・上映は 23.98p、日本の放送・配信は 29.97p）と、撮る場所の電源の周波数（静岡県の富士川・新潟県の糸魚川より西は 60Hz、東は 50Hz。境目の近くは電力会社に確かめる）。カットごとの組み合わせに、シャッターの値を出します。昼の屋外は 180°（${esc(shutLabel(shutDay(kitFps())))}）、夜・屋内・看板や街灯の写るカットは、照明がちらつかない速さです。</p>
       ${always.length ? `<div class="field"><span>いつも付けるフィルター</span><div class="chips">${always.map(x => `<button class="chip" role="checkbox" aria-checked="${isPri(x)}" data-a="kitPri" data-c="filters" data-id="${x.id}"><span class="tk"></span>${esc(x.name)}</button>`).join('')}</div></div>` : ''}
     </section>`;
     const F = {
-      cams: x => inp('cams', x, 'name', '名前', '例：FX6') + sel('cams', x, 'sensor', 'センサー', SENSORS.map(s => [s[0], s[1]])) + inp('cams', x, 'nd', '内蔵 ND（無ければ空）', '例：1/4〜1/128') + inp('cams', x, 'g', '重さ（g）', '例：890', 1),
+      cams: x => inp('cams', x, 'name', '名前', '例：FX6') + sel('cams', x, 'sensor', 'センサー', SENSORS.map(s => [s[0], s[1]])) + inp('cams', x, 'nd', '内蔵 ND（無ければ空）', '例：1/4〜1/128') + inp('cams', x, 'g', '重さ（g）', '例：890', 1) + (manualFor(x.name) ? `<button class="btn small full" data-a="openManual" data-id="${manualFor(x.name).id}">説明書の要点を見る（${esc(manualFor(x.name).t)}）</button>` : ''),
       lenses: x => inp('lenses', x, 'name', '名前', '例：24-70mm F2.8') + inp('lenses', x, 'min', '焦点距離（mm）', '例：24', 1) + inp('lenses', x, 'max', 'ズームの長い側（mm）', '単焦点は空', 1) + inp('lenses', x, 'f', '開放 F 値', '例：2.8', 1) + inp('lenses', x, 'dia', 'フィルター径（mm）', '例：82', 1) + inp('lenses', x, 'g', '重さ（g）', '例：695', 1),
       filters: x => inp('filters', x, 'name', '名前', '例：可変 ND 82mm') + sel('filters', x, 'type', '種類', FLT_TYPES) + inp('filters', x, 'stops', '強さ', '例：2〜8段、1/4') + inp('filters', x, 'dia', '付く径（mm）', '例：82、67〜82'),
       sups: x => inp('sups', x, 'name', '名前', '例：RS 4 Pro') + sel('sups', x, 'type', '種類', SUP_TYPES) + (x.type === 'gimbal' ? inp('sups', x, 'kg', '積める重さ（kg）', '例：4.5', 1) : ''),
@@ -2843,9 +3000,34 @@ const SHEET = {
     </div></div>`;
   },
   prin(s) {
-    const g = GUIDE_BY[s.id]; if (!g) return sheetTop('撮り方の手引き') + '<div class="sheet-body"></div>';
+    const g = PRIN_BY[s.id]; if (!g) return sheetTop('撮り方の手引き') + '<div class="sheet-body"></div>';
     return sheetTop(esc(g.t)) + `<div class="sheet-body"><div class="wrap"><section class="card">${prinHtml(g, true)}</section>
-      <button class="btn wide" data-a="openGuide">撮り方の手引きをすべて見る</button></div></div>`;
+      ${TECH_BY[s.id] ? '<button class="btn wide" data-a="openTech">技術の手引きをすべて見る</button>' : '<button class="btn wide" data-a="openGuide">撮り方の手引きをすべて見る</button>'}</div></div>`;
+  },
+  tech() {
+    const fo = (id, v) => `<select class="inp" id="${id}">${FPS_OPTS.map(([a, n]) => `<option value="${a}" ${+a === +v ? 'selected' : ''}>${esc(n)}</option>`).join('')}</select>`;
+    const ho = (id, v) => `<select class="inp" id="${id}">${HZ_OPTS.map(([a, n]) => `<option value="${a}" ${+a === +v ? 'selected' : ''}>${esc(n)}</option>`).join('')}</select>`;
+    const num = (id, l, v) => `<label class="field"><span>${l}</span><input class="inp" id="${id}" inputmode="decimal" value="${v}" autocomplete="off"></label>`;
+    const sens = `<select class="inp" id="cx-sens">${SENSORS.filter(s => s[0] !== 'phone').map(s => `<option value="${s[2]}">${esc(s[1].replace('スーパー35・APS-C', 'S35・APS-C').replace('マイクロフォーサーズ', 'MFT'))}（×${s[2]}）</option>`).join('')}</select>`;
+    return sheetTop('技術の手引き') + `<div class="sheet-body"><div class="wrap">
+      <p class="lead">撮影の技術（フレームレート・シャッター・露出・色・記録・音・タイムコード・法令）を、何をするか・なぜか・現場で確かめること・出典の順にまとめたもの。カメラの説明書の要点と、現場で使う計算もここにあります。どの作品・どの現場でも使えます。</p>
+      <p class="small">数値は、カメラの説明書・メーカーの資料・役所の案内で確かめたもの。カメラの本体のソフトが新しいと、メニューの名前や中身が違うことがあります。</p>
+      <input class="inp" id="techq" placeholder="さがす（例：ちらつき、ND、S-Log3）" autocomplete="off">
+      <section class="card calc gitem" data-q="計算 シャッター ちらつき フリッカー 記録時間 容量 カード ND 段数 換算 mm"><h3>計算</h3>
+        <div class="cbox"><b>シャッター</b><div class="fields"><label class="field"><span>フレームレート</span>${fo('cx-fps', kitFps())}</label><label class="field"><span>電源の周波数</span>${ho('cx-hz', kitHz())}</label></div><div class="cout" id="cx-shut"></div></div>
+        <div class="cbox"><b>記録できる時間</b><div class="fields">${num('cx-mbps', 'ビットレート（Mbps）', 240)}${num('cx-gb', 'カードの容量（GB）', 128)}</div><div class="cout" id="cx-rec"></div></div>
+        <div class="cbox"><b>ND の段数</b><div class="fields">${num('cx-nd', 'ND（1/◯ の ◯）', 64)}${num('cx-st', 'または段数', '')}</div><div class="cout" id="cx-ndo"></div></div>
+        <div class="cbox"><b>換算の mm</b><div class="fields">${num('cx-mm', 'レンズの mm', 35)}<label class="field"><span>センサー</span>${sens}</label></div><div class="cout" id="cx-mmo"></div></div>
+      </section>
+      ${TECH_CATS.map((cname, ci) => `<section class="card guidecat"><h3>${esc(cname)}</h3>${TECH.filter(g => g.cat === ci).map(g => `<div class="gitem" data-q="${esc(g.t + g.do + g.why + g.chk + (g.tbl || []).flat().join(''))}">${prinHtml(g)}</div>`).join('')}</section>`).join('')}
+      <section class="card guidecat"><h3>カメラの説明書から</h3><p class="small">機材に登録したカメラの名前に「FX6」「FX3」が入っていると、機材の画面からも開けます。</p>
+        ${MANUALS.map(m => `<div class="gitem" data-q="${esc(m.t + m.rows.flat().join(''))}">${manualHtml(m)}</div>`).join('')}</section>
+    </div></div>`;
+  },
+  man(s) {
+    const m = MANUALS.find(x => x.id === s.id); if (!m) return sheetTop('説明書の要点') + '<div class="sheet-body"></div>';
+    return sheetTop(esc(m.t) + ' の要点') + `<div class="sheet-body"><div class="wrap"><section class="card">${manualHtml(m, true)}</section>
+      <button class="btn wide" data-a="openTech">技術の手引きをすべて見る</button></div></div>`;
   },
   guide() {
     return sheetTop('撮り方の手引き') + `<div class="sheet-body"><div class="wrap">
@@ -2870,6 +3052,7 @@ const SHEET = {
       </ol>`)}
       ${step('カメラワーク案', '<p>撮影のカードの<b>「カメラワーク（案・図・理由）」</b>を押すと、そのシーンの画面の向き（イマジナリーライン）、前後のシーンとのつながり、カットごとのカメラの位置・サイズ・動きと理由が出ます。「記録する」の画面にも、今撮るカットの案が出ます。現場で人が多い・時間が押したなどのときは、記録の画面の<b>「案A・案B・案C」</b>を押すと別案に切り替わり、どの案で撮ったかがテイクに残ります（スクリプトシートにも出ます）。作品全体の決まりごとは「撮影」の画面のいちばん上にあります。</p>')}
       ${step('撮り方の根拠', '<p>カメラ案の下の<b>「根拠」</b>のボタンを押すと、その撮り方の原則（何をする・なぜ・現場で確かめること・出典）が開きます。「撮影」の画面の上と「資料」の画面の<b>「撮り方の手引き」</b>で、すべての原則を見て、さがせます。この作品以外の撮影でも使えます。</p>')}
+      ${step('技術の手引き', '<p>「資料」の画面の<b>「技術の手引き」</b>で、フレームレート・シャッター・照明のちらつき・露出・ホワイトバランス・Log・カード・音・タイムコード・ドローンや道路の許可を、出典つきで見られます。<b>FX6・FX3 の説明書の要点</b>（ページ番号つき）と、シャッター・記録時間・ND の段数・換算 mm の<b>計算</b>もあります。機材の画面の「いつもの組み方」でフレームレートと電源の周波数を決めると、カットごとの組み合わせにシャッターの値が出ます。</p>')}
       ${step('シーンのくわしい中身：「台本・詳細」', '<p>撮影のカードの「台本・詳細」、または「香盤」でシーンを押すと開きます。台本の本文、編集素材（写真・ＣＧ・字幕・ナレーションなど）、参考画像の追加、撮るものの書き直しができます。</p>')}
       ${step('全体の予定：「香盤」', '<p>「台本の順」で全シーン、「撮影日ごと」で日ごとの並び（↑↓で入れ替え）、「人物」で出番の表を見られます。</p>')}
       ${step('カメラのファイル名とテイク番号', '<p>記録の画面のカチンコに、<b>カメラのファイル名</b>（カメラの画面に出ている名前。例：C0012）と<b>音声のファイル名</b>を書きます。前のテイクの番号を一つ進めて先に入れてあるので、カメラと違うときだけ直してください。<b>テイク番号</b>は自動で進みますが、「−」「＋」や数字の入力で直せます。</p>')}
@@ -3272,6 +3455,8 @@ const ACT = {
   help: () => openSheet({ t: 'help' }),
   openPrin: b => openSheet({ t: 'prin', id: b.dataset.id }),
   openGuide: () => openSheet({ t: 'guide' }),
+  openTech: () => openSheet({ t: 'tech' }),
+  openManual: b => openSheet({ t: 'man', id: b.dataset.id }),
   refreshWork: () => refreshWork(),
   hardUpdate: () => hardUpdate(),
   workUpdate: async () => { try { busy(true, '新しい資料を読み込んでいます…'); const j = await decryptWork(P.work.name, P.work.key); busy(false); await mergeProject(j); $('workbar').hidden = true; toast('資料を新しくしました（記録はそのままです）'); } catch (e) { busy(false); toast('新しい資料を読み込めませんでした。ネットにつながっているか確かめてください'); } },
@@ -3340,10 +3525,13 @@ function kitBind(t, done) {
 document.addEventListener('input', e => { const t = e.target;
   if (t.dataset && t.dataset.kit) { if (t.tagName !== 'SELECT') kitBind(t, false); return; }
   if (t.id === 'rc-tc' || (t.dataset.b && /\|tc$/.test(t.dataset.b))) { const dg = half(t.value).replace(/\D/g, '').slice(0, 8); const v = (dg.match(/.{1,2}/g) || []).join(':'); if (v !== t.value) t.value = v; }
-  if (t.id === 'guideq') { const q = t.value.trim(); t.closest('.sheet-body').querySelectorAll('.gitem').forEach(el => { el.hidden = !!q && !el.dataset.q.includes(q); }); return; } if (t.dataset.b && !t.dataset.list && t.tagName !== 'SELECT') bindValue(t); });
+  if (t.id && t.id.startsWith('cx-')) { techCalc(); return; }
+  if (t.id === 'guideq' || t.id === 'techq') { const q = t.value.trim(); t.closest('.sheet-body').querySelectorAll('.gitem').forEach(el => { el.hidden = !!q && !el.dataset.q.includes(q); }); return; } if (t.dataset.b && !t.dataset.list && t.tagName !== 'SELECT') bindValue(t); });
 document.addEventListener('change', e => {
   const t = e.target;
+  if (t.id && t.id.startsWith('cx-')) { techCalc(); return; }
   if (t.dataset.kit) { kitBind(t, true); return; }
+  if (t.dataset.kitset) { KIT[t.dataset.kitset] = t.value; kitSave(); renderSheets(); RENDER[S.tab](); return; }
   if (t.dataset.kitbase) { for (const x of KIT[t.dataset.kitbase] || []) x.pri = x.id === t.value ? 'on' : 'off'; kitSave(); renderSheets(); RENDER[S.tab](); return; }
   if (t.dataset.b) { bindValue(t); if (t.tagName === 'SELECT' || t.dataset.list || t.dataset.rerender) render(); else { const top = S.sheets[S.sheets.length - 1]; if (top && top.t === 'scene' && /\|(no|place|tod|io)$/.test(t.dataset.b)) { const el = document.querySelector('#sheets .sheet:last-child .sheet-top .t'); const sc = sceneById(top.id); if (el && sc) el.textContent = sceneTitle(sc); } RENDER[S.tab](); } return; }
   const a = t.dataset.a, p = t.dataset.id && pending.find(x => x.id === t.dataset.id);
@@ -3420,7 +3608,7 @@ applyWake();
 checkUpdate();
 if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost') && !MODE.artifact) navigator.serviceWorker.register('sw.js').catch(() => {});
 // 動作テスト（tools/tests）だけが中を読む入口。確認用のサーバーで開いたときだけ作る
-if (location.hostname === 'localhost') window.__kinekoma = { get P() { return P; }, get KIT() { return KIT; }, S, kitPlan, kitAdopt, kitSave, mergeProject, scriptCsv, applyTheme, planBasis, plans, planFig };
+if (location.hostname === 'localhost') window.__kinekoma = { get P() { return P; }, get KIT() { return KIT; }, S, kitPlan, kitAdopt, kitSave, mergeProject, scriptCsv, applyTheme, planBasis, plans, planFig, TECH, MANUALS, SRC, shutFlicker, shutLabel, shutAngle };
 })();
 </script>
 </body>

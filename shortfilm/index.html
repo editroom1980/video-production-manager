@@ -648,7 +648,7 @@ details.rec-top > summary { font-size: 13px; font-weight: 800; letter-spacing: .
 <script>
 (() => {
 'use strict';
-const VERSION = '3.9.2（11/5 使用機材の表示を用語に統一・ミストは常用のときだけ表示）';
+const VERSION = '3.9.3（11/5 手持ちの案はジンバルで撮る・作品データ第10版）';
 
 /* ───────── 基本 ───────── */
 const $ = id => document.getElementById(id);
@@ -1209,7 +1209,8 @@ function kitPlan(sc, c, k) {
   const night = /夜/.test(sc.tod || ''), dusk = /夕/.test(sc.tod || '');
   const inside = /内/.test(sc.io || '') || /地下|駅|屋内|室内|トンネル|メトロ/.test(where + ' ' + text);
   const dark = night || inside, vfx = GUIDE_BY.vfx.kw.test(text);
-  const gim = /ジンバル|一脚/.test(text), hand = /手持ち/.test(text);
+  // 手持ちの案は、ジンバルを登録してあればジンバルで撮る（手持ちより安定する）
+  const hand = /手持ち/.test(text), gimTxt = /ジンバル|一脚/.test(text), gim = gimTxt || (hand && KIT.sups.some(y => y.type === 'gimbal'));
   const lines = [], basis = [], sum = [];
   const fl = ty => priFirst(KIT.filters.filter(y => y.type === ty))[0];
   // カメラ：選んだもの → 優先にしたもの → 1台目。どれも決めていなければ、ジンバルの案では重さの分かっている中で軽いものを選ぶ
@@ -1296,7 +1297,7 @@ function kitPlan(sc, c, k) {
     if (!g) lines.push({ b: 'ジンバル', t: '未登録', warn: '案A（三脚）で撮る' });
     else {
       const w = (kitNum(cam && cam.g) || 0) + (kitNum(lens && lens.g) || 0), cap = kitNum(g.kg) * 1000;
-      lines.push({ b: 'ジンバル', t: g.name + (m ? ` ＋ ${m.name}` : (/一脚/.test(text) ? ' ＋ 一脚（未登録）' : '')), why: w && cap ? `搭載 ${w}g／最大積載量 ${g.kg}kg` : '', warn: w && cap && w > cap ? `搭載 ${w}g が最大積載量 ${g.kg}kg を超える` : '' });
+      lines.push({ b: 'ジンバル', t: g.name + (m ? ` ＋ ${m.name}` : (/一脚/.test(text) ? ' ＋ 一脚（未登録）' : '')), why: (hand && !gimTxt ? '手持ちの代わりにジンバルで安定させる。' : '') + (w && cap ? `搭載 ${w}g／最大積載量 ${g.kg}kg` : ''), warn: w && cap && w > cap ? `搭載 ${w}g が最大積載量 ${g.kg}kg を超える` : '' });
       sum.push(g.name + (m ? '＋' + m.name : ''));
     }
   } else if (hand) { const g = sp('gimbal'); lines.push({ b: '手持ち', t: '手持ち撮影', why: g ? `揺れを抑えるなら ${g.name}。` : '' }); sum.push('手持ち'); }

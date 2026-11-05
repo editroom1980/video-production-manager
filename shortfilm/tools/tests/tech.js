@@ -81,6 +81,10 @@ const SP = process.env.SP;
   const heads = await pg.evaluate(() => { const A = window.__kinekoma, out = new Set(); for (const sc of A.P.scenes) for (const c of sc.cuts) { if (!c.cam) continue; for (let k = 0; k < 4; k++) for (const l of A.kitPlan(sc, c, k).lines) out.add(l.b); } return [...out]; });
   ok(!heads.includes('支え') && heads.includes('三脚') && heads.includes('ジンバル'), '見出し：' + heads.join('、'));
   console.log('見出し', heads.join('、'));
+  // 手持ちの案は、ジンバルがあればジンバルで出す（作品データでは S#4 C3 の本線がジンバル）
+  const hj = await pg.evaluate(() => { const A = window.__kinekoma, sc = A.P.scenes.find(s => s.no === '4'), c = JSON.parse(JSON.stringify(sc.cuts[2])); const r0 = A.kitPlan(sc, c, 0).lines.find(l => /ジンバル|手持ち|三脚/.test(l.b)); c.cam = '実景・手持ち・目の高さ。'; delete c.fig.sup; const r1 = A.kitPlan(sc, c, 0).lines.find(l => /ジンバル|手持ち|三脚/.test(l.b)); return [r0.b + ':' + r0.t, r1.b + ':' + (r1.why || '')]; });
+  ok(/^ジンバル:/.test(hj[0]), 'S#4 C3 の本線がジンバルでない：' + hj[0]); ok(/^ジンバル:手持ちの代わりに/.test(hj[1]), '手持ちの案がジンバルにならない：' + hj[1]);
+  console.log('S#4 C3', hj[0]);
   await pg.click('[data-a=tab][data-k=shoot]'); await pg.click('[data-a=day] >> nth=0');
   await pg.click('.scard >> nth=0 >> [data-a=openRec]'); await pg.waitForTimeout(200);
   const kb = await pg.evaluate(() => [...document.querySelectorAll('.sheet:last-child .kit .basis button')].map(x => x.dataset.id));
